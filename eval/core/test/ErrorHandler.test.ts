@@ -1,5 +1,7 @@
 import { ErrorHandler } from '../ErrorHandler';
-import { BenchmarkError, PluginError, ConfigurationError } from '../types';
+import { Logger } from '../Logger';
+import { BenchmarkError, PluginError, ConfigurationError, LogLevel, LogEntry } from '../types';
+import * as fs from 'fs';
 
 describe('ErrorHandler', () => {
   describe('Custom Error Types', () => {
@@ -208,6 +210,173 @@ describe('ErrorHandler', () => {
       
       const handledErrors = errorHandler.getHandledErrors();
       expect(handledErrors[0].metadata).toEqual(metadata);
+    });
+  });
+
+  describe('Logging System', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
+    test('should be able to instantiate Logger', () => {
+      expect(() => new Logger()).not.toThrow();
+    });
+
+    test('should configure logging with different levels', () => {
+      const logger = new Logger();
+      
+      expect(typeof logger.setLevel).toBe('function');
+      expect(() => logger.setLevel('DEBUG')).not.toThrow();
+      expect(() => logger.setLevel('INFO')).not.toThrow();
+      expect(() => logger.setLevel('WARN')).not.toThrow();
+      expect(() => logger.setLevel('ERROR')).not.toThrow();
+    });
+
+    test('should log messages at different levels', () => {
+      const logger = new Logger('DEBUG', 1000, false); // Disable default console output
+      
+      logger.debug('Debug message');
+      logger.info('Info message');
+      logger.warn('Warning message');
+      logger.error('Error message');
+      
+      const logs = logger.getLogs();
+      expect(logs.length).toBe(4);
+      expect(logs[0].level).toBe('DEBUG');
+      expect(logs[1].level).toBe('INFO');
+      expect(logs[2].level).toBe('WARN');
+      expect(logs[3].level).toBe('ERROR');
+    });
+
+    test('should respect log level filtering', () => {
+      const logger = new Logger('WARN', 1000, false); // Start with WARN level, disable console
+      
+      logger.debug('Debug message'); // Should be filtered
+      logger.info('Info message');   // Should be filtered
+      logger.warn('Warning message'); // Should be logged
+      logger.error('Error message');  // Should be logged
+      
+      const logs = logger.getLogs();
+      expect(logs.length).toBe(2);
+      expect(logs[0].level).toBe('WARN');
+      expect(logs[1].level).toBe('ERROR');
+    });
+
+    test('should write logs to appropriate outputs', () => {
+      const logger = new Logger('INFO', 1000, false); // Disable console output for test
+      
+      // Test that file output method exists and can be called
+      expect(typeof logger.addFileOutput).toBe('function');
+      expect(() => logger.addFileOutput('./test-logs.txt')).not.toThrow();
+      
+      // Test that custom output method exists
+      expect(typeof logger.addCustomOutput).toBe('function');
+      
+      const customOutput = jest.fn();
+      logger.addCustomOutput(customOutput);
+      logger.info('Test log message');
+      
+      // Verify custom output was called
+      expect(customOutput).toHaveBeenCalled();
+    });
+
+    test('should support structured logging format', () => {
+      const logger = new Logger('INFO', 1000, false);
+      
+      const context = {
+        userId: '123',
+        operation: 'benchmark-run',
+        metadata: { version: '1.0' }
+      };
+      
+      logger.info('Structured log message', context);
+      
+      const logs = logger.getLogs();
+      expect(logs.length).toBe(1);
+      expect(logs[0].context).toEqual(context);
+      expect(logs[0].message).toBe('Structured log message');
+    });
+
+    test('should format log messages consistently', () => {
+      const logger = new Logger('INFO', 1000, false);
+      
+      logger.info('Test message', { key: 'value' });
+      
+      const logs = logger.getLogs();
+      const logEntry = logs[0];
+      
+      expect(logEntry).toHaveProperty('level');
+      expect(logEntry).toHaveProperty('message');
+      expect(logEntry).toHaveProperty('timestamp');
+      expect(logEntry).toHaveProperty('context');
+      expect(logEntry.timestamp).toBeInstanceOf(Date);
+    });
+
+    test('should support multiple output targets', () => {
+      const logger = new Logger('INFO', 1000, false);
+      
+      const consoleOutput = jest.fn();
+      const fileOutput = jest.fn();
+      const customOutput = jest.fn();
+      
+      logger.addConsoleOutput(consoleOutput);
+      logger.addCustomOutput(customOutput);
+      
+      logger.info('Multi-output message');
+      
+      // Verify the logger can handle multiple outputs
+      expect(typeof logger.addConsoleOutput).toBe('function');
+      expect(typeof logger.addCustomOutput).toBe('function');
+    });
+
+    test('should handle log rotation', () => {
+      const logger = new Logger('INFO', 1000, false);
+      
+      // Add many log entries to test rotation
+      for (let i = 0; i < 1005; i++) {
+        logger.info(`Log message ${i}`);
+      }
+      
+      const logs = logger.getLogs();
+      // Should maintain maximum log count (default 1000)
+      expect(logs.length).toBeLessThanOrEqual(1000);
+    });
+
+    test('should export logs in different formats', () => {
+      const logger = new Logger('INFO', 1000, false);
+      
+      logger.info('Test message 1');
+      logger.warn('Test message 2');
+      logger.error('Test message 3');
+      
+      // JSON format
+      const jsonLogs = logger.exportLogs('json');
+      expect(typeof jsonLogs).toBe('string');
+      const parsed = JSON.parse(jsonLogs);
+      expect(Array.isArray(parsed)).toBe(true);
+      
+      // Text format
+      const textLogs = logger.exportLogs('text');
+      expect(typeof textLogs).toBe('string');
+      expect(textLogs).toContain('Test message 1');
+      expect(textLogs).toContain('Test message 2');
+    });
+
+    test('should integrate with ErrorHandler', () => {
+      const logger = new Logger('INFO', 1000, false);
+      const errorHandler = new ErrorHandler();
+      
+      // Set logger as the error handler's logger
+      errorHandler.setLogger((level, message, context) => {
+        logger.log(level, message, context);
+      });
+      
+      errorHandler.handleError(new BenchmarkError('Integration test error'));
+      
+      const logs = logger.getLogs();
+      expect(logs.length).toBe(1);
+      expect(logs[0].level).toBe('ERROR');
+      expect(logs[0].message).toBe('Integration test error');
     });
   });
 });
