@@ -81,49 +81,49 @@
   - [x] Run tests again to verify they pass
 
 ### 4. MetricsCollector Class Foundation Tests
-- [ ] **Write test for MetricsCollector interface**
-  - [ ] Create `eval/core/test/MetricsCollector.test.ts`
-  - [ ] Write test that verifies MetricsCollector can be instantiated
-  - [ ] Write test that verifies it can record latency metrics
-  - [ ] Write test that verifies it can record token usage metrics
-  - [ ] Write test that verifies it can record custom metrics
-  - [ ] Run tests to verify they fail (class doesn't exist yet)
-  - [ ] Create `eval/core/MetricsCollector.ts` with basic metrics recording
-  - [ ] Run tests again to verify they pass
+- [x] **Write test for MetricsCollector interface**
+  - [x] Create `eval/core/test/MetricsCollector.test.ts`
+  - [x] Write test that verifies MetricsCollector can be instantiated
+  - [x] Write test that verifies it can record latency metrics
+  - [x] Write test that verifies it can record token usage metrics
+  - [x] Write test that verifies it can record custom metrics
+  - [x] Run tests to verify they fail (class doesn't exist yet)
+  - [x] Create `eval/core/MetricsCollector.ts` with basic metrics recording
+  - [x] Run tests again to verify they pass
 
-- [ ] **Write test for metrics aggregation**
-  - [ ] Add test that verifies metrics can be aggregated across multiple runs
-  - [ ] Add test that verifies statistical calculations (mean, median, percentiles)
-  - [ ] Add test that verifies metrics can be exported in different formats
-  - [ ] Run tests to verify they fail (aggregation not implemented)
-  - [ ] Implement metrics aggregation and statistical calculations
-  - [ ] Run tests again to verify they pass
+- [x] **Write test for metrics aggregation**
+  - [x] Add test that verifies metrics can be aggregated across multiple runs
+  - [x] Add test that verifies statistical calculations (mean, median, percentiles)
+  - [x] Add test that verifies metrics can be exported in different formats
+  - [x] Run tests to verify they fail (aggregation not implemented)
+  - [x] Implement metrics aggregation and statistical calculations
+  - [x] Run tests again to verify they pass
 
-- [ ] **Write test for metrics persistence**
-  - [ ] Add test that verifies metrics can be persisted to disk
-  - [ ] Add test that verifies metrics can be loaded from storage
-  - [ ] Add test that verifies metrics history tracking
-  - [ ] Run tests to verify they fail (persistence not implemented)
-  - [ ] Implement metrics persistence using JSON files
-  - [ ] Run tests again to verify they pass
+- [x] **Write test for metrics persistence**
+  - [x] Add test that verifies metrics can be persisted to disk
+  - [x] Add test that verifies metrics can be loaded from storage
+  - [x] Add test that verifies metrics history tracking
+  - [x] Run tests to verify they fail (persistence not implemented)
+  - [x] Implement metrics persistence using JSON files
+  - [x] Run tests again to verify they pass
 
 ### 5. Error Handling and Logging Foundation Tests
-- [ ] **Write test for error handling system**
-  - [ ] Create `eval/core/test/ErrorHandler.test.ts`
-  - [ ] Write test that verifies custom error types are defined
-  - [ ] Write test that verifies error handling doesn't crash the system
-  - [ ] Write test that verifies errors are logged with appropriate context
-  - [ ] Run tests to verify they fail (error handling not implemented)
-  - [ ] Create `eval/core/ErrorHandler.ts` with custom error types
-  - [ ] Run tests again to verify they pass
+- [x] **Write test for error handling system**
+  - [x] Create `eval/core/test/ErrorHandler.test.ts`
+  - [x] Write test that verifies custom error types are defined
+  - [x] Write test that verifies error handling doesn't crash the system
+  - [x] Write test that verifies errors are logged with appropriate context
+  - [x] Run tests to verify they fail (error handling not implemented)
+  - [x] Create `eval/core/ErrorHandler.ts` with custom error types
+  - [x] Run tests again to verify they pass
 
-- [ ] **Write test for logging system**
-  - [ ] Add test that verifies logging can be configured with different levels
-  - [ ] Add test that verifies logs are written to appropriate outputs
-  - [ ] Add test that verifies structured logging format
-  - [ ] Run tests to verify they fail (logging not implemented)
-  - [ ] Implement logging system with configurable levels and outputs
-  - [ ] Run tests again to verify they pass
+- [x] **Write test for logging system**
+  - [x] Add test that verifies logging can be configured with different levels
+  - [x] Add test that verifies logs are written to appropriate outputs
+  - [x] Add test that verifies structured logging format
+  - [x] Run tests to verify they fail (logging not implemented)
+  - [x] Implement logging system with configurable levels and outputs
+  - [x] Run tests again to verify they pass
 
 ### Final Integration Tests
 - [x] **Write integration tests for micro-kernel components**
