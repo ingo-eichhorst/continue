@@ -1,4 +1,4 @@
-import { readFileSync, existsSync } from 'fs';
+import { existsSync, readFileSync } from 'fs';
 import { join, resolve } from 'path';
 import { Dataset, Logger } from './types.js';
 
@@ -155,54 +155,5 @@ export class DatasetLoader {
       this.logger.error('Failed to list available datasets', error as Error);
       return [];
     }
-  }
-
-  // Method to get default dataset for a plugin
-  getDefaultDatasetPath(pluginName: string): string {
-    const defaultPaths: Record<string, string> = {
-      'unified-diff-testing': 'diff-dataset',
-      'system-prompt-optimization': 'prompt-opt-dataset',
-      'prompt-evaluation': 'context-dataset'
-    };
-
-    return defaultPaths[pluginName] || 'default-dataset';
-  }
-
-  // Method to create a simple dataset for testing
-  createMockDataset(name: string = 'mock-dataset'): Dataset {
-    this.logger.warn('Creating mock dataset - implement proper dataset files');
-    
-    return {
-      name: 'mock-diff-dataset',
-      description: 'Mock dataset for unified diff testing',
-      version: '1.0.0',
-      testCases: [
-        {
-          id: 'test-001',
-          name: 'Simple function modification',
-          input: {
-            prompt: 'Add error handling to the function',
-            sourceCode: `function calculate(a, b) {\n  return a + b;\n}`,
-            additionalData: {
-              modificationPrompt: 'Add try-catch error handling to this function'
-            }
-          },
-          expected: {
-            shouldPass: true,
-            validationRules: [{
-              type: 'custom',
-              config: { diffShouldApply: true }
-            }]
-          }
-        }
-      ],
-      metadata: {
-        language: 'javascript',
-        difficulty: 'easy',
-        tags: ['functions', 'error-handling'],
-        createdAt: new Date(),
-        modifiedAt: new Date()
-      }
-    };
   }
 }
