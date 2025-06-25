@@ -8,7 +8,7 @@
     "strict": true,
     "skipLibCheck": true,
     "outDir": "./dist",
-    "baseUrl": "..",
+    "baseUrl": ".",
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
@@ -20,17 +20,30 @@
     "allowImportingTsExtensions": false,
     "noEmit": false,
     "isolatedModules": false,
-    "verbatimModuleSyntax": false
+    "verbatimModuleSyntax": false,
+    "paths": {
+      "@aws-sdk/*": ["../node_modules/@aws-sdk/*"],
+      "@continuedev/*": ["../node_modules/@continuedev/*"],
+      "@modelcontextprotocol/*": ["../node_modules/@modelcontextprotocol/*"],
+      "openai": ["../node_modules/openai"],
+      "ollama": ["../node_modules/ollama"],
+      "replicate": ["../node_modules/replicate"]
+    }
   },
   "include": [
-    "**/*.ts",
-    "**/*.tsx"
+    "cli/**/*.ts",
+    "core/**/*.ts",
+    "datasets/**/*.ts",
+    "execution/**/*.ts",
+    "plugins/**/*.ts",
+    "scripts/**/*.ts"
   ],
   "exclude": [
     "node_modules",
     "dist",
     "**/*.test.ts",
-    "**/*.spec.ts"
+    "**/*.spec.ts",
+    "../core/**/*"
   ],
   "ts-node": {
     "esm": true

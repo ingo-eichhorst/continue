@@ -1,7 +1,9 @@
 import { existsSync, readFileSync } from 'fs';
 import { homedir } from 'os';
 import { join } from 'path';
-import { ILLM, Logger } from './types.js';
+import type { ILLM, LLMOptions } from '../../core/index.js';
+import { llmFromProviderAndOptions } from '../../core/llm/llms/index.js';
+import { Logger } from './types.js';
 
 export class ModelLoader {
   private logger: Logger;
@@ -35,10 +37,15 @@ export class ModelLoader {
       }
       
       if (model) {
-        // Convert config to ILLM instance
-        const llmInstance = this.createLLMFromConfig(model);
-        requestedModels.push(llmInstance);
-        this.logger.info(`Loaded model: ${model.title || model.model} (${model.provider || 'unknown'})`);
+        try {
+          // Use Continue's factory function to create actual provider instances
+          const llmInstance = await this.createLLMFromConfig(model.provider, model);
+          requestedModels.push(llmInstance);
+          this.logger.info(`Loaded model: ${model.title || model.model} (${model.provider || 'unknown'})`);
+        } catch (error) {
+          this.logger.error(`Failed to create LLM instance for ${model.title || model.model}:`, error as Error);
+          notFoundModels.push(modelId);
+        }
       } else {
         notFoundModels.push(modelId);
       }
@@ -82,46 +89,23 @@ export class ModelLoader {
     throw new Error(`No Continue configuration found. Please ensure a config.json file exists in one of these locations: ${configPaths.join(', ')}`);
   }
 
-  private createLLMFromConfig(modelConfig: any): ILLM {
-    // Create an ILLM instance from Continue config
-    // This should integrate with actual LLM provider instances
-    
-    const modelId = modelConfig.title || modelConfig.model;
-    const provider = modelConfig.provider || modelConfig.providerName;
-    const apiKey = modelConfig.apiKey;
-    
-    if (!modelId) {
+  private async createLLMFromConfig(provider: string, modelConfig: LLMOptions): Promise<ILLM> {
+    if (!modelConfig.model) {
       throw new Error(`Model configuration missing title or model name: ${JSON.stringify(modelConfig)}`);
     }
+        
+    // Create LLMOptions from config
+    const llmOptions: LLMOptions = modelConfig
+
+    // Use Continue's factory function to create the LLM instance
+    const continueModel = llmFromProviderAndOptions(provider, llmOptions);
     
-    if (!provider) {
-      throw new Error(`Model configuration missing provider for model ${modelId}: ${JSON.stringify(modelConfig)}`);
+    if (!continueModel) {
+      throw new Error(`Failed to create LLM instance for provider "${provider}". Provider not found in Continue's LLM registry.`);
     }
-    
-    if (!apiKey) {
-      throw new Error(`Model configuration missing API key for model ${modelId} (provider: ${provider}). Please configure apiKey in your Continue config.`);
-    }
-    
-    // Create ILLM instance from config
-    // TODO: This should create actual provider instances, not placeholder objects
-    const llmInstance: ILLM = {
-      uniqueId: `${provider}-${modelId}`,
-      model: modelConfig.model || modelId,
-      title: modelConfig.title || modelId,
-      providerName: provider,
-      contextLength: modelConfig.contextLength || 4096,
-      completionOptions: modelConfig.completionOptions || {
-        temperature: 0.1,
-        maxTokens: 1000
-      },
-      
-      async *streamChat() {
-        throw new Error(`Model ${modelId} (${provider}) requires actual LLM provider implementation. This is a placeholder that only validates configuration.`);
-      }
-    };
-    
-    this.logger.info(`Created model instance: ${modelId} (${provider})`);
-    return llmInstance;
+        
+    this.logger.info(`Created model instance: ${modelConfig.model} (${provider}) using Continue's ${continueModel.constructor.name}`);
+    return continueModel;
   }
 
   // Method to list available models from Continue config

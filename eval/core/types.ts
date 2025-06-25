@@ -1,18 +1,8 @@
-// Simplified types for Continue.dev integration
+import type { ILLM } from '../../core/index.js';
+
 export interface ChatMessage {
   role: 'user' | 'assistant' | 'system';
   content: string;
-}
-
-export interface ILLM {
-  uniqueId: string;
-  model: string;
-  title?: string;
-  providerName: string;
-  contextLength: number;
-  completionOptions: any;
-  
-  streamChat(messages: ChatMessage[], options?: any): AsyncIterableIterator<{ content?: string; usage?: any }>;
 }
 
 // Core benchmark interfaces

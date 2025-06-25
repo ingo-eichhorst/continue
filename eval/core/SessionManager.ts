@@ -1,5 +1,5 @@
 import { promises as fs } from 'fs';
-import { join, dirname } from 'path';
+import { join } from 'path';
 import { BenchmarkSession, Logger } from './types.js';
 
 export class SessionManager {
@@ -114,16 +114,6 @@ export class SessionManager {
     }
   }
 
-  async deleteSession(sessionId: string): Promise<void> {
-    try {
-      const sessionPath = join(this.sessionsDir, `${sessionId}.json`);
-      await fs.unlink(sessionPath);
-      this.sessions.delete(sessionId);
-      this.logger.info(`Deleted session: ${sessionId}`);
-    } catch (error) {
-      this.logger.warn(`Failed to delete session ${sessionId}:`, error);
-    }
-  }
 
   listSessions(): BenchmarkSession[] {
     return Array.from(this.sessions.values());
@@ -156,11 +146,6 @@ export class SessionManager {
     );
   }
 
-  async getSessionsByPlugin(pluginName: string): Promise<BenchmarkSession[]> {
-    return this.listSessions().filter(session => 
-      session.pluginName === pluginName
-    );
-  }
 
   async updateSession(session: BenchmarkSession): Promise<void> {
     session.lastUpdateTime = new Date();
@@ -179,7 +164,9 @@ export class SessionManager {
 
   // Utility methods for session recovery
   async findResumableSession(pluginName: string): Promise<BenchmarkSession | null> {
-    const sessions = await this.getSessionsByPlugin(pluginName);
+    const sessions = this.listSessions().filter(session => 
+      session.pluginName === pluginName
+    );
     
     // Find the most recent paused or failed session
     const resumableSessions = sessions.filter(session => 
@@ -194,22 +181,6 @@ export class SessionManager {
     );
   }
 
-  async cleanupOldSessions(maxAge: number = 30 * 24 * 60 * 60 * 1000): Promise<void> {
-    const now = Date.now();
-    const cutoffTime = now - maxAge;
-    
-    const sessions = this.listSessions();
-    const oldSessions = sessions.filter(session => 
-      session.lastUpdateTime.getTime() < cutoffTime && 
-      session.status === 'completed'
-    );
-
-    for (const session of oldSessions) {
-      await this.deleteSession(session.id);
-    }
-
-    this.logger.info(`Cleaned up ${oldSessions.length} old sessions`);
-  }
 
   // Session statistics
   getSessionStats(): {
@@ -252,39 +223,5 @@ export class SessionManager {
     return stats;
   }
 
-  // Export/Import functionality
-  async exportSession(sessionId: string, outputPath: string): Promise<void> {
-    const session = await this.loadSession(sessionId);
-    if (!session) {
-      throw new Error(`Session ${sessionId} not found`);
-    }
 
-    const exportData = {
-      session,
-      exportedAt: new Date(),
-      version: '1.0'
-    };
-
-    await fs.mkdir(dirname(outputPath), { recursive: true });
-    await fs.writeFile(outputPath, JSON.stringify(exportData, null, 2), 'utf-8');
-    this.logger.info(`Exported session ${sessionId} to ${outputPath}`);
-  }
-
-  async importSession(inputPath: string): Promise<BenchmarkSession> {
-    try {
-      const importData = JSON.parse(await fs.readFile(inputPath, 'utf-8'));
-      const session: BenchmarkSession = importData.session;
-      
-      // Convert date strings back to Date objects
-      session.startTime = new Date(session.startTime);
-      session.lastUpdateTime = new Date(session.lastUpdateTime);
-      
-      await this.saveSession(session);
-      this.logger.info(`Imported session ${session.id} from ${inputPath}`);
-      return session;
-    } catch (error) {
-      this.logger.error(`Failed to import session from ${inputPath}`, error as Error);
-      throw error;
-    }
-  }
 }

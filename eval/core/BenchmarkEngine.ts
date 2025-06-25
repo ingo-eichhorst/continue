@@ -1,4 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
+import type { ILLM } from '../../core/index.js';
+import { SessionManager } from './SessionManager.js';
 import {
   BenchmarkContext,
   BenchmarkMetrics,
@@ -7,12 +9,11 @@ import {
   BenchmarkSession,
   Dataset,
   ExecutionEnvironment,
-  ILLM,
   Logger,
   ResultSummary,
   TestCaseResult
 } from './types.js';
-import { SessionManager } from './SessionManager.js';
+
 
 export class BenchmarkEngine {
   private plugins: Map<string, BenchmarkPlugin> = new Map();

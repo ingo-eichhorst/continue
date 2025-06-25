@@ -2,18 +2,17 @@
   "name": "@continuedev/eval",
   "version": "0.1.0",
   "description": "Benchmarking framework for Continue.dev LLM evaluation",
-  "main": "dist/cli/main.js",
-  "type": "module",
+  "main": "dist/eval/cli/main.js",
   "scripts": {
     "build": "tsc",
     "build:watch": "tsc --watch",
-    "dev": "tsx cli/main.ts",
+    "dev": "cd .. && npx tsx eval/cli/main.ts",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "lint": "eslint . --ext .ts",
     "lint:fix": "eslint . --ext .ts --fix",
-    "benchmark": "node dist/cli/main.js"
+    "benchmark": "node dist/eval/cli/main.js"
   },
   "dependencies": {
     "chalk": "^5.3.0",
@@ -36,8 +35,9 @@
     "tsx": "^4.6.0",
     "typescript": "^5.3.2"
   },
+  "engine-strict": true,
   "engines": {
-    "node": ">=20.0.0"
+    "node": ">=20.19.0"
   },
   "keywords": [
     "continue",

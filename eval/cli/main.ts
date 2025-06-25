@@ -1,18 +1,40 @@
 #!/usr/bin/env node
+// Create a no-op AbortSignal implementation
+class NoOpAbortSignal extends EventTarget implements AbortSignal {
+  aborted = false;
+  reason = undefined;
+  onabort = null;
+  
+  throwIfAborted(): void {
+    // No-op
+  }
+}
 
+const NoOpAbortSignalConstructor = {
+  new: () => new NoOpAbortSignal(),
+  prototype: NoOpAbortSignal.prototype,
+  abort: () => new NoOpAbortSignal(),
+  any: () => new NoOpAbortSignal(),
+  timeout: () => new NoOpAbortSignal(),
+} as any;
+
+globalThis.AbortSignal = NoOpAbortSignalConstructor;
+
+import chalk from 'chalk';
 import { Command } from 'commander';
-import { join } from 'path';
+import ora from 'ora';
+import { dirname, join } from 'path';
+import { fileURLToPath } from 'url';
+import type { ILLM } from '../../core/index.js';
 import { BenchmarkEngine } from '../core/BenchmarkEngine.js';
-import { SessionManager } from '../core/SessionManager.js';
+import { DatasetLoader } from '../core/DatasetLoader.js';
 import { ConsoleLogger } from '../core/Logger.js';
 import { ModelLoader } from '../core/ModelLoader.js';
-import { DatasetLoader } from '../core/DatasetLoader.js';
-import { LocalExecutionEnvironment } from '../execution/LocalRunner.js';
+import { SessionManager } from '../core/SessionManager.js';
+import { Dataset } from '../core/types.js';
 import { DockerExecutionEnvironment } from '../execution/DockerRunner.js';
+import { LocalExecutionEnvironment } from '../execution/LocalRunner.js';
 import { UnifiedDiffPlugin } from '../plugins/unified-diff/UnifiedDiffPlugin.js';
-import { CLIOptions, Dataset, ILLM, ChatMessage } from '../core/types.js';
-import chalk from 'chalk';
-import ora from 'ora';
 
 const program = new Command();
 
@@ -55,14 +77,6 @@ program
   .description('Show details of a specific session')
   .action(async (sessionId: string) => {
     await showSession(sessionId);
-  });
-
-program
-  .command('cleanup')
-  .description('Clean up old completed sessions')
-  .option('--days <number>', 'Remove sessions older than N days', '30')
-  .action(async (options) => {
-    await cleanupSessions(options);
   });
 
 program
@@ -201,15 +215,7 @@ async function runBenchmark(options: any): Promise<void> {
 async function loadModels(modelString: string, logger: ConsoleLogger): Promise<ILLM[]> {
   const modelIds = modelString.split(',').map(id => id.trim());
   const modelLoader = new ModelLoader(logger);
-  
-  // Check API keys
-  const apiKeyValidation = await modelLoader.validateApiKeys();
-  if (!apiKeyValidation.valid) {
-    logger.warn(`Missing API keys: ${apiKeyValidation.missing.join(', ')}. Using mock models.`);
-  } else {
-    logger.info(`API Keys available: ${apiKeyValidation.fromConfig} from config, ${apiKeyValidation.fromEnv} from environment`);
-  }
-  
+
   try {
     return await modelLoader.loadModels(modelIds);
   } catch (error) {
@@ -224,7 +230,9 @@ async function loadModelsFromConfig(modelIds: string[], logger: ConsoleLogger): 
 
 async function loadDataset(datasetPath: string, logger: ConsoleLogger): Promise<Dataset> {
   // Ensure we're using the eval directory as base for dataset loading
-  const evalDir = process.cwd();
+  // Get the directory where this script is located (eval/cli) and go up to eval directory
+  const currentDir = dirname(fileURLToPath(import.meta.url));
+  const evalDir = dirname(currentDir); // Go up from eval/cli to eval
   logger.debug(`Loading dataset from base directory: ${evalDir}`);
   
   const datasetLoader = new DatasetLoader(logger, evalDir);
@@ -234,7 +242,7 @@ async function loadDataset(datasetPath: string, logger: ConsoleLogger): Promise<
   } catch (error) {
     logger.error(`Failed to load dataset from ${datasetPath}`, error as Error);
     logger.warn('Falling back to mock dataset');
-    return datasetLoader.createMockDataset();
+    throw error;
   }
 }
 
@@ -371,18 +379,6 @@ async function showSession(sessionId: string): Promise<void> {
   console.log(`Models: ${session.config.models.join(', ')}`);
 }
 
-async function cleanupSessions(options: any): Promise<void> {
-  const logger = new ConsoleLogger(false);
-  const sessionsDir = join(process.cwd(), '.sessions');
-  const sessionManager = new SessionManager(sessionsDir, logger);
-  
-  await sessionManager.initialize();
-  const maxAge = parseInt(options.days) * 24 * 60 * 60 * 1000;
-  
-  await sessionManager.cleanupOldSessions(maxAge);
-  console.log(chalk.green(`Cleaned up sessions older than ${options.days} days`));
-}
-
 async function validateEnvironment(options: any): Promise<void> {
   const logger = new ConsoleLogger(true);
   
@@ -412,15 +408,6 @@ async function listModels(options: any): Promise<void> {
   try {
     console.log(chalk.bold('Available Models'));
     console.log('================');
-    
-    // Check API keys
-    const apiKeyValidation = await modelLoader.validateApiKeys();
-    if (!apiKeyValidation.valid) {
-      console.log(chalk.yellow(`Warning: Missing API keys: ${apiKeyValidation.missing.join(', ')}`));
-      console.log(chalk.gray('Some models may not be available without proper API keys.\n'));
-    } else {
-      console.log(chalk.green(`✓ API Keys: ${apiKeyValidation.fromConfig} from config, ${apiKeyValidation.fromEnv} from environment\n`));
-    }
     
     const availableModels = await modelLoader.listAvailableModels();
     
