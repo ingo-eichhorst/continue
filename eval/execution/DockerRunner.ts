@@ -202,6 +202,7 @@ export class DockerExecutionEnvironment implements ExecutionEnvironment {
     const { Readable } = require("stream");
 
     let fileIndex = 0;
+    const createTarHeader = this.createTarHeader.bind(this);
 
     return new Readable({
       read() {
@@ -211,7 +212,7 @@ export class DockerExecutionEnvironment implements ExecutionEnvironment {
         }
 
         const file = files[fileIndex++];
-        const header = this.createTarHeader(file.name, file.data.length);
+        const header = createTarHeader(file.name, file.data.length);
 
         this.push(header);
         this.push(file.data);
@@ -348,7 +349,7 @@ export class DockerExecutionEnvironment implements ExecutionEnvironment {
         timeout,
       );
 
-      // Create and run container
+      // Create container
       const container = await this.docker.createContainer(containerConfig);
 
       let stdout = "";
@@ -356,6 +357,23 @@ export class DockerExecutionEnvironment implements ExecutionEnvironment {
       let exitCode = 0;
 
       try {
+        // Upload files to container
+        const { filename } = this.getExecutionCommand(language);
+        const containerFiles: Record<string, string> = {
+          [filename]: combinedCode,
+          ...files,
+        };
+        
+        const fileContents = Object.entries(containerFiles).map(
+          ([path, content]) => ({
+            name: path,
+            data: Buffer.from(content, "utf-8"),
+          }),
+        );
+        
+        const tarStream = this.createTarStream(fileContents);
+        await container.putArchive(tarStream, { path: workingDirectory });
+
         // Start container
         await container.start();
 
