@@ -1,18 +1,17 @@
-import { 
-  BenchmarkPlugin, 
-  BenchmarkContext, 
-  BenchmarkResult, 
-  TestCaseResult,
-  UnifiedDiffTestCase,
-  ValidationResult,
+import {
+  BenchmarkContext,
+  BenchmarkPlugin,
+  BenchmarkResult,
+  ChatMessage,
   LLMRequest,
   LLMResponse,
-  BenchmarkError,
-  ChatMessage
+  TestCaseResult,
+  UnifiedDiffTestCase,
+  ValidationResult
 } from '../../core/types.js';
 
 // Import Continue's actual diff functions (local copy)
-import { applyUnifiedDiff, isUnifiedDiffFormat } from '../../core/unifiedDiffApply.js';
+import { applyUnifiedDiff, isUnifiedDiffFormat } from '../../../core/edit/lazy/unifiedDiffApply.js';
 
 export class UnifiedDiffPlugin implements BenchmarkPlugin {
   name = 'unified-diff-testing';
