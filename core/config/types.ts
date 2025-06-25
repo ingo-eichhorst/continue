@@ -719,7 +719,7 @@ declare global {
   
     getPinnedFiles(): Promise<string[]>;
   
-    getSearchResults(query: string): Promise<string>;
+    getSearchResults(query: string, maxResults?: number): Promise<string>;
   
     subprocess(command: string, cwd?: string): Promise<[string, string]>;
   
@@ -742,8 +742,6 @@ declare global {
     listDir(dir: string): Promise<[string, FileType][]>;
   
     getLastModified(files: string[]): Promise<{ [path: string]: number }>;
-  
-    getGitHubAuthToken(args: GetGhTokenArgs): Promise<string | undefined>;
   
     // LSP
     gotoDefinition(location: Location): Promise<RangeInFile[]>;

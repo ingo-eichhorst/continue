@@ -65,6 +65,12 @@ const config = {
     ],
   ],
 
+  scripts: [
+    {
+      src: "/scripts/custom-reo.js", // it references from static folder
+    },
+  ],
+
   themeConfig:
     /** @type {import("@docusaurus/preset-classic").ThemeConfig} */
     ({
@@ -197,6 +203,23 @@ const config = {
       },
     }),
   plugins: [
+    [
+      "posthog-docusaurus",
+      {
+        apiKey: process.env.POSTHOG_API_KEY || "DEV",
+        appUrl: "https://us.i.posthog.com",
+        enableInDevelopment: false,
+      },
+    ],
+    [
+      "docusaurus-plugin-llms-txt",
+      {
+        // Optional configuration
+        outputPath: "static/llms.txt",
+        includePatterns: ["docs/**"],
+        excludePatterns: ["**/node_modules/**"],
+      },
+    ],
     [
       "@docusaurus/plugin-client-redirects",
       {

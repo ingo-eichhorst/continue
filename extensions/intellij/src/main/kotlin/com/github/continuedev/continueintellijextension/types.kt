@@ -1,5 +1,6 @@
 package com.github.continuedev.continueintellijextension
 
+import com.github.continuedev.continueintellijextension.editor.RangeInFileWithContents
 import com.google.gson.JsonElement
 
 enum class ToastType(val value: String) {
@@ -156,9 +157,9 @@ interface IDE {
 
     suspend fun getPinnedFiles(): List<String>
 
-    suspend fun getSearchResults(query: String): String
+    suspend fun getSearchResults(query: String, maxResults: Int?): String
 
-    suspend fun getFileResults(pattern: String): List<String>
+    suspend fun getFileResults(pattern: String, maxResults: Int?): List<String>
 
     // Note: This should be a `Pair<String, String>` but we use `List<Any>` because the keys of `Pair`
     // will serialize to `first and `second` rather than `0` and `1` like in JavaScript
@@ -186,22 +187,12 @@ interface IDE {
 
     suspend fun getFileStats(files: List<String>): Map<String, FileStats>
 
-    suspend fun getGitHubAuthToken(args: GetGhTokenArgs): String?
-
     // LSP
     suspend fun gotoDefinition(location: Location): List<RangeInFile>
 
     // Callbacks
     fun onDidChangeActiveTextEditor(callback: (filepath: String) -> Unit)
-
-    fun updateLastFileSaveTimestamp() {
-        // Default implementation does nothing
-    }
 }
-
-data class GetGhTokenArgs(
-    val force: String?
-)
 
 data class Message(
     val messageType: String,
@@ -213,3 +204,45 @@ data class Message(
 data class AcceptRejectDiff(val accepted: Boolean, val stepIndex: Int)
 
 data class DeleteAtIndex(val index: Int)
+
+enum class ApplyStateStatus(val status: String) {
+    NOT_STARTED("not-started"),
+    STREAMING("streaming"),
+    DONE("done"),
+    CLOSED("closed");
+}
+
+data class ApplyState(
+    val streamId: String,
+    val status: String,
+    val numDiffs: Int? = null,
+    val filepath: String? = null,
+    val fileContent: String? = null,
+    val toolCallId: String? = null
+)
+
+data class HighlightedCodePayload(
+    val rangeInFileWithContents: com.github.continuedev.continueintellijextension.RangeInFileWithContents,
+    val prompt: String? = null,
+    val shouldRun: Boolean? = null
+)
+
+data class StreamDiffLinesPayload(
+    val prefix: String,
+    val highlighted: String,
+    val suffix: String,
+    val input: String,
+    val language: String?,
+    val modelTitle: String?,
+    val includeRulesInSystemMessage: Boolean,
+    val fileUri: String?
+)
+
+data class AcceptOrRejectDiffPayload(
+    val filepath: String? = null,
+    val streamId: String? = null
+)
+
+data class ShowFilePayload(
+    val filepath: String
+)

@@ -8,7 +8,7 @@ import {
   SlashCommandDescription,
 } from "core";
 import * as URI from "uri-js";
-import { resolveEditorContent } from "../../components/mainInput/TipTapEditor/utils";
+import { resolveEditorContent } from "../../components/mainInput/TipTapEditor";
 import { selectSelectedChatModel } from "../slices/configSlice";
 import { ThunkApiType } from "../store";
 
@@ -62,7 +62,7 @@ export const gatherContext = createAsyncThunk<
 
     // Automatically use currently open file
     if (!modifiers.noContext) {
-      const usingFreeTrial = selectedChatModel.provider === "free-trial";
+      const usingFreeTrial = false; // TODO no longer tracking free trial count, need to hook up to hub
 
       const currentFileResponse = await extra.ideMessenger.request(
         "context/getContextItems",

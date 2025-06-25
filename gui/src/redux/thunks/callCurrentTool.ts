@@ -1,6 +1,7 @@
 import { createAsyncThunk, unwrapResult } from "@reduxjs/toolkit";
 import { ContextItem } from "core";
-import { CLIENT_TOOLS } from "core/tools/builtIn";
+import { CLIENT_TOOLS_IMPLS } from "core/tools/builtIn";
+import posthog from "posthog-js";
 import { callClientTool } from "../../util/clientTools/callClientTool";
 import { selectCurrentToolCall } from "../selectors/selectCurrentToolCall";
 import { selectSelectedChatModel } from "../slices/configSlice";
@@ -45,13 +46,16 @@ export const callCurrentTool = createAsyncThunk<void, undefined, ThunkApiType>(
     let errorMessage: string | undefined = undefined;
     let streamResponse: boolean;
 
+    // Check if telemetry is enabled
+    const allowAnonymousTelemetry = state.config.config.allowAnonymousTelemetry;
+
     // IMPORTANT:
     // Errors that occur while calling tool call implementations
     // Are caught and passed in output as context items
     // Errors that occur outside specifically calling the tool
     // Should not be caught here - should be handled as normal stream errors
     if (
-      CLIENT_TOOLS.find(
+      CLIENT_TOOLS_IMPLS.find(
         (toolName) => toolName === toolCallState.toolCall.function.name,
       )
     ) {
@@ -60,7 +64,7 @@ export const callCurrentTool = createAsyncThunk<void, undefined, ThunkApiType>(
         output: clientToolOuput,
         respondImmediately,
         errorMessage: clientToolError,
-      } = await callClientTool(toolCallState.toolCall, {
+      } = await callClientTool(toolCallState, {
         dispatch,
         ideMessenger: extra.ideMessenger,
         streamId: state.session.codeBlockApplyStates.states.find(
@@ -108,6 +112,17 @@ export const callCurrentTool = createAsyncThunk<void, undefined, ThunkApiType>(
           contextItems: output,
         }),
       );
+    }
+
+    // Because we don't have access to use hooks, we check `allowAnonymousTelemetry`
+    // directly rather than using `CustomPostHogProvider`
+    if (allowAnonymousTelemetry) {
+      // Capture telemetry for tool calls
+      posthog.capture("gui_tool_call_outcome", {
+        succeeded: errorMessage === undefined,
+        toolName: toolCallState.toolCall.function.name,
+        errorMessage: errorMessage,
+      });
     }
 
     if (streamResponse) {

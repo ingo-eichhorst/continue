@@ -1,4 +1,6 @@
 import { ConfigHandler } from "core/config/ConfigHandler";
+import { DataLogger } from "core/data/log";
+import { EDIT_MODE_STREAM_ID } from "core/edit/constants";
 import {
   FromCoreProtocol,
   FromWebviewProtocol,
@@ -15,7 +17,6 @@ import {
 import { stripImages } from "core/util/messageContent";
 import * as vscode from "vscode";
 
-import { EDIT_MODE_STREAM_ID } from "core/edit/constants";
 import { ApplyManager } from "../apply";
 import { VerticalDiffManager } from "../diff/vertical/manager";
 import { addCurrentSelectionToEdit } from "../quickEdit/AddCurrentSelection";
@@ -228,6 +229,19 @@ export class VsCodeMessenger {
         ),
         rulesToInclude: config.rules,
       });
+
+      // Log dev data
+      await DataLogger.getInstance().logDevData({
+        name: "editInteraction",
+        data: {
+          prompt: stripImages(prompt),
+          completion: fileAfterEdit ?? "",
+          modelProvider: model.underlyingProviderName,
+          modelTitle: model.title ?? "",
+          filepath: msg.data.range.filepath,
+        },
+      });
+
       return fileAfterEdit;
     });
 
@@ -307,10 +321,10 @@ export class VsCodeMessenger {
       await ide.runCommand(msg.data.command);
     });
     this.onWebviewOrCore("getSearchResults", async (msg) => {
-      return ide.getSearchResults(msg.data.query);
+      return ide.getSearchResults(msg.data.query, msg.data.maxResults);
     });
     this.onWebviewOrCore("getFileResults", async (msg) => {
-      return ide.getFileResults(msg.data.pattern);
+      return ide.getFileResults(msg.data.pattern, msg.data.maxResults);
     });
     this.onWebviewOrCore("subprocess", async (msg) => {
       return ide.subprocess(msg.data.command, msg.data.cwd);
@@ -338,9 +352,6 @@ export class VsCodeMessenger {
     this.onWebviewOrCore("showToast", (msg) => {
       this.ide.showToast(...msg.data);
     });
-    this.onWebviewOrCore("getGitHubAuthToken", (msg) =>
-      ide.getGitHubAuthToken(msg.data),
-    );
     this.onWebviewOrCore("getControlPlaneSessionInfo", async (msg) => {
       return getControlPlaneSessionInfo(
         msg.data.silent,

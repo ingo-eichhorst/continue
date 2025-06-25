@@ -63,6 +63,7 @@ export async function* streamDiffLines({
   highlighted,
   suffix,
   llm,
+  abortController,
   input,
   language,
   onlyOneInsertion,
@@ -73,6 +74,7 @@ export async function* streamDiffLines({
   highlighted: string;
   suffix: string;
   llm: ILLM;
+  abortController: AbortController;
   input: string;
   language: string | undefined;
   onlyOneInsertion: boolean;
@@ -122,6 +124,7 @@ export async function* streamDiffLines({
                 (msg) => msg.role === "user" || msg.role === "tool",
               ) as UserChatMessage | ToolResultChatMessage | undefined),
         baseSystemMessage: undefined,
+        contextItems: [],
       })
     : undefined;
 
@@ -157,7 +160,7 @@ export async function* streamDiffLines({
     content: highlighted,
   };
 
-  const completion = recursiveStream(llm, prompt, prediction);
+  const completion = recursiveStream(llm, abortController, prompt, prediction);
 
   let lines = streamLines(completion);
 

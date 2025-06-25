@@ -5,6 +5,7 @@ import {
   ConverseStreamCommandOutput,
   InvokeModelCommand,
   Message,
+  ToolConfiguration,
 } from "@aws-sdk/client-bedrock-runtime";
 import { fromNodeProviderChain } from "@aws-sdk/credential-providers";
 
@@ -14,6 +15,7 @@ import {
   CompletionOptions,
   LLMOptions,
 } from "../../index.js";
+import { safeParseToolCallArgs } from "../../tools/parseArgs.js";
 import { renderChatMessage, stripImages } from "../../util/messageContent.js";
 import { BaseLLM } from "../index.js";
 import { PROVIDER_TOOL_SUPPORT } from "../toolSupport.js";
@@ -46,7 +48,6 @@ class Bedrock extends BaseLLM {
   static defaultOptions: Partial<LLMOptions> = {
     region: "us-east-1",
     model: "anthropic.claude-3-sonnet-20240229-v1:0",
-    contextLength: 200_000,
     profile: "bedrock",
   };
 
@@ -291,9 +292,13 @@ class Bedrock extends BaseLLM {
     const convertedMessages = this._convertMessages(messages);
 
     const shouldCacheSystemMessage =
-      !!systemMessage && this.cacheBehavior?.cacheSystemMessage;
+      (!!systemMessage && this.cacheBehavior?.cacheSystemMessage) ||
+      this.completionOptions.promptCaching;
     const enablePromptCaching =
-      shouldCacheSystemMessage || this.cacheBehavior?.cacheConversation;
+      shouldCacheSystemMessage ||
+      this.cacheBehavior?.cacheConversation ||
+      this.completionOptions.promptCaching;
+    const shouldCacheToolsConfig = this.completionOptions.promptCaching;
 
     // Add header for prompt caching
     if (enablePromptCaching) {
@@ -304,29 +309,38 @@ class Bedrock extends BaseLLM {
     }
 
     const supportsTools =
-      PROVIDER_TOOL_SUPPORT.bedrock?.(options.model || "") ?? false;
+      (this.capabilities?.tools ||
+        PROVIDER_TOOL_SUPPORT.bedrock?.(options.model)) ??
+      false;
+
+    let toolConfig =
+      supportsTools && options.tools
+        ? ({
+            tools: options.tools.map((tool) => ({
+              toolSpec: {
+                name: tool.function.name,
+                description: tool.function.description,
+                inputSchema: {
+                  json: tool.function.parameters,
+                },
+              },
+            })),
+          } as ToolConfiguration)
+        : undefined;
+
+    if (toolConfig?.tools && shouldCacheToolsConfig) {
+      toolConfig.tools.push({ cachePoint: { type: "default" } });
+    }
+
     return {
       modelId: options.model,
-      messages: convertedMessages,
       system: systemMessage
         ? shouldCacheSystemMessage
           ? [{ text: systemMessage }, { cachePoint: { type: "default" } }]
           : [{ text: systemMessage }]
         : undefined,
-      toolConfig:
-        supportsTools && options.tools
-          ? {
-              tools: options.tools.map((tool) => ({
-                toolSpec: {
-                  name: tool.function.name,
-                  description: tool.function.description,
-                  inputSchema: {
-                    json: tool.function.parameters,
-                  },
-                },
-              })),
-            }
-          : undefined,
+      toolConfig: toolConfig,
+      messages: convertedMessages,
       inferenceConfig: {
         maxTokens: options.maxTokens,
         temperature: options.temperature,
@@ -394,7 +408,7 @@ class Bedrock extends BaseLLM {
           toolUse: {
             toolUseId: toolCall.id,
             name: toolCall.function?.name,
-            input: JSON.parse(toolCall.function?.arguments || "{}"),
+            input: safeParseToolCallArgs(toolCall),
           },
         })),
       };
@@ -532,7 +546,7 @@ class Bedrock extends BaseLLM {
   }
 
   // EMBED //
-  async embed(chunks: string[]): Promise<number[][]> {
+  async _embed(chunks: string[]): Promise<number[][]> {
     const credentials = await this._getCredentials();
     const client = new BedrockRuntimeClient({
       region: this.region,
@@ -550,10 +564,14 @@ class Bedrock extends BaseLLM {
           const command = new InvokeModelCommand(input);
           const response = await client.send(command);
           if (response.body) {
-            const responseBody = JSON.parse(
-              new TextDecoder().decode(response.body),
-            );
-            return this._extractEmbeddings(responseBody);
+            const decoder = new TextDecoder();
+            const decoded = decoder.decode(response.body);
+            try {
+              const responseBody = JSON.parse(decoded);
+              return this._extractEmbeddings(responseBody);
+            } catch (e) {
+              console.error(`Error parsing response body from:\n${decoded}`, e);
+            }
           }
           return [];
         }),
@@ -648,12 +666,19 @@ class Bedrock extends BaseLLM {
         throw new Error("Empty response received from Bedrock");
       }
 
-      const responseBody = JSON.parse(new TextDecoder().decode(response.body));
-
-      // Sort results by index to maintain original order
-      return responseBody.results
-        .sort((a: any, b: any) => a.index - b.index)
-        .map((result: any) => result.relevance_score);
+      const decoder = new TextDecoder();
+      const decoded = decoder.decode(response.body);
+      try {
+        const responseBody = JSON.parse(decoded);
+        // Sort results by index to maintain original order
+        return responseBody.results
+          .sort((a: any, b: any) => a.index - b.index)
+          .map((result: any) => result.relevance_score);
+      } catch (e) {
+        throw new Error(
+          `Error parsing JSON from Bedrock response body:\n${decoded}, ${JSON.stringify(e)}`,
+        );
+      }
     } catch (error: unknown) {
       if (error instanceof Error) {
         if ("code" in error) {

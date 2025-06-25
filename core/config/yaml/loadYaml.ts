@@ -9,6 +9,7 @@ import {
   PackageIdentifier,
   RegistryClient,
   Rule,
+  TEMPLATE_VAR_REGEX,
   unrollAssistant,
   validateConfigYaml,
 } from "@continuedev/config-yaml";
@@ -31,18 +32,16 @@ import DocsContextProvider from "../../context/providers/DocsContextProvider";
 import FileContextProvider from "../../context/providers/FileContextProvider";
 import { contextProviderClassFromName } from "../../context/providers/index";
 import { ControlPlaneClient } from "../../control-plane/client";
-import FreeTrial from "../../llm/llms/FreeTrial";
 import TransformersJsEmbeddingsProvider from "../../llm/llms/TransformersJsEmbeddingsProvider";
 import { slashCommandFromPromptFileV1 } from "../../promptFiles/v1/slashCommandFromPromptFile";
 import { getAllPromptFiles } from "../../promptFiles/v2/getPromptFiles";
-import { allTools } from "../../tools";
 import { GlobalContext } from "../../util/GlobalContext";
 import { modifyAnyConfigWithSharedConfig } from "../sharedConfig";
 
 import { getControlPlaneEnvSync } from "../../control-plane/env";
-import { logger } from "../../util/logger";
+import { baseToolDefinitions } from "../../tools";
 import { getCleanUriPath } from "../../util/uri";
-import { getAllDotContinueYamlFiles } from "../loadLocalAssistants";
+import { getAllDotContinueDefinitionFiles } from "../loadLocalAssistants";
 import { LocalPlatformClient } from "./LocalPlatformClient";
 import { llmsFromModelConfig } from "./models";
 
@@ -71,8 +70,8 @@ function convertYamlMcpToContinueMcp(
       command: server.command,
       args: server.args ?? [],
       env: server.env,
-    },
-    timeout: server.connectionTimeout
+    } as any, // TODO: Fix the mcpServers types in config-yaml (discriminated union)
+    timeout: server.connectionTimeout,
   };
 }
 
@@ -96,9 +95,9 @@ async function loadConfigYaml(options: {
   // Add local .continue blocks
   const allLocalBlocks: PackageIdentifier[] = [];
   for (const blockType of BLOCK_TYPES) {
-    const localBlocks = await getAllDotContinueYamlFiles(
+    const localBlocks = await getAllDotContinueDefinitionFiles(
       ide,
-      { includeGlobal: true, includeWorkspace: true },
+      { includeGlobal: true, includeWorkspace: true, fileExtType: "yaml" },
       blockType,
     );
     allLocalBlocks.push(
@@ -114,14 +113,19 @@ async function loadConfigYaml(options: {
       ? dirname(getCleanUriPath(packageIdentifier.filePath))
       : undefined;
 
-  logger.info(
-    `Loading config.yaml from ${JSON.stringify(packageIdentifier)} with root path ${rootPath}`,
-  );
+  // logger.info(
+  //   `Loading config.yaml from ${JSON.stringify(packageIdentifier)} with root path ${rootPath}`,
+  // );
 
-  let config =
-    overrideConfigYaml ??
+  const errors: ConfigValidationError[] = [];
+
+  let config: AssistantUnrolled | undefined;
+
+  if (overrideConfigYaml) {
+    config = overrideConfigYaml;
+  } else {
     // This is how we allow use of blocks locally
-    (await unrollAssistant(
+    const unrollResult = await unrollAssistant(
       packageIdentifier,
       new RegistryClient({
         accessToken: await controlPlaneClient.getAccessToken(),
@@ -130,6 +134,7 @@ async function loadConfigYaml(options: {
         rootPath,
       }),
       {
+        renderSecrets: true,
         currentUserSlug: "",
         onPremProxyUrl: null,
         orgScopeId,
@@ -138,19 +143,18 @@ async function loadConfigYaml(options: {
           controlPlaneClient,
           ide,
         ),
-        renderSecrets: true,
         injectBlocks: allLocalBlocks,
       },
-    ));
+    );
+    config = unrollResult.config;
+    if (unrollResult.errors) {
+      errors.push(...unrollResult.errors);
+    }
+  }
 
-  const errors = isAssistantUnrolledNonNullable(config)
-    ? validateConfigYaml(config)
-    : [
-        {
-          fatal: true,
-          message: "Assistant includes blocks that don't exist",
-        },
-      ];
+  if (config && isAssistantUnrolledNonNullable(config)) {
+    errors.push(...validateConfigYaml(config));
+  }
 
   if (errors?.some((error) => error.fatal)) {
     return {
@@ -176,24 +180,14 @@ async function configYamlToContinueConfig(options: {
   uniqueId: string;
   llmLogger: ILLMLogger;
   workOsAccessToken: string | undefined;
-  allowFreeTrial?: boolean;
 }): Promise<{ config: ContinueConfig; errors: ConfigValidationError[] }> {
-  let {
-    config,
-    ide,
-    ideSettings,
-    ideInfo,
-    uniqueId,
-    llmLogger,
-    allowFreeTrial,
-  } = options;
-  allowFreeTrial = allowFreeTrial ?? true;
+  let { config, ide, ideSettings, ideInfo, uniqueId, llmLogger } = options;
 
   const localErrors: ConfigValidationError[] = [];
 
   const continueConfig: ContinueConfig = {
     slashCommands: [],
-    tools: [...allTools],
+    tools: [...baseToolDefinitions],
     mcpServerStatuses: [],
     contextProviders: [],
     modelsByRole: {
@@ -223,7 +217,8 @@ async function configYamlToContinueConfig(options: {
       config: continueConfig,
       errors: [
         {
-          message: "Found missing blocks in config.yaml",
+          message:
+            "Failed to load config due to missing blocks, see which blocks are missing below",
           fatal: true,
         },
       ],
@@ -241,6 +236,21 @@ async function configYamlToContinueConfig(options: {
     rootUrl: doc.rootUrl,
     faviconUrl: doc.faviconUrl,
   }));
+
+  config.mcpServers?.forEach((mcpServer) => {
+    const mcpArgVariables =
+      mcpServer.args?.filter((arg) => TEMPLATE_VAR_REGEX.test(arg)) ?? [];
+
+    if (mcpArgVariables.length === 0) {
+      return;
+    }
+
+    localErrors.push({
+      fatal: false,
+      message: `MCP server "${mcpServer.name}" has unsubstituted variables in args: ${mcpArgVariables.join(", ")}. Please refer to https://docs.continue.dev/hub/secrets/secret-types for managing hub secrets.`,
+    });
+  });
+
   continueConfig.experimental = {
     modelContextProtocolServers: config.mcpServers?.map(
       convertYamlMcpToContinueMcp,
@@ -287,9 +297,14 @@ async function configYamlToContinueConfig(options: {
   });
 
   // Models
+  let warnAboutFreeTrial = false;
   const defaultModelRoles: ModelRole[] = ["chat", "summarize", "apply", "edit"];
   for (const model of config.models ?? []) {
     model.roles = model.roles ?? defaultModelRoles; // Default to all 4 chat-esque roles if not specified
+
+    if (model.provider === "free-trial") {
+      warnAboutFreeTrial = true;
+    }
     try {
       const llms = await llmsFromModelConfig({
         model,
@@ -361,34 +376,12 @@ async function configYamlToContinueConfig(options: {
     );
   }
 
-  if (allowFreeTrial) {
-    // Obtain auth token (iff free trial being used)
-    const freeTrialModels = continueConfig.modelsByRole.chat.filter(
-      (model) => model.providerName === "free-trial",
-    );
-    if (freeTrialModels.length > 0) {
-      try {
-        const ghAuthToken = await ide.getGitHubAuthToken({});
-        for (const model of freeTrialModels) {
-          (model as FreeTrial).setupGhAuthToken(ghAuthToken);
-        }
-      } catch (e) {
-        localErrors.push({
-          fatal: false,
-          message: `Failed to obtain GitHub auth token for free trial:\n${e instanceof Error ? e.message : e}`,
-        });
-        // Remove free trial models
-        continueConfig.modelsByRole.chat =
-          continueConfig.modelsByRole.chat.filter(
-            (model) => model.providerName !== "free-trial",
-          );
-      }
-    }
-  } else {
-    // Remove free trial models
-    continueConfig.modelsByRole.chat = continueConfig.modelsByRole.chat.filter(
-      (model) => model.providerName !== "free-trial",
-    );
+  if (warnAboutFreeTrial) {
+    localErrors.push({
+      fatal: false,
+      message:
+        "Model provider 'free-trial' is no longer supported, will be ignored.",
+    });
   }
 
   // Context providers
@@ -443,9 +436,9 @@ async function configYamlToContinueConfig(options: {
       transport: {
         type: "stdio",
         args: [],
-        ...server,
+        ...(server as any), // TODO: fix the types on mcpServers in config-yaml
       },
-      timeout: server.connectionTimeout
+      timeout: server.connectionTimeout,
     })),
     false,
   );

@@ -45,6 +45,14 @@ export const streamNormalInput = createAsyncThunk<
       };
     }
 
+    if (state.session.hasReasoningEnabled) {
+      completionOptions = {
+        ...completionOptions,
+        reasoning: true,
+        reasoningBudgetTokens: completionOptions.reasoningBudgetTokens ?? 2048,
+      };
+    }
+
     // Send request
     const gen = extra.ideMessenger.llmStreamChat(
       {
@@ -79,9 +87,12 @@ export const streamNormalInput = createAsyncThunk<
             data: {
               prompt: next.value.prompt,
               completion: next.value.completion,
-              modelProvider: selectedChatModel.provider,
+              modelProvider: selectedChatModel.underlyingProviderName,
               modelTitle: selectedChatModel.title,
               sessionId: state.session.id,
+              ...(state.session.mode === "agent" && {
+                tools: activeTools.map((tool) => tool.function.name),
+              }),
             },
           });
         }

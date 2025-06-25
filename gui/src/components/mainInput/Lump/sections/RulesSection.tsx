@@ -6,21 +6,23 @@ import {
 } from "@heroicons/react/24/outline";
 import { RuleWithSource } from "core";
 import {
+  DEFAULT_AGENT_SYSTEM_MESSAGE,
+  DEFAULT_AGENT_SYSTEM_MESSAGE_URL,
   DEFAULT_CHAT_SYSTEM_MESSAGE,
   DEFAULT_CHAT_SYSTEM_MESSAGE_URL,
-  DEFAULT_AGENT_SYSTEM_MESSAGE,
-  DEFAULT_AGENT_SYSTEM_MESSAGE_URL
 } from "core/llm/constructMessages";
 import { useContext, useMemo } from "react";
-import { defaultBorderRadius, vscCommandCenterActiveBorder } from "../../..";
 import { useAuth } from "../../../../context/Auth";
 import { IdeMessengerContext } from "../../../../context/IdeMessenger";
 import { useAppDispatch, useAppSelector } from "../../../../redux/hooks";
 import {
+  DEFAULT_RULE_SETTING,
   setDialogMessage,
   setShowDialog,
+  toggleRuleSetting,
 } from "../../../../redux/slices/uiSlice";
 import HeaderButtonWithToolTip from "../../../gui/HeaderButtonWithToolTip";
+import Switch from "../../../gui/Switch";
 import { useFontSize } from "../../../ui/font";
 import { ExploreBlocksButton } from "./ExploreBlocksButton";
 
@@ -32,10 +34,17 @@ const RuleCard: React.FC<RuleCardProps> = ({ rule }) => {
   const dispatch = useAppDispatch();
   const ideMessenger = useContext(IdeMessengerContext);
   const mode = useAppSelector((store) => store.session.mode);
+  const policy = useAppSelector((state) =>
+    rule.name
+      ? state.ui.ruleSettings[rule.name] || DEFAULT_RULE_SETTING
+      : undefined,
+  );
+
+  const isDisabled = policy === "off";
 
   const handleOpen = async () => {
     if (rule.slug) {
-      ideMessenger.request("controlPlane/openUrl", {
+      void ideMessenger.request("controlPlane/openUrl", {
         path: `${rule.slug}/new-version`,
         orgSlug: undefined,
       });
@@ -51,6 +60,12 @@ const RuleCard: React.FC<RuleCardProps> = ({ rule }) => {
       ideMessenger.post("config/openProfile", {
         profileId: undefined,
       });
+    }
+  };
+
+  const handleTogglePolicy = () => {
+    if (rule.name) {
+      dispatch(toggleRuleSetting(rule.name));
     }
   };
 
@@ -92,35 +107,44 @@ const RuleCard: React.FC<RuleCardProps> = ({ rule }) => {
   const tinyFont = useFontSize(-3);
   return (
     <div
-      style={{
-        borderRadius: defaultBorderRadius,
-        border: `1px solid ${vscCommandCenterActiveBorder}`,
-      }}
-      className="flex flex-col px-2 py-1.5 transition-colors"
+      className={`border-border flex flex-col rounded-sm px-2 py-1.5 transition-colors ${isDisabled ? "opacity-50" : ""}`}
     >
       <div className="flex flex-col">
         <div className="flex flex-row justify-between gap-1">
           <span
-            className="text-vsc-foreground line-clamp-2"
+            className={`line-clamp-2 ${isDisabled ? "text-gray-400" : "text-vsc-foreground"}`}
             style={{
               fontSize: smallFont,
             }}
           >
             {title}
           </span>
-          <div className="flex flex-row items-start gap-1">
-            <HeaderButtonWithToolTip onClick={onClickExpand} text="Expand">
-              <ArrowsPointingOutIcon className="h-3 w-3 text-gray-400" />
-            </HeaderButtonWithToolTip>{" "}
-            {rule.source === "default-chat" || rule.source === "default-agent" ? (
-              <HeaderButtonWithToolTip onClick={handleOpen} text="View">
-                <EyeIcon className="h-3 w-3 text-gray-400" />
-              </HeaderButtonWithToolTip>
-            ) : (
-              <HeaderButtonWithToolTip onClick={handleOpen} text="Edit">
-                <PencilIcon className="h-3 w-3 text-gray-400" />
-              </HeaderButtonWithToolTip>
+          <div className="flex flex-row items-center gap-2">
+            {rule.name && policy && (
+              <div className="flex cursor-pointer flex-row items-center justify-end gap-1 px-2 py-0.5">
+                <Switch
+                  isToggled={policy === "on"}
+                  onToggle={() => handleTogglePolicy()}
+                  size={10}
+                  text=""
+                />
+              </div>
             )}
+            <div className="flex flex-row items-start gap-1">
+              <HeaderButtonWithToolTip onClick={onClickExpand} text="Expand">
+                <ArrowsPointingOutIcon className="h-3 w-3 text-gray-400" />
+              </HeaderButtonWithToolTip>{" "}
+              {rule.source === "default-chat" ||
+              rule.source === "default-agent" ? (
+                <HeaderButtonWithToolTip onClick={handleOpen} text="View">
+                  <EyeIcon className="h-3 w-3 text-gray-400" />
+                </HeaderButtonWithToolTip>
+              ) : (
+                <HeaderButtonWithToolTip onClick={handleOpen} text="Edit">
+                  <PencilIcon className="h-3 w-3 text-gray-400" />
+                </HeaderButtonWithToolTip>
+              )}
+            </div>
           </div>
         </div>
 
@@ -128,7 +152,7 @@ const RuleCard: React.FC<RuleCardProps> = ({ rule }) => {
           style={{
             fontSize: tinyFont,
           }}
-          className="mt-1 line-clamp-3 text-gray-400"
+          className={`mt-1 line-clamp-3 ${isDisabled ? "text-gray-500" : "text-gray-400"}`}
         >
           {rule.rule}
         </span>
@@ -140,7 +164,9 @@ const RuleCard: React.FC<RuleCardProps> = ({ rule }) => {
             className="mt-1.5 flex flex-col gap-1"
           >
             <span className="italic">Applies to files</span>
-            <code className="line-clamp-1 px-1 py-0.5 text-gray-400">
+            <code
+              className={`line-clamp-1 px-1 py-0.5 ${isDisabled ? "text-gray-500" : "text-gray-400"}`}
+            >
               {rule.globs}
             </code>
           </div>
@@ -152,7 +178,6 @@ const RuleCard: React.FC<RuleCardProps> = ({ rule }) => {
 
 export function RulesSection() {
   const { selectedProfile } = useAuth();
-
   const config = useAppSelector((store) => store.config.config);
   const mode = useAppSelector((store) => store.session.mode);
   const sortedRules: RuleWithSource[] = useMemo(() => {
@@ -195,24 +220,24 @@ export function RulesSection() {
         rules.unshift({
           rule: config.selectedModelByRole.chat?.baseAgentSystemMessage,
           source: "model-agent-options",
-        })
+        });
       } else {
         rules.unshift({
           rule: DEFAULT_AGENT_SYSTEM_MESSAGE,
           source: "default-agent",
-        })
+        });
       }
     } else {
       if (config.selectedModelByRole.chat?.baseChatSystemMessage) {
         rules.unshift({
           rule: config.selectedModelByRole.chat?.baseChatSystemMessage,
           source: "model-chat-options",
-        })
+        });
       } else {
         rules.unshift({
           rule: DEFAULT_CHAT_SYSTEM_MESSAGE,
           source: "default-chat",
-        })
+        });
       }
     }
 
