@@ -100,7 +100,7 @@ export class UnifiedDiffPlugin implements BenchmarkPlugin {
 
       try {
         // Execute the test case
-        await this.executeTestCase(
+        const testPassed = await this.executeTestCase(
           testCase as UnifiedDiffTestCase,
           model,
           systemPrompt,
@@ -108,12 +108,25 @@ export class UnifiedDiffPlugin implements BenchmarkPlugin {
           context,
         );
 
-        result.status = "completed";
-        result.endTime = new Date();
-        result.duration = result.endTime.getTime() - startTime.getTime();
-        logger.debug(
-          `Test case ${testCaseId} completed successfully in ${result.duration}ms`,
-        );
+        if (testPassed) {
+          result.status = "completed";
+          result.endTime = new Date();
+          result.duration = result.endTime.getTime() - startTime.getTime();
+          logger.debug(
+            `Test case ${testCaseId} completed successfully in ${result.duration}ms`,
+          );
+        } else {
+          result.status = "failed";
+          result.endTime = new Date();
+          result.duration = result.endTime.getTime() - startTime.getTime();
+          result.error = {
+            type: "validation",
+            message: "One or more validation steps failed",
+            details: "Check validationResults for specific failures",
+            recoverable: true,
+          };
+          logger.error(`Test case ${testCaseId} failed validation steps`);
+        }
       } catch (error) {
         logger.error(`Test case ${testCaseId} failed:`, error as Error);
 
@@ -441,7 +454,7 @@ Please generate a unified diff that applies this modification to the source code
     systemPrompt: string,
     result: TestCaseResult,
     context: BenchmarkContext,
-  ): Promise<void> {
+  ): Promise<boolean> {
     const sourceCode = testCase.input.sourceCode;
     const modificationPrompt =
       testCase.input.additionalData?.modificationPrompt ||
@@ -479,5 +492,11 @@ Please generate a unified diff that applies this modification to the source code
     };
 
     await this.validateDiffPipeline(sourceCode, content, validationContext);
+    
+    // Check if any validation steps failed
+    const validationResults = result.validationResults || [];
+    const allStepsPassed = validationResults.every(vr => vr.passed);
+    
+    return allStepsPassed;
   }
 }
