@@ -12,6 +12,7 @@ build/
 # Runtime data
 reports/
 *.log
+.sessions/
 
 # Environment variables
 .env
