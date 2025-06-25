@@ -15,6 +15,10 @@
     "benchmark": "node dist/eval/cli/main.js"
   },
   "dependencies": {
+    "@continuedev/config-types": "^1.0.13",
+    "@continuedev/fetch": "^1.0.14", 
+    "@continuedev/llm-info": "^1.0.8",
+    "@continuedev/openai-adapters": "file:../packages/openai-adapters",
     "chalk": "^5.3.0",
     "commander": "^11.1.0",
     "dockerode": "^4.0.2",

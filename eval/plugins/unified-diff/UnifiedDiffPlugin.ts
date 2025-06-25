@@ -191,8 +191,10 @@ Please generate a unified diff that applies this modification to the source code
         
         // Make LLM request
         const startTime = Date.now();
+        const abortController = new AbortController();
         const response = await model.streamChat(
           messages,
+          abortController.signal,
           {
             systemMessage: systemPrompt,
             temperature,
