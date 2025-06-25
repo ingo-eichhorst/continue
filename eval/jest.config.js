@@ -1,10 +1,23 @@
-module.exports = {
-  preset: 'ts-jest',
+export default {
+  preset: 'ts-jest/presets/default-esm',
+  extensionsToTreatAsEsm: ['.ts'],
+  moduleNameMapping: {
+    '^(\\.{1,2}/.*)\\.js$': '$1',
+  },
   testEnvironment: 'node',
-  roots: ['<rootDir>/core', '<rootDir>/plugins', '<rootDir>/scripts'],
-  testMatch: ['**/__tests__/**/*.ts', '**/?(*.)+(spec|test).ts'],
+  roots: ['<rootDir>'],
+  testMatch: [
+    '**/__tests__/**/*.ts',
+    '**/?(*.)+(spec|test).ts'
+  ],
   transform: {
-    '^.+\\.ts$': 'ts-jest',
+    '^.+\\.ts$': ['ts-jest', {
+      useESM: true,
+      tsconfig: {
+        module: 'ESNext',
+        target: 'ES2022'
+      }
+    }]
   },
   collectCoverageFrom: [
     '**/*.ts',
@@ -15,8 +28,5 @@ module.exports = {
     '!**/*.spec.ts'
   ],
   coverageDirectory: 'reports/coverage',
-  coverageReporters: ['text', 'lcov', 'html'],
-  moduleFileExtensions: ['ts', 'js', 'json'],
-  verbose: true,
-  testTimeout: 30000
+  setupFilesAfterEnv: ['<rootDir>/jest.setup.js']
 };

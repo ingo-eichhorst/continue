@@ -1,2 +1,0 @@
-[2025-06-05T20:32:27.233Z] INFO: Test log message
-[2025-06-05T20:33:19.580Z] INFO: Test log message

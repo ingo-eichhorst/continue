@@ -1,477 +1,238 @@
-# Continue.dev Evaluation Framework
+# Continue.dev Benchmarking Framework
 
-A comprehensive benchmarking and evaluation framework for Continue.dev's AI code assistant capabilities. Built with TypeScript following test-driven development principles and featuring a robust micro-kernel architecture.
+A comprehensive benchmarking framework for evaluating LLM performance in Continue.dev coding tasks.
 
-## 🏗️ Architecture
+## Overview
 
-The framework follows a **micro-kernel architecture** with modular, testable components:
+This framework implements a micro-kernel architecture focused on evaluating LLM capabilities across various coding tasks including diff generation, system prompt optimization, and context evaluation.
 
-```
-eval/
-├── core/                    # Core framework components
-│   ├── BenchmarkRunner.ts   # Main benchmark execution engine
-│   ├── PluginLoader.ts      # Plugin discovery and loading system
-│   ├── ConfigManager.ts     # YAML configuration management
-│   ├── MetricsCollector.ts  # Comprehensive metrics collection
-│   ├── ErrorHandler.ts      # Advanced error handling system
-│   ├── Logger.ts           # Multi-output logging system
-│   ├── types.ts            # TypeScript type definitions
-│   └── test/               # Comprehensive test suite (77 tests)
-├── plugins/                # Benchmarking plugins
-├── config/                 # Configuration files
-├── reports/                # Generated benchmark reports
-└── specs/                  # Design specifications and todos
-```
-
-## 🚀 Quick Start
-
-### Prerequisites
-
-- **Node.js**: 18.0.0+ (LTS recommended)
-- **TypeScript**: 5.4.3+
-- **npm**: Latest version
+## Quick Start
 
 ### Installation
 
 ```bash
-# Navigate to eval directory
 cd eval
-
-# Install dependencies
 npm install
-
-# Build the project
 npm run build
-
-# Run all tests
-npm test
-
-# Run with coverage
-npm test -- --coverage
 ```
 
-## 🧪 Testing
+### Basic Usage
 
-The framework has **comprehensive test coverage** with 77 tests across 7 test suites:
+Run a unified diff benchmark:
+```bash
+npm run benchmark -- benchmark --plugin unified-diff-testing
+```
+
+Resume from a previous session:
+```bash
+npm run benchmark -- benchmark --continue <session-id>
+```
+
+List all sessions:
+```bash
+npm run benchmark -- list-sessions
+```
+
+### Command Reference
 
 ```bash
-# Run all tests
-npm test
+# Run benchmarks
+npm run benchmark -- benchmark [options]
+  -p, --plugin <name>          Benchmark plugin to run
+  -m, --models <models>        Comma-separated list of model IDs
+  -d, --dataset <path>         Path to dataset file or directory
+  -e, --execution-env <type>   Execution environment (local|docker)
+  -o, --output <format>        Output format (console|json)
+  -v, --verbose                Enable verbose logging
+  --continue <sessionId>       Continue from existing session
+  --dry-run                    Show execution plan without running
 
-# Run specific test suite
-npm test -- --testPathPattern=BenchmarkRunner.test.ts
-npm test -- --testPathPattern=MetricsCollector.test.ts
-npm test -- --testPathPattern=ErrorHandler.test.ts
+# Session management
+npm run benchmark -- list-sessions [-v]
+npm run benchmark -- show-session <sessionId>
+npm run benchmark -- cleanup [--days <number>]
 
-# Run tests with coverage report
-npm test -- --coverage
-
-# Run tests in watch mode
-npm test -- --watch
+# Environment validation
+npm run benchmark -- validate-env [-e <type>]
 ```
 
-### Test Coverage
+## Architecture
 
-- **BenchmarkRunner**: 9 tests - Interface, configuration, execution flow
-- **PluginLoader**: 10 tests - Plugin discovery, validation, loading
-- **ConfigManager**: 10 tests - YAML loading, validation, merging
-- **MetricsCollector**: 12 tests - Metrics recording, aggregation, persistence
-- **ErrorHandler + Logger**: 27 tests - Error handling, logging, integration
-- **Integration**: 8 tests - End-to-end component interaction
-- **Setup**: 1 test - Environment validation
+### Core Components
 
-## 📊 Core Components
+- **BenchmarkEngine**: Main orchestrator managing benchmark execution
+- **SessionManager**: Handles persistent session storage and recovery
+- **PluginSystem**: Extensible plugin architecture for different benchmark types
+- **ExecutionEnvironments**: Local and Docker-based code execution
 
-### BenchmarkRunner
+### Available Plugins
 
-The main execution engine for running benchmarks:
-
-```typescript
-import { BenchmarkRunner } from './core/BenchmarkRunner';
-
-const config = {
-  plugins: ['performance-test', 'accuracy-test'],
-  output: { format: 'json', path: './reports' },
-  timeout: 30000,
-  parallel: true
-};
-
-const runner = new BenchmarkRunner(config);
-const results = await runner.run();
-```
+#### Unified Diff Testing (`unified-diff-testing`)
+Evaluates LLM ability to generate and apply unified diffs correctly.
 
 **Features:**
-- ✅ Configuration validation
-- ✅ Plugin execution orchestration
-- ✅ Error handling and recovery
-- ✅ Graceful shutdown support
+- Tests diff format validation
+- Verifies diff application success
+- Syntax validation of modified code
+- Content verification against expected changes
 
-### MetricsCollector
+**Dataset**: 10 JavaScript examples covering:
+- Error handling additions
+- Documentation additions
+- Class method additions
+- Code style improvements
+- Syntax modernization
 
-Comprehensive metrics collection and analysis:
+## Execution Environments
 
-```typescript
-import { MetricsCollector } from './core/MetricsCollector';
+### Local Environment (`local`)
+- Fast execution for development and testing
+- Requires local language runtimes (Node.js, Python, etc.)
+- **Security**: No isolation - use only with trusted code
 
-const collector = new MetricsCollector('./metrics');
+### Docker Environment (`docker`) - Default
+- Secure sandboxed execution
+- Isolated filesystem and network
+- Resource limits and timeouts
+- Automatic image management
 
-// Record different metric types
-collector.recordLatency('llm-response', 1200);
-collector.recordTokenUsage('gpt-4', 500, 250);
-collector.recordCustomMetric({
-  name: 'accuracy-score',
-  value: 0.95,
-  timestamp: new Date(),
-  labels: { model: 'claude-3', task: 'code-completion' }
-});
+## Configuration
 
-// Get statistical analysis
-const stats = collector.calculateStatistics('llm-response-latency');
-console.log(`Mean: ${stats.mean}ms, P95: ${stats.p95}ms`);
+### Model Configuration
+Models are loaded from Continue.dev's configuration system. Currently supports mock models for testing.
 
-// Export in multiple formats
-const jsonData = collector.exportMetrics('json');
-const csvData = collector.exportMetrics('csv');
-const prometheusData = collector.exportMetrics('prometheus');
-```
-
-**Features:**
-- ✅ Latency and token usage tracking
-- ✅ Statistical analysis (mean, median, percentiles)
-- ✅ Export to JSON, CSV, Prometheus formats
-- ✅ Persistent storage and history tracking
-- ✅ Metric definition validation
-
-### ConfigManager
-
-YAML-based configuration with environment support:
-
-```typescript
-import { ConfigManager } from './core/ConfigManager';
-
-const configManager = new ConfigManager();
-
-// Load configuration with environment overrides
-const config = await configManager.loadConfigWithEnvironment('./config.yaml');
-
-// Merge multiple configuration files
-const mergedConfig = await configManager.mergeConfigs([
-  './base-config.yaml',
-  './env-specific.yaml'
-]);
-```
-
-**Features:**
-- ✅ YAML configuration parsing
-- ✅ Schema validation with defaults
-- ✅ Environment-specific overrides
-- ✅ Configuration merging and hierarchy
-
-### PluginLoader
-
-Dynamic plugin discovery and loading system:
-
-```typescript
-import { PluginLoader } from './core/PluginLoader';
-
-const loader = new PluginLoader('./plugins');
-
-// Discover available plugins
-const availablePlugins = await loader.discoverPlugins();
-
-// Load specific plugins
-const loadedPlugins = await loader.loadPlugins(['accuracy-test', 'performance-test']);
-
-// Validate plugins
-const errors = loader.getValidationErrors();
-```
-
-**Features:**
-- ✅ Automatic plugin discovery
-- ✅ Manifest validation
-- ✅ Plugin interface compliance checking
-- ✅ Detailed error reporting
-
-### ErrorHandler & Logger
-
-Advanced error handling with integrated logging:
-
-```typescript
-import { ErrorHandler, Logger } from './core';
-
-const logger = new Logger('INFO');
-const errorHandler = new ErrorHandler();
-
-// Integrate logger with error handler
-errorHandler.setLogger((level, message, context) => {
-  logger.log(level, message, context);
-});
-
-// Handle errors with context
-errorHandler.handleError(
-  new BenchmarkError('Plugin execution failed'),
-  { pluginName: 'test-plugin', sessionId: 'abc123' }
-);
-
-// Get error statistics
-const stats = errorHandler.getErrorStatistics();
-```
-
-**Features:**
-- ✅ Custom error types with recovery strategies
-- ✅ Structured logging with multiple outputs
-- ✅ Error categorization and statistics
-- ✅ Context tracking and debugging support
-
-## 📁 Configuration
-
-### Basic Configuration (config.yaml)
-
-```yaml
-plugins:
-  - accuracy-evaluator
-  - performance-benchmarker
-  - code-quality-analyzer
-
-output:
-  format: json
-  path: ./reports
-
-timeout: 30000
-parallel: true
-maxConcurrency: 4
-verbose: true
-
-# Environment-specific overrides
-# config.development.yaml, config.production.yaml
-```
-
-### Plugin Manifest (plugins/example/manifest.json)
+### Dataset Format
+Datasets are JSON files with the following structure:
 
 ```json
 {
-  "name": "example-plugin",
+  "name": "dataset-name",
+  "description": "Dataset description",
   "version": "1.0.0",
-  "description": "Example benchmarking plugin",
-  "entryPoint": "index.js",
-  "dependencies": ["typescript", "jest"],
-  "config": {
-    "testCases": 100,
-    "timeout": 5000
-  }
-}
-```
-
-## 🔌 Plugin Development
-
-### Creating a Plugin
-
-1. **Create plugin directory**: `plugins/my-plugin/`
-2. **Add manifest.json**: Plugin metadata and configuration
-3. **Implement IBenchmarkPlugin interface**:
-
-```typescript
-import { IBenchmarkPlugin, BenchmarkResult } from '../../core/types';
-
-export class MyPlugin implements IBenchmarkPlugin {
-  name = 'my-plugin';
-  version = '1.0.0';
-  description = 'My custom benchmark plugin';
-
-  async initialize(): Promise<void> {
-    // Plugin initialization logic
-  }
-
-  async execute(config: any): Promise<BenchmarkResult[]> {
-    // Benchmark execution logic
-    return [
-      {
-        testId: 'test-1',
-        testName: 'My Test',
-        status: 'passed',
-        duration: 1000,
-        metrics: { accuracy: 0.95 }
+  "metadata": {
+    "language": "javascript",
+    "difficulty": "easy",
+    "tags": ["functions", "classes"]
+  },
+  "testCases": [
+    {
+      "id": "test-001",
+      "name": "Test case name",
+      "input": {
+        "prompt": "Task description",
+        "sourceCode": "...",
+        "modificationPrompt": "..."
+      },
+      "expected": {
+        "diffShouldApply": true,
+        "expectedChanges": ["keyword1", "keyword2"]
       }
-    ];
-  }
+    }
+  ]
+}
+```
 
-  async cleanup(): Promise<void> {
-    // Cleanup logic
+## Session Management
+
+The framework supports robust session management with automatic recovery:
+
+- **Persistent Storage**: Sessions stored in `.sessions/` directory
+- **Automatic Recovery**: Resume interrupted benchmarks
+- **Progress Tracking**: Real-time progress updates
+- **Error Handling**: Graceful degradation and retry logic
+
+### Session States
+- `running`: Actively executing test cases
+- `paused`: Manually paused execution
+- `completed`: All test cases finished successfully
+- `failed`: Execution failed with unrecoverable error
+
+## Metrics and Evaluation
+
+### Functional Metrics
+- **Success Rate**: Percentage of test cases that pass all validations
+- **Pass@k**: Following HumanEval standards (k=1,5,10)
+- **Validation Breakdown**: Individual validation step success rates
+
+### Performance Metrics
+- **Latency**: Response time statistics (average, median, P95)
+- **Token Usage**: Prompt and completion token consumption
+- **Cost Estimation**: Approximate cost per benchmark run
+- **Throughput**: Test cases completed per unit time
+
+### Quality Metrics
+- **Syntax Correctness**: Percentage of syntactically valid outputs
+- **Format Compliance**: Adherence to expected output formats
+- **Content Accuracy**: Presence of expected changes/features
+
+## Development
+
+### Adding New Plugins
+
+1. Create plugin directory: `plugins/my-plugin/`
+2. Implement `BenchmarkPlugin` interface:
+
+```typescript
+export class MyPlugin implements BenchmarkPlugin {
+  name = 'my-plugin';
+  description = 'Plugin description';
+  
+  propertiesSchema = {
+    // Define configurable properties
+  };
+  
+  async execute(context: BenchmarkContext): Promise<BenchmarkResult> {
+    // Implement benchmark logic
   }
 }
 ```
 
-## 📈 Metrics and Reporting
+3. Register plugin in CLI: `engine.registerPlugin(new MyPlugin())`
 
-### Available Metrics
+### Creating Datasets
 
-- **Latency Metrics**: Response times, execution duration
-- **Token Usage**: Input/output tokens for LLM operations
-- **Custom Metrics**: Accuracy, throughput, error rates
-- **System Metrics**: Memory usage, CPU utilization
+1. Create dataset directory: `datasets/my-dataset/`
+2. Add `dataset.json` with test cases
+3. Reference from plugin: `defaultDataset = '../datasets/my-dataset'`
 
-### Export Formats
-
-- **JSON**: Structured data for programmatic analysis
-- **CSV**: Spreadsheet-compatible format
-- **Prometheus**: Time-series monitoring integration
-
-### Statistical Analysis
-
-- Mean, median, standard deviation
-- Percentiles (P95, P99)
-- Min/max values
-- Trend analysis over time
-
-## 🛠️ Development
-
-### Project Structure
-
-```
-eval/
-├── core/                   # Framework core
-│   ├── *.ts               # Implementation files
-│   ├── test/              # Test suites
-│   └── types.ts           # Type definitions
-├── plugins/               # Plugin ecosystem
-├── config/                # Configuration templates
-├── reports/               # Generated reports
-├── package.json           # Dependencies and scripts
-├── tsconfig.json          # TypeScript configuration
-├── jest.config.js         # Test configuration
-└── README.md              # This file
-```
-
-### Development Scripts
+### Testing
 
 ```bash
-npm run build          # Compile TypeScript
-npm run test           # Run test suite
-npm run test:coverage  # Run tests with coverage
-npm run lint           # Lint code
-npm run lint:fix       # Fix linting issues
-npm run dev            # Development mode
-npm run clean          # Clean build artifacts
+# Run unit tests
+npm test
+
+# Run with coverage
+npm run test:coverage
+
+# Watch mode
+npm run test:watch
 ```
 
-### Testing Strategy
+## Planned Features
 
-- **Unit Tests**: Individual component testing
-- **Integration Tests**: Component interaction testing
-- **End-to-End Tests**: Full workflow validation
-- **TDD Approach**: Tests written before implementation
+### System Prompt Optimization Plugin
+- Test multiple system prompts against datasets
+- Iterative prompt improvement based on results
+- Statistical analysis of prompt effectiveness
 
-## 🚀 Usage Examples
+### Prompt Evaluation Plugin
+- Test different `.continuerules` and `.prompt` files
+- Compare context configuration strategies
+- Measure code quality improvements
 
-### Basic Benchmark Execution
+### Advanced Features
+- Parallel test execution
+- Web-based dashboard
+- Integration with Continue.dev's model ecosystem
+- Support for additional programming languages
 
-```typescript
-import { BenchmarkRunner, ConfigManager } from './core';
+## Contributing
 
-async function runBenchmark() {
-  // Load configuration
-  const configManager = new ConfigManager();
-  const config = await configManager.loadConfig('./config.yaml');
-  
-  // Create and run benchmark
-  const runner = new BenchmarkRunner(config);
-  const results = await runner.run();
-  
-  console.log(`Executed ${results.summary.totalTests} tests`);
-  console.log(`Success rate: ${results.summary.passed / results.summary.totalTests * 100}%`);
-}
-```
+1. Follow Continue.dev's coding standards
+2. Add tests for new functionality
+3. Update documentation
+4. Ensure compatibility with existing plugins
 
-### Custom Metrics Collection
+## License
 
-```typescript
-import { MetricsCollector } from './core/MetricsCollector';
-
-const collector = new MetricsCollector('./metrics');
-
-// Define custom metrics
-collector.registerMetricDefinition({
-  name: 'code-quality-score',
-  type: 'gauge',
-  description: 'Code quality assessment score',
-  unit: 'score'
-});
-
-// Record metrics during evaluation
-collector.recordCustomMetric({
-  name: 'code-quality-score',
-  value: 8.5,
-  timestamp: new Date(),
-  labels: { 
-    language: 'typescript',
-    complexity: 'medium'
-  }
-});
-
-// Export for analysis
-await collector.persistMetrics('evaluation-session-1');
-```
-
-## 🤝 Contributing
-
-1. **Follow TDD**: Write tests before implementation
-2. **Maintain Coverage**: Keep test coverage above 85%
-3. **Code Quality**: Use TypeScript, ESLint, Prettier
-4. **Documentation**: Update README and inline docs
-5. **Testing**: Ensure all tests pass before committing
-
-### Commit Guidelines
-
-```bash
-git commit -m "feat: add new metrics collection feature
-
-- Implement histogram metrics support
-- Add percentile calculations
-- Update tests and documentation
-
-🤖 Generated with [Claude Code](https://claude.ai/code)
-
-Co-Authored-By: Claude <noreply@anthropic.com>"
-```
-
-## 📋 Roadmap
-
-### Phase 1: Core Framework ✅
-- [x] Micro-kernel architecture
-- [x] Basic benchmark execution
-- [x] Configuration management
-- [x] Plugin system foundation
-
-### Phase 2: Advanced Features ✅
-- [x] Comprehensive metrics collection
-- [x] Advanced error handling
-- [x] Structured logging system
-- [x] Statistical analysis
-
-### Phase 3: Plugin Ecosystem (Next)
-- [ ] LLM accuracy evaluation plugins
-- [ ] Performance benchmarking plugins
-- [ ] Code quality assessment plugins
-- [ ] Integration with Continue.dev
-
-### Phase 4: Monitoring & Analytics (Future)
-- [ ] Real-time dashboard
-- [ ] Trend analysis
-- [ ] Automated reporting
-- [ ] Performance alerts
-
-## 📄 License
-
-Apache 2.0 License - see [LICENSE](../LICENSE) file for details.
-
-## 🆘 Support
-
-- **Issues**: [GitHub Issues](https://github.com/continuedev/continue/issues)
-- **Documentation**: See `/specs` directory for detailed specifications
-- **Tests**: 77 comprehensive tests with 86%+ coverage
-
----
-
-**Built with ❤️ for the Continue.dev community**
-
-This framework provides the foundation for evaluating and benchmarking AI code assistant capabilities with enterprise-grade reliability and comprehensive observability.
+Apache 2.0 - See Continue.dev main project for details.

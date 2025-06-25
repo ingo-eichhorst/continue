@@ -1,0 +1,616 @@
+{
+  "id": "078f603c-898e-412d-91e1-ee78a30326cf",
+  "pluginName": "unified-diff-testing",
+  "startTime": "2025-06-25T08:46:18.239Z",
+  "lastUpdateTime": "2025-06-25T08:46:21.017Z",
+  "status": "completed",
+  "config": {
+    "models": [
+      "openai-GPT-4o"
+    ],
+    "dataset": "unified-diff-demo-dataset",
+    "properties": {},
+    "executionEnvironment": "local",
+    "maxRetries": 3,
+    "timeout": 300000
+  },
+  "progress": {
+    "totalTestCases": 10,
+    "completedTestCases": 10,
+    "failedTestCases": 0,
+    "skippedTestCases": 0,
+    "currentTestCase": "test-010-openai-GPT-4o"
+  },
+  "results": [
+    {
+      "testCaseId": "test-001-openai-GPT-4o",
+      "modelId": "openai-GPT-4o",
+      "status": "completed",
+      "startTime": "2025-06-25T08:46:18.241Z",
+      "llmRequest": {
+        "model": "openai-GPT-4o",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Here is the source code:\n\n```\nfunction calculate(a, b) {\n  return a + b;\n}\n```\n\nAdd error handling to the function\n\nPlease generate a unified diff that applies this modification to the source code. Return only the unified diff without any additional explanation."
+          }
+        ],
+        "systemPrompt": "You are a helpful assistant that generates unified diffs. Generate only the unified diff without any additional explanation or markdown formatting.",
+        "temperature": 0.1,
+        "timestamp": "2025-06-25T08:46:18.241Z"
+      },
+      "llmResponse": {
+        "content": "@@ -1,3 +1,7 @@\n function calculate(a, b) {\n-  return a + b;\n+  try {\n+    return a + b;\n+  } catch (error) {\n+    return null;\n+  }\n }",
+        "latency": 0,
+        "timestamp": "2025-06-25T08:46:18.390Z"
+      },
+      "validationResults": [
+        {
+          "type": "format",
+          "passed": true,
+          "details": "Valid unified diff format"
+        },
+        {
+          "type": "application",
+          "passed": true,
+          "details": "Diff applied successfully"
+        },
+        {
+          "type": "syntax",
+          "passed": true,
+          "details": "Applied code has valid syntax"
+        },
+        {
+          "type": "content",
+          "passed": true,
+          "details": "All expected changes present in applied code"
+        }
+      ],
+      "executionResult": {
+        "stdout": "Diff applied successfully",
+        "stderr": "",
+        "exitCode": 0,
+        "successful": true
+      },
+      "metrics": {
+        "latency": 0,
+        "tokens": {
+          "prompt": 0,
+          "completion": 0,
+          "total": 0
+        },
+        "qualityScores": {
+          "formatValid": 1,
+          "applySuccess": 1,
+          "overallQuality": 1
+        }
+      },
+      "endTime": "2025-06-25T08:46:18.391Z",
+      "duration": 150
+    },
+    {
+      "testCaseId": "test-002-openai-GPT-4o",
+      "modelId": "openai-GPT-4o",
+      "status": "completed",
+      "startTime": "2025-06-25T08:46:18.391Z",
+      "llmRequest": {
+        "model": "openai-GPT-4o",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Here is the source code:\n\n```\nfunction multiply(x, y) {\n  return x * y;\n}\n```\n\nAdd JSDoc documentation to the function\n\nPlease generate a unified diff that applies this modification to the source code. Return only the unified diff without any additional explanation."
+          }
+        ],
+        "systemPrompt": "You are a helpful assistant that generates unified diffs. Generate only the unified diff without any additional explanation or markdown formatting.",
+        "temperature": 0.1,
+        "timestamp": "2025-06-25T08:46:18.391Z"
+      },
+      "llmResponse": {
+        "content": "@@ -1,3 +1,8 @@\n+/**\n+ * Multiplies two numbers\n+ * @param {number} x - First number\n+ * @param {number} y - Second number  \n+ * @returns {number} The product\n+ */\n function multiply(x, y) {\n   return x * y;\n }",
+        "latency": 0,
+        "timestamp": "2025-06-25T08:46:18.881Z"
+      },
+      "validationResults": [
+        {
+          "type": "format",
+          "passed": true,
+          "details": "Valid unified diff format"
+        },
+        {
+          "type": "application",
+          "passed": true,
+          "details": "Diff applied successfully"
+        },
+        {
+          "type": "syntax",
+          "passed": true,
+          "details": "Applied code has valid syntax"
+        },
+        {
+          "type": "content",
+          "passed": true,
+          "details": "All expected changes present in applied code"
+        }
+      ],
+      "executionResult": {
+        "stdout": "Diff applied successfully",
+        "stderr": "",
+        "exitCode": 0,
+        "successful": true
+      },
+      "metrics": {
+        "latency": 0,
+        "tokens": {
+          "prompt": 0,
+          "completion": 0,
+          "total": 0
+        },
+        "qualityScores": {
+          "formatValid": 1,
+          "applySuccess": 1,
+          "overallQuality": 1
+        }
+      },
+      "endTime": "2025-06-25T08:46:18.881Z",
+      "duration": 490
+    },
+    {
+      "testCaseId": "test-003-openai-GPT-4o",
+      "modelId": "openai-GPT-4o",
+      "status": "completed",
+      "startTime": "2025-06-25T08:46:18.881Z",
+      "llmRequest": {
+        "model": "openai-GPT-4o",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Here is the source code:\n\n```\nclass Calculator {\n  constructor() {\n    this.result = 0;\n  }\n\n  add(value) {\n    this.result += value;\n    return this;\n  }\n}\n```\n\nAdd a method to the class\n\nPlease generate a unified diff that applies this modification to the source code. Return only the unified diff without any additional explanation."
+          }
+        ],
+        "systemPrompt": "You are a helpful assistant that generates unified diffs. Generate only the unified diff without any additional explanation or markdown formatting.",
+        "temperature": 0.1,
+        "timestamp": "2025-06-25T08:46:18.881Z"
+      },
+      "llmResponse": {
+        "content": "@@ -7,4 +7,9 @@\n   add(value) {\n     this.result += value;\n     return this;\n   }\n+\n+  subtract(value) {\n+    this.result -= value;\n+    return this;\n+  }\n }",
+        "latency": 0,
+        "timestamp": "2025-06-25T08:46:18.992Z"
+      },
+      "validationResults": [
+        {
+          "type": "format",
+          "passed": true,
+          "details": "Valid unified diff format"
+        },
+        {
+          "type": "application",
+          "passed": true,
+          "details": "Diff applied successfully"
+        },
+        {
+          "type": "syntax",
+          "passed": true,
+          "details": "Applied code has valid syntax"
+        },
+        {
+          "type": "content",
+          "passed": true,
+          "details": "All expected changes present in applied code"
+        }
+      ],
+      "executionResult": {
+        "stdout": "Diff applied successfully",
+        "stderr": "",
+        "exitCode": 0,
+        "successful": true
+      },
+      "metrics": {
+        "latency": 0,
+        "tokens": {
+          "prompt": 0,
+          "completion": 0,
+          "total": 0
+        },
+        "qualityScores": {
+          "formatValid": 1,
+          "applySuccess": 1,
+          "overallQuality": 1
+        }
+      },
+      "endTime": "2025-06-25T08:46:18.993Z",
+      "duration": 112
+    },
+    {
+      "testCaseId": "test-004-openai-GPT-4o",
+      "modelId": "openai-GPT-4o",
+      "status": "completed",
+      "startTime": "2025-06-25T08:46:18.993Z",
+      "llmRequest": {
+        "model": "openai-GPT-4o",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Here is the source code:\n\n```\nfunction greet(name) {\n  var message = 'Hello, ' + name + '!';\n  return message;\n}\n```\n\nFix variable declaration\n\nPlease generate a unified diff that applies this modification to the source code. Return only the unified diff without any additional explanation."
+          }
+        ],
+        "systemPrompt": "You are a helpful assistant that generates unified diffs. Generate only the unified diff without any additional explanation or markdown formatting.",
+        "temperature": 0.1,
+        "timestamp": "2025-06-25T08:46:18.993Z"
+      },
+      "llmResponse": {
+        "content": "@@ -1,3 +1,3 @@\n function example() {\n-  var message = 'Hello World';\n+  const message = 'Hello World';\n   return message;\n }",
+        "latency": 0,
+        "timestamp": "2025-06-25T08:46:19.292Z"
+      },
+      "validationResults": [
+        {
+          "type": "format",
+          "passed": true,
+          "details": "Valid unified diff format"
+        },
+        {
+          "type": "application",
+          "passed": false,
+          "details": "Diff application failed: Hunk could not be applied cleanly to source code."
+        }
+      ],
+      "executionResult": {
+        "stdout": "",
+        "stderr": "Hunk could not be applied cleanly to source code.",
+        "exitCode": 1,
+        "successful": false
+      },
+      "metrics": {
+        "latency": 0,
+        "tokens": {
+          "prompt": 0,
+          "completion": 0,
+          "total": 0
+        },
+        "qualityScores": {
+          "formatValid": 1,
+          "applySuccess": 0,
+          "overallQuality": 0.5
+        }
+      },
+      "endTime": "2025-06-25T08:46:19.292Z",
+      "duration": 299
+    },
+    {
+      "testCaseId": "test-005-openai-GPT-4o",
+      "modelId": "openai-GPT-4o",
+      "status": "completed",
+      "startTime": "2025-06-25T08:46:19.292Z",
+      "llmRequest": {
+        "model": "openai-GPT-4o",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Here is the source code:\n\n```\nfunction divide(a, b) {\n  return a / b;\n}\n```\n\nAdd input validation\n\nPlease generate a unified diff that applies this modification to the source code. Return only the unified diff without any additional explanation."
+          }
+        ],
+        "systemPrompt": "You are a helpful assistant that generates unified diffs. Generate only the unified diff without any additional explanation or markdown formatting.",
+        "temperature": 0.1,
+        "timestamp": "2025-06-25T08:46:19.293Z"
+      },
+      "llmResponse": {
+        "content": "@@ -1,3 +1,3 @@\n function example() {\n-  var message = 'Hello World';\n+  const message = 'Hello World';\n   return message;\n }",
+        "latency": 0,
+        "timestamp": "2025-06-25T08:46:19.632Z"
+      },
+      "validationResults": [
+        {
+          "type": "format",
+          "passed": true,
+          "details": "Valid unified diff format"
+        },
+        {
+          "type": "application",
+          "passed": false,
+          "details": "Diff application failed: Hunk could not be applied cleanly to source code."
+        }
+      ],
+      "executionResult": {
+        "stdout": "",
+        "stderr": "Hunk could not be applied cleanly to source code.",
+        "exitCode": 1,
+        "successful": false
+      },
+      "metrics": {
+        "latency": 0,
+        "tokens": {
+          "prompt": 0,
+          "completion": 0,
+          "total": 0
+        },
+        "qualityScores": {
+          "formatValid": 1,
+          "applySuccess": 0,
+          "overallQuality": 0.5
+        }
+      },
+      "endTime": "2025-06-25T08:46:19.632Z",
+      "duration": 340
+    },
+    {
+      "testCaseId": "test-006-openai-GPT-4o",
+      "modelId": "openai-GPT-4o",
+      "status": "completed",
+      "startTime": "2025-06-25T08:46:19.632Z",
+      "llmRequest": {
+        "model": "openai-GPT-4o",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Here is the source code:\n\n```\nconst numbers = [1, 2, 3, 4, 5];\nconst doubled = numbers.map(function(n) {\n  return n * 2;\n});\n```\n\nConvert to arrow function\n\nPlease generate a unified diff that applies this modification to the source code. Return only the unified diff without any additional explanation."
+          }
+        ],
+        "systemPrompt": "You are a helpful assistant that generates unified diffs. Generate only the unified diff without any additional explanation or markdown formatting.",
+        "temperature": 0.1,
+        "timestamp": "2025-06-25T08:46:19.632Z"
+      },
+      "llmResponse": {
+        "content": "@@ -1,3 +1,3 @@\n function example() {\n-  var message = 'Hello World';\n+  const message = 'Hello World';\n   return message;\n }",
+        "latency": 0,
+        "timestamp": "2025-06-25T08:46:19.823Z"
+      },
+      "validationResults": [
+        {
+          "type": "format",
+          "passed": true,
+          "details": "Valid unified diff format"
+        },
+        {
+          "type": "application",
+          "passed": false,
+          "details": "Diff application failed: Hunk could not be applied cleanly to source code."
+        }
+      ],
+      "executionResult": {
+        "stdout": "",
+        "stderr": "Hunk could not be applied cleanly to source code.",
+        "exitCode": 1,
+        "successful": false
+      },
+      "metrics": {
+        "latency": 0,
+        "tokens": {
+          "prompt": 0,
+          "completion": 0,
+          "total": 0
+        },
+        "qualityScores": {
+          "formatValid": 1,
+          "applySuccess": 0,
+          "overallQuality": 0.5
+        }
+      },
+      "endTime": "2025-06-25T08:46:19.823Z",
+      "duration": 191
+    },
+    {
+      "testCaseId": "test-007-openai-GPT-4o",
+      "modelId": "openai-GPT-4o",
+      "status": "completed",
+      "startTime": "2025-06-25T08:46:19.824Z",
+      "llmRequest": {
+        "model": "openai-GPT-4o",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Here is the source code:\n\n```\nfunction createUser(name, role) {\n  return {\n    name: name,\n    role: role || 'user'\n  };\n}\n```\n\nAdd default parameter\n\nPlease generate a unified diff that applies this modification to the source code. Return only the unified diff without any additional explanation."
+          }
+        ],
+        "systemPrompt": "You are a helpful assistant that generates unified diffs. Generate only the unified diff without any additional explanation or markdown formatting.",
+        "temperature": 0.1,
+        "timestamp": "2025-06-25T08:46:19.824Z"
+      },
+      "llmResponse": {
+        "content": "@@ -1,3 +1,3 @@\n function example() {\n-  var message = 'Hello World';\n+  const message = 'Hello World';\n   return message;\n }",
+        "latency": 0,
+        "timestamp": "2025-06-25T08:46:19.997Z"
+      },
+      "validationResults": [
+        {
+          "type": "format",
+          "passed": true,
+          "details": "Valid unified diff format"
+        },
+        {
+          "type": "application",
+          "passed": false,
+          "details": "Diff application failed: Hunk could not be applied cleanly to source code."
+        }
+      ],
+      "executionResult": {
+        "stdout": "",
+        "stderr": "Hunk could not be applied cleanly to source code.",
+        "exitCode": 1,
+        "successful": false
+      },
+      "metrics": {
+        "latency": 0,
+        "tokens": {
+          "prompt": 0,
+          "completion": 0,
+          "total": 0
+        },
+        "qualityScores": {
+          "formatValid": 1,
+          "applySuccess": 0,
+          "overallQuality": 0.5
+        }
+      },
+      "endTime": "2025-06-25T08:46:19.997Z",
+      "duration": 173
+    },
+    {
+      "testCaseId": "test-008-openai-GPT-4o",
+      "modelId": "openai-GPT-4o",
+      "status": "completed",
+      "startTime": "2025-06-25T08:46:19.998Z",
+      "llmRequest": {
+        "model": "openai-GPT-4o",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Here is the source code:\n\n```\nfunction fetchData() {\n  return fetch('/api/data')\n    .then(response => response.json())\n    .then(data => data.items);\n}\n```\n\nConvert to async/await\n\nPlease generate a unified diff that applies this modification to the source code. Return only the unified diff without any additional explanation."
+          }
+        ],
+        "systemPrompt": "You are a helpful assistant that generates unified diffs. Generate only the unified diff without any additional explanation or markdown formatting.",
+        "temperature": 0.1,
+        "timestamp": "2025-06-25T08:46:19.998Z"
+      },
+      "llmResponse": {
+        "content": "@@ -1,3 +1,3 @@\n function example() {\n-  var message = 'Hello World';\n+  const message = 'Hello World';\n   return message;\n }",
+        "latency": 0,
+        "timestamp": "2025-06-25T08:46:20.426Z"
+      },
+      "validationResults": [
+        {
+          "type": "format",
+          "passed": true,
+          "details": "Valid unified diff format"
+        },
+        {
+          "type": "application",
+          "passed": false,
+          "details": "Diff application failed: Hunk could not be applied cleanly to source code."
+        }
+      ],
+      "executionResult": {
+        "stdout": "",
+        "stderr": "Hunk could not be applied cleanly to source code.",
+        "exitCode": 1,
+        "successful": false
+      },
+      "metrics": {
+        "latency": 0,
+        "tokens": {
+          "prompt": 0,
+          "completion": 0,
+          "total": 0
+        },
+        "qualityScores": {
+          "formatValid": 1,
+          "applySuccess": 0,
+          "overallQuality": 0.5
+        }
+      },
+      "endTime": "2025-06-25T08:46:20.426Z",
+      "duration": 428
+    },
+    {
+      "testCaseId": "test-009-openai-GPT-4o",
+      "modelId": "openai-GPT-4o",
+      "status": "completed",
+      "startTime": "2025-06-25T08:46:20.427Z",
+      "llmRequest": {
+        "model": "openai-GPT-4o",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Here is the source code:\n\n```\nclass Circle {\n  constructor(radius) {\n    this.radius = radius;\n  }\n}\n```\n\nAdd getter method\n\nPlease generate a unified diff that applies this modification to the source code. Return only the unified diff without any additional explanation."
+          }
+        ],
+        "systemPrompt": "You are a helpful assistant that generates unified diffs. Generate only the unified diff without any additional explanation or markdown formatting.",
+        "temperature": 0.1,
+        "timestamp": "2025-06-25T08:46:20.427Z"
+      },
+      "llmResponse": {
+        "content": "@@ -7,4 +7,9 @@\n   add(value) {\n     this.result += value;\n     return this;\n   }\n+\n+  subtract(value) {\n+    this.result -= value;\n+    return this;\n+  }\n }",
+        "latency": 0,
+        "timestamp": "2025-06-25T08:46:20.809Z"
+      },
+      "validationResults": [
+        {
+          "type": "format",
+          "passed": true,
+          "details": "Valid unified diff format"
+        },
+        {
+          "type": "application",
+          "passed": false,
+          "details": "Diff application failed: Hunk could not be applied cleanly to source code."
+        }
+      ],
+      "executionResult": {
+        "stdout": "",
+        "stderr": "Hunk could not be applied cleanly to source code.",
+        "exitCode": 1,
+        "successful": false
+      },
+      "metrics": {
+        "latency": 0,
+        "tokens": {
+          "prompt": 0,
+          "completion": 0,
+          "total": 0
+        },
+        "qualityScores": {
+          "formatValid": 1,
+          "applySuccess": 0,
+          "overallQuality": 0.5
+        }
+      },
+      "endTime": "2025-06-25T08:46:20.809Z",
+      "duration": 382
+    },
+    {
+      "testCaseId": "test-010-openai-GPT-4o",
+      "modelId": "openai-GPT-4o",
+      "status": "completed",
+      "startTime": "2025-06-25T08:46:20.809Z",
+      "llmRequest": {
+        "model": "openai-GPT-4o",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Here is the source code:\n\n```\nfunction example() {\n    if (true) {\n      console.log('hello');\n  } else {\n        console.log('world');\n    }\n}\n```\n\nFix indentation\n\nPlease generate a unified diff that applies this modification to the source code. Return only the unified diff without any additional explanation."
+          }
+        ],
+        "systemPrompt": "You are a helpful assistant that generates unified diffs. Generate only the unified diff without any additional explanation or markdown formatting.",
+        "temperature": 0.1,
+        "timestamp": "2025-06-25T08:46:20.809Z"
+      },
+      "llmResponse": {
+        "content": "@@ -1,3 +1,3 @@\n function example() {\n-  var message = 'Hello World';\n+  const message = 'Hello World';\n   return message;\n }",
+        "latency": 0,
+        "timestamp": "2025-06-25T08:46:21.015Z"
+      },
+      "validationResults": [
+        {
+          "type": "format",
+          "passed": true,
+          "details": "Valid unified diff format"
+        },
+        {
+          "type": "application",
+          "passed": false,
+          "details": "Diff application failed: Hunk could not be applied cleanly to source code."
+        }
+      ],
+      "executionResult": {
+        "stdout": "",
+        "stderr": "Hunk could not be applied cleanly to source code.",
+        "exitCode": 1,
+        "successful": false
+      },
+      "metrics": {
+        "latency": 0,
+        "tokens": {
+          "prompt": 0,
+          "completion": 0,
+          "total": 0
+        },
+        "qualityScores": {
+          "formatValid": 1,
+          "applySuccess": 0,
+          "overallQuality": 0.5
+        }
+      },
+      "endTime": "2025-06-25T08:46:21.016Z",
+      "duration": 207
+    }
+  ]
+}

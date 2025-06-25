@@ -1,31 +1,38 @@
 {
   "compilerOptions": {
-    "target": "ES2020",
-    "module": "commonjs",
-    "lib": ["ES2020"],
-    "outDir": "./dist",
-    "rootDir": "./",
-    "strict": true,
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "node",
     "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "strict": true,
     "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
+    "outDir": "./dist",
+    "baseUrl": "..",
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
+    "incremental": true,
+    "tsBuildInfoFile": "./dist/.tsbuildinfo",
+    "lib": ["ES2022"],
+    "types": ["node", "jest"],
     "resolveJsonModule": true,
-    "allowSyntheticDefaultImports": true,
-    "experimentalDecorators": true,
-    "emitDecoratorMetadata": true
+    "allowImportingTsExtensions": false,
+    "noEmit": false,
+    "isolatedModules": false,
+    "verbatimModuleSyntax": false
   },
   "include": [
-    "core/**/*",
-    "plugins/**/*",
-    "scripts/**/*"
+    "**/*.ts",
+    "**/*.tsx"
   ],
   "exclude": [
     "node_modules",
     "dist",
     "**/*.test.ts",
-    "reports"
-  ]
+    "**/*.spec.ts"
+  ],
+  "ts-node": {
+    "esm": true
+  }
 }
