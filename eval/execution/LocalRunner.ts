@@ -18,75 +18,6 @@ export class LocalExecutionEnvironment implements ExecutionEnvironment {
     this.tempDir = join(tmpdir(), "continue-eval-local");
   }
 
-  async runCode(
-    code: string,
-    language: string,
-    options: ExecutionOptions = {},
-  ): Promise<ExecutionResult> {
-    const {
-      timeout = 30000,
-      memoryLimit,
-      workingDirectory,
-      environment = {},
-      files = {},
-    } = options;
-
-    const executionId = uuidv4();
-    const execDir = workingDirectory || join(this.tempDir, executionId);
-
-    try {
-      // Create execution directory
-      await fs.mkdir(execDir, { recursive: true });
-
-      // Write additional files if provided
-      for (const [filename, content] of Object.entries(files)) {
-        const filePath = join(execDir, filename);
-        await fs.mkdir(dirname(filePath), { recursive: true });
-        await fs.writeFile(filePath, content, "utf-8");
-      }
-
-      // Get language-specific execution command
-      const { command, args, filename } = this.getExecutionCommand(
-        language,
-        code,
-        execDir,
-      );
-
-      // Write the main code file
-      const codeFilePath = join(execDir, filename);
-      await fs.writeFile(codeFilePath, code, "utf-8");
-
-      // Execute the code
-      const startTime = Date.now();
-      const result = await this.executeCommand(
-        command,
-        args,
-        execDir,
-        timeout,
-        environment,
-      );
-      const executionTime = Date.now() - startTime;
-
-      return { ...result, executionTime, successful: result.exitCode === 0 };
-    } catch (error) {
-      return {
-        stdout: "",
-        stderr: (error as Error).message,
-        exitCode: -1,
-        successful: false,
-        error: (error as Error).message,
-      };
-    } finally {
-      // Cleanup temporary files
-      try {
-        if (!workingDirectory) {
-          await fs.rm(execDir, { recursive: true, force: true });
-        }
-      } catch (error) {
-        // Ignore cleanup errors
-      }
-    }
-  }
 
   private getExecutionCommand(
     language: string,
@@ -221,7 +152,69 @@ export class LocalExecutionEnvironment implements ExecutionEnvironment {
     // Combine the code with the test
     const combinedCode = this.combineCodeWithTest(code, test, language);
 
-    return this.runCode(combinedCode, language, options);
+    const {
+      timeout = 30000,
+      memoryLimit,
+      workingDirectory,
+      environment = {},
+      files = {},
+    } = options;
+
+    const executionId = uuidv4();
+    const execDir = workingDirectory || join(this.tempDir, executionId);
+
+    try {
+      // Create execution directory
+      await fs.mkdir(execDir, { recursive: true });
+
+      // Write additional files if provided
+      for (const [filename, content] of Object.entries(files)) {
+        const filePath = join(execDir, filename);
+        await fs.mkdir(dirname(filePath), { recursive: true });
+        await fs.writeFile(filePath, content, "utf-8");
+      }
+
+      // Get language-specific execution command
+      const { command, args, filename } = this.getExecutionCommand(
+        language,
+        combinedCode,
+        execDir,
+      );
+
+      // Write the main code file
+      const codeFilePath = join(execDir, filename);
+      await fs.writeFile(codeFilePath, combinedCode, "utf-8");
+
+      // Execute the code
+      const startTime = Date.now();
+      const result = await this.executeCommand(
+        command,
+        args,
+        execDir,
+        timeout,
+        environment,
+      );
+      const executionTime = Date.now() - startTime;
+
+      return { ...result, executionTime, successful: result.exitCode === 0 };
+    } catch (error) {
+      return {
+        stdout: "",
+        stderr: (error as Error).message,
+        exitCode: -1,
+        successful: false,
+        error: (error as Error).message,
+      };
+    } finally {
+      // Cleanup temporary files
+      try {
+        if (!workingDirectory) {
+          await fs.rm(execDir, { recursive: true, force: true });
+        }
+      } catch (error) {
+        // Ignore cleanup errors
+      }
+    }
   }
 
   private combineCodeWithTest(

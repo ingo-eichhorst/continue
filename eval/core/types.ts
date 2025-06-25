@@ -202,12 +202,7 @@ export interface ExecutionEnvironment {
     language: string,
     options?: ExecutionOptions,
   ): Promise<ExecutionResult>;
-
-  runCode(
-    code: string,
-    language: string,
-    options?: ExecutionOptions,
-  ): Promise<ExecutionResult>;
+  
   cleanup?(): Promise<void>;
 }
 

@@ -31,99 +31,6 @@ export class DockerExecutionEnvironment implements ExecutionEnvironment {
     this.docker = new Docker();
   }
 
-  async runCode(
-    code: string,
-    language: string,
-    options: ExecutionOptions = {},
-  ): Promise<ExecutionResult> {
-    const {
-      timeout = 30000,
-      memoryLimit = "128m" as string,
-      workingDirectory = "/app",
-      environment = {},
-      files = {},
-    } = options;
-
-    const startTime = Date.now();
-
-    try {
-      // Get Docker image for the language
-      const image = this.getImageForLanguage(language);
-
-      // Ensure image is available
-      await this.ensureImage(image);
-
-      // Prepare container configuration
-      const containerConfig = this.getContainerConfig(
-        image,
-        language,
-        code,
-        files,
-        workingDirectory,
-        environment,
-        String(memoryLimit),
-        timeout,
-      );
-
-      // Create and run container
-      const container = await this.docker.createContainer(containerConfig);
-
-      let stdout = "";
-      let stderr = "";
-      let exitCode = 0;
-
-      try {
-        // Start container
-        await container.start();
-
-        // Get logs
-        const logStream = await container.logs({
-          stdout: true,
-          stderr: true,
-          follow: true,
-        });
-
-        // Parse logs
-        const { stdout: out, stderr: err } =
-          await this.parseContainerLogs(logStream);
-        stdout = out;
-        stderr = err;
-
-        // Wait for container to finish
-        const result = await container.wait();
-        exitCode = result.StatusCode;
-      } finally {
-        // Always cleanup container
-        try {
-          await container.remove({ force: true });
-        } catch (cleanupError) {
-          // Ignore cleanup errors
-        }
-      }
-
-      const executionTime = Date.now() - startTime;
-
-      return {
-        stdout: stdout.trim(),
-        stderr: stderr.trim(),
-        exitCode,
-        successful: exitCode === 0,
-        executionTime,
-        memoryUsage: undefined, // Docker doesn't easily provide this without additional setup
-      };
-    } catch (error) {
-      const executionTime = Date.now() - startTime;
-
-      return {
-        stdout: "",
-        stderr: (error as Error).message,
-        exitCode: -1,
-        successful: false,
-        executionTime,
-        error: (error as Error).message,
-      };
-    }
-  }
 
   private getImageForLanguage(language: string): string {
     const normalizedLang = language.toLowerCase();
@@ -412,7 +319,93 @@ export class DockerExecutionEnvironment implements ExecutionEnvironment {
     // Combine the code with the test
     const combinedCode = this.combineCodeWithTest(code, test, language);
 
-    return this.runCode(combinedCode, language, options);
+    const {
+      timeout = 30000,
+      memoryLimit = "128m" as string,
+      workingDirectory = "/app",
+      environment = {},
+      files = {},
+    } = options;
+
+    const startTime = Date.now();
+
+    try {
+      // Get Docker image for the language
+      const image = this.getImageForLanguage(language);
+
+      // Ensure image is available
+      await this.ensureImage(image);
+
+      // Prepare container configuration
+      const containerConfig = this.getContainerConfig(
+        image,
+        language,
+        combinedCode,
+        files,
+        workingDirectory,
+        environment,
+        String(memoryLimit),
+        timeout,
+      );
+
+      // Create and run container
+      const container = await this.docker.createContainer(containerConfig);
+
+      let stdout = "";
+      let stderr = "";
+      let exitCode = 0;
+
+      try {
+        // Start container
+        await container.start();
+
+        // Get logs
+        const logStream = await container.logs({
+          stdout: true,
+          stderr: true,
+          follow: true,
+        });
+
+        // Parse logs
+        const { stdout: out, stderr: err } =
+          await this.parseContainerLogs(logStream);
+        stdout = out;
+        stderr = err;
+
+        // Wait for container to finish
+        const result = await container.wait();
+        exitCode = result.StatusCode;
+      } finally {
+        // Always cleanup container
+        try {
+          await container.remove({ force: true });
+        } catch (cleanupError) {
+          // Ignore cleanup errors
+        }
+      }
+
+      const executionTime = Date.now() - startTime;
+
+      return {
+        stdout: stdout.trim(),
+        stderr: stderr.trim(),
+        exitCode,
+        successful: exitCode === 0,
+        executionTime,
+        memoryUsage: undefined, // Docker doesn't easily provide this without additional setup
+      };
+    } catch (error) {
+      const executionTime = Date.now() - startTime;
+
+      return {
+        stdout: "",
+        stderr: (error as Error).message,
+        exitCode: -1,
+        successful: false,
+        executionTime,
+        error: (error as Error).message,
+      };
+    }
   }
 
   private combineCodeWithTest(
