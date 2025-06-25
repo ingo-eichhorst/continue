@@ -151,7 +151,6 @@ export interface ExecutionResult {
 }
 
 export interface ValidationResult {
-  type: string;
   passed: boolean;
   score?: number;
   details?: string;
@@ -202,7 +201,7 @@ export interface ExecutionEnvironment {
     language: string,
     options?: ExecutionOptions,
   ): Promise<ExecutionResult>;
-  
+
   cleanup?(): Promise<void>;
 }
 

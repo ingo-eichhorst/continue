@@ -43,12 +43,6 @@ export class UnifiedDiffPlugin implements BenchmarkPlugin {
   private static readonly DEFAULT_SYSTEM_PROMPT =
     "You are a helpful assistant that generates unified diffs. Generate only the unified diff without any additional explanation or markdown formatting.";
   private static readonly MAX_TOKENS = 4000;
-  private static readonly VALIDATION_TYPES = {
-    FORMAT: "format",
-    APPLICATION: "application",
-    EXECUTION: "execution",
-    METRICS: "metrics",
-  } as const;
 
   propertiesSchema = {
     systemPrompt: {
@@ -271,7 +265,6 @@ Please generate a unified diff that applies this modification to the source code
   ): boolean {
     const isValid = isUnifiedDiffFormat(cleanedDiff);
     validationResults.push({
-      type: UnifiedDiffPlugin.VALIDATION_TYPES.FORMAT,
       passed: isValid,
       details: isValid
         ? "Valid unified diff format"
@@ -290,7 +283,6 @@ Please generate a unified diff that applies this modification to the source code
       const appliedCode = diffLines.map((line) => line.line).join("\n");
 
       validationResults.push({
-        type: UnifiedDiffPlugin.VALIDATION_TYPES.APPLICATION,
         passed: true,
         details: "Diff applied successfully",
       });
@@ -299,7 +291,6 @@ Please generate a unified diff that applies this modification to the source code
     } catch (error) {
       const errorMessage = (error as Error).message;
       validationResults.push({
-        type: UnifiedDiffPlugin.VALIDATION_TYPES.APPLICATION,
         passed: false,
         details: `Diff application failed: ${errorMessage}`,
       });
@@ -334,7 +325,6 @@ Please generate a unified diff that applies this modification to the source code
 
     const passed = testResult.exitCode === 0;
     validationResults.push({
-      type: UnifiedDiffPlugin.VALIDATION_TYPES.EXECUTION,
       passed,
       details: passed
         ? `Unit test passed: ${testResult.stdout}`

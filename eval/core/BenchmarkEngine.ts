@@ -297,9 +297,12 @@ export class BenchmarkEngine {
       ? totalTokens / tokenUsage.length 
       : 0;
 
-    // Quality metrics
-    const syntaxCorrectness = this.calculateQualityMetric(completedTests, 'syntax');
-    const compilationSuccess = this.calculateQualityMetric(completedTests, 'compilation');
+    // Quality metrics - calculate based on all validation results
+    const allValidationResults = completedTests.flatMap(tc => tc.validationResults || []);
+    const syntaxCorrectness = allValidationResults.length > 0 
+      ? allValidationResults.filter(vr => vr.passed).length / allValidationResults.length 
+      : 0;
+    const compilationSuccess = syntaxCorrectness; // Same as overall validation success
 
     return {
       functional: {
@@ -323,15 +326,6 @@ export class BenchmarkEngine {
     };
   }
 
-  private calculateQualityMetric(testCases: TestCaseResult[], type: string): number {
-    const relevantResults = testCases
-      .flatMap(tc => tc.validationResults || [])
-      .filter(vr => vr.type === type);
-    
-    if (relevantResults.length === 0) return 0;
-    
-    return relevantResults.filter(vr => vr.passed).length / relevantResults.length;
-  }
 
   private calculateMedian(values: number[]): number {
     const sorted = [...values].sort((a, b) => a - b);
@@ -383,27 +377,6 @@ export class BenchmarkEngine {
     };
   }
 
-  private getEmptyMetrics(): BenchmarkMetrics {
-    return {
-      functional: {
-        totalTests: 0,
-        passedTests: 0,
-        failedTests: 0,
-        successRate: 0
-      },
-      performance: {
-        averageLatency: 0,
-        medianLatency: 0,
-        p95Latency: 0,
-        totalTokens: 0,
-        averageTokensPerRequest: 0
-      },
-      quality: {
-        syntaxCorrectness: 0,
-        compilationSuccess: 0
-      }
-    };
-  }
 
   // Utility methods for session management
   async pauseSession(sessionId: string): Promise<void> {
