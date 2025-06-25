@@ -25,7 +25,7 @@ export interface PropertySchema {
 }
 
 export interface BenchmarkContext {
-  models: ILLM[];
+  model: ILLM;
   dataset: Dataset;
   session: BenchmarkSession;
   properties: Record<string, any>;

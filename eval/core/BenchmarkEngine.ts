@@ -131,21 +131,11 @@ export class BenchmarkEngine {
         }
       }
 
-      // Create benchmark context
-      const context: BenchmarkContext = {
-        models,
-        dataset,
-        session,
-        properties,
-        executionEnvironment,
-        logger: this.logger
-      };
-
       // Execute the benchmark
       session.status = 'running';
       await this.updateSession(session);
 
-      const result = await this.executeWithErrorHandling(plugin, context);
+      const result = await this.executeWithModelLoop(plugin, models, dataset, session, properties, executionEnvironment);
 
       // Update session status
       session.status = 'completed';
@@ -160,6 +150,86 @@ export class BenchmarkEngine {
       await this.updateSession(session);
       throw error;
     }
+  }
+
+  private async executeWithModelLoop(
+    plugin: BenchmarkPlugin,
+    models: ILLM[],
+    dataset: Dataset,
+    session: BenchmarkSession,
+    properties: Record<string, any>,
+    executionEnvironment: ExecutionEnvironment
+  ): Promise<BenchmarkResult> {
+    const startTime = new Date();
+    const allTestCases: TestCaseResult[] = [];
+
+    this.logger.info(
+      `Starting benchmark with ${models.length} models and ${dataset.testCases.length} test cases`
+    );
+
+    // Loop through each model and execute plugin for that model
+    for (const model of models) {
+      this.logger.info(`Testing model: ${model.uniqueId}`);
+
+      // Create context for this specific model
+      const context: BenchmarkContext = {
+        model,
+        dataset,
+        session,
+        properties,
+        executionEnvironment,
+        logger: this.logger
+      };
+
+      try {
+        const modelResult = await this.executeWithErrorHandling(plugin, context);
+        
+        // Collect test cases from this model's execution
+        allTestCases.push(...modelResult.testCases);
+
+      } catch (error) {
+        this.logger.error(`Model ${model.uniqueId} execution failed`, error as Error);
+        
+        // Create failed test cases for this model
+        for (const testCase of dataset.testCases) {
+          const testCaseId = `${testCase.id}-${model.uniqueId}`;
+          const failedResult: TestCaseResult = {
+            testCaseId,
+            modelId: model.uniqueId,
+            status: "failed",
+            startTime: new Date(),
+            endTime: new Date(),
+            duration: 0,
+            error: {
+              type: "execution",
+              message: (error as Error).message,
+              details: (error as Error).stack,
+              recoverable: false,
+            }
+          };
+          allTestCases.push(failedResult);
+        }
+      }
+    }
+
+    const endTime = new Date();
+    const totalDuration = endTime.getTime() - startTime.getTime();
+    this.logger.info(`Benchmark execution completed in ${totalDuration}ms`);
+
+    // Create consolidated result
+    const result: BenchmarkResult = {
+      pluginName: plugin.name,
+      sessionId: session.id,
+      testCases: allTestCases,
+      metrics: this.calculateMetrics(allTestCases),
+      summary: { overallScore: 0, recommendations: [], insights: [] }, // Will be updated below
+      startTime,
+      endTime,
+      duration: totalDuration
+    };
+
+    result.summary = this.generateSummary(result);
+    return result;
   }
 
   private async executeWithErrorHandling(
@@ -186,24 +256,6 @@ export class BenchmarkEngine {
 
     } catch (error) {
       this.logger.error(`Plugin execution failed`, error as Error);
-      
-      // Create error result
-      const endTime = new Date();
-      const errorResult: BenchmarkResult = {
-        pluginName: plugin.name,
-        sessionId: context.session.id,
-        testCases: [],
-        metrics: this.getEmptyMetrics(),
-        summary: {
-          overallScore: 0,
-          recommendations: [`Benchmark failed: ${(error as Error).message}`],
-          insights: []
-        },
-        startTime,
-        endTime,
-        duration: endTime.getTime() - startTime.getTime()
-      };
-
       throw error;
     }
   }

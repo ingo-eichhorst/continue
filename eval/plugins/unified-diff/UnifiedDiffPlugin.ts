@@ -62,99 +62,94 @@ export class UnifiedDiffPlugin implements BenchmarkPlugin {
   defaultDataset = "datasets/diff-dataset";
 
   async execute(context: BenchmarkContext): Promise<BenchmarkResult> {
-    const { models, dataset, session, properties, logger } = context;
+    const { model, dataset, session, properties, logger } = context;
     const systemPrompt =
       properties.systemPrompt || this.propertiesSchema.systemPrompt.default;
 
     logger.info(
-      `Starting unified diff benchmark with ${models.length} models and ${dataset.testCases.length} test cases`,
+      `Starting unified diff benchmark for model ${model.uniqueId} with ${dataset.testCases.length} test cases`,
     );
 
     const testCases: TestCaseResult[] = [];
     let currentTestIndex = 0;
 
-    // TODO: The looping logic should move to the BenchmarkEngine.
-    //       A BenchmarkPlugin execution should always have exactly one model.
-    for (const model of models) {
-      logger.info(`Testing model: ${model.uniqueId}`);
+    for (const testCase of dataset.testCases) {
+      const testCaseId = `${testCase.id}-${model.uniqueId}`;
+      logger.debug(
+        `Processing test case: ${testCase.id}, full testCaseId: ${testCaseId}`,
+      );
 
-      for (const testCase of dataset.testCases) {
-        const testCaseId = `${testCase.id}-${model.uniqueId}`;
-        logger.debug(
-          `Processing test case: ${testCase.id}, full testCaseId: ${testCaseId}`,
-        );
-        // Check if this test case was already completed (session recovery)
-        const existingResult = session.results?.find(
-          (r) => r.testCaseId === testCaseId && r.status === "completed",
-        );
+      // Check if this test case was already completed (session recovery)
+      const existingResult = session.results?.find(
+        (r) => r.testCaseId === testCaseId && r.status === "completed",
+      );
 
-        // TODO: The BenchmarkEngine should provide only the missing tests
-        //       to the Benchmark Plugin to keep the implementation simple.
-        if (existingResult) {
-          testCases.push(existingResult);
-          logger.debug(`Skipping completed test case: ${testCaseId}`);
-          continue;
-        }
-
-        const startTime = new Date();
-        logger.debug(
-          `Processing test case: ${testCase.id} with model: ${model.title} at ${startTime.toISOString()}`,
-        );
-
-        const result: TestCaseResult = {
-          testCaseId,
-          modelId: model.uniqueId,
-          status: "running",
-          startTime,
-        };
-
-        try {
-          // Execute the test case
-          await this.executeTestCase(
-            testCase as UnifiedDiffTestCase,
-            model,
-            systemPrompt,
-            result,
-            context,
-          );
-
-          result.status = "completed";
-          result.endTime = new Date();
-          result.duration = result.endTime.getTime() - startTime.getTime();
-          logger.debug(
-            `Test case ${testCaseId} completed successfully in ${result.duration}ms`,
-          );
-        } catch (error) {
-          logger.error(`Test case ${testCaseId} failed:`, error as Error);
-
-          result.status = "failed";
-          result.endTime = new Date();
-          result.duration = result.endTime
-            ? result.endTime.getTime() - startTime.getTime()
-            : 0;
-          result.error = {
-            type: "execution",
-            message: (error as Error).message,
-            details: (error as Error).stack,
-            recoverable: false,
-          };
-        }
-
-        testCases.push(result);
-
-        // TODO: This logic should live in the metrics collector
-        // Update session progress
-        session.progress.completedTestCases++;
-        if (result.status === "failed") {
-          session.progress.failedTestCases++;
-        }
-        session.progress.currentTestCase = testCaseId;
-
-        currentTestIndex++;
-        logger.info(
-          `Progress: ${currentTestIndex}/${session.progress.totalTestCases} test cases completed`,
-        );
+      // TODO: The BenchmarkEngine should provide only the missing tests
+      //       to the Benchmark Plugin to keep the implementation simple.
+      if (existingResult) {
+        testCases.push(existingResult);
+        logger.debug(`Skipping completed test case: ${testCaseId}`);
+        continue;
       }
+
+      const startTime = new Date();
+      logger.debug(
+        `Processing test case: ${testCase.id} with model: ${model.title} at ${startTime.toISOString()}`,
+      );
+
+      const result: TestCaseResult = {
+        testCaseId,
+        modelId: model.uniqueId,
+        status: "running",
+        startTime,
+      };
+
+      try {
+        // Execute the test case
+        await this.executeTestCase(
+          testCase as UnifiedDiffTestCase,
+          model,
+          systemPrompt,
+          result,
+          context,
+        );
+
+        result.status = "completed";
+        result.endTime = new Date();
+        result.duration = result.endTime.getTime() - startTime.getTime();
+        logger.debug(
+          `Test case ${testCaseId} completed successfully in ${result.duration}ms`,
+        );
+      } catch (error) {
+        logger.error(`Test case ${testCaseId} failed:`, error as Error);
+
+        result.status = "failed";
+        result.endTime = new Date();
+        result.duration = result.endTime
+          ? result.endTime.getTime() - startTime.getTime()
+          : 0;
+        result.error = {
+          type: "execution",
+          message: (error as Error).message,
+          details: (error as Error).stack,
+          recoverable: false,
+        };
+      }
+
+      testCases.push(result);
+
+      // TODO: This logic should live in the metrics collector
+      // Update session progress
+      session.progress.completedTestCases++;
+      if (result.status === "failed") {
+        session.progress.failedTestCases++;
+      }
+      session.progress.currentTestCase = testCaseId;
+
+      currentTestIndex++;
+      logger.info(
+        `Progress: ${currentTestIndex}/${dataset.testCases.length} test cases completed for model ${model.uniqueId}`,
+      );
     }
 
     const endTime = new Date();
