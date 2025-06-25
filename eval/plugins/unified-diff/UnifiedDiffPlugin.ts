@@ -61,15 +61,6 @@ export class UnifiedDiffPlugin implements BenchmarkPlugin {
 
   defaultDataset = "datasets/diff-dataset";
 
-  private logStep(
-    logger: any,
-    testCaseId: string,
-    step: string,
-    details?: string,
-  ): void {
-    logger.debug(`[${testCaseId}] ${step}${details ? `: ${details}` : ""}`);
-  }
-
   async execute(context: BenchmarkContext): Promise<BenchmarkResult> {
     const { models, dataset, session, properties, logger } = context;
     const systemPrompt =
@@ -220,6 +211,7 @@ export class UnifiedDiffPlugin implements BenchmarkPlugin {
       testCase.input.prompt;
 
     const messages: ChatMessage[] = [
+      { role: "system", content: systemPrompt },
       {
         role: "user",
         content: `Here is the source code:
@@ -237,7 +229,6 @@ Please generate a unified diff that applies this modification to the source code
     const llmRequest: LLMRequest = {
       model: model.uniqueId,
       messages,
-      systemPrompt,
       timestamp: new Date(),
     };
 
@@ -246,14 +237,12 @@ Please generate a unified diff that applies this modification to the source code
 
   private async executeLLMRequest(
     messages: ChatMessage[],
-    systemPrompt: string,
     model: any,
   ): Promise<{ content: string; latency: number }> {
     const startTime = Date.now();
     const abortController = new AbortController();
 
     const response = await model.streamChat(messages, abortController.signal, {
-      systemMessage: systemPrompt,
       maxTokens: UnifiedDiffPlugin.MAX_TOKENS,
     });
 
@@ -329,16 +318,24 @@ Please generate a unified diff that applies this modification to the source code
     testCase: UnifiedDiffTestCase,
     validationResults: ValidationResult[],
     executionEnvironment: ExecutionEnvironment,
+    logger: any,
   ): Promise<void> {
     if (!testCase.expected?.unitTest) {
       return;
     }
+
+    logger.debug(
+      `Running unit test for ${testCase.id}: ${testCase.expected.unitTest}`,
+    );
+    logger.debug(`Applied code: ${appliedCode}`);
 
     const testResult = await executionEnvironment.runTest(
       testCase.expected.unitTest,
       appliedCode,
       testCase.metadata?.language,
     );
+
+    logger.debug(`Unit test result for ${testCase.id}:`, testResult);
 
     const passed = testResult.exitCode === 0;
     validationResults.push({
@@ -385,15 +382,12 @@ Please generate a unified diff that applies this modification to the source code
     const validationResults: ValidationResult[] = [];
     const testCaseId = context.testCase.id;
 
-    this.logStep(context.logger, testCaseId, "Starting validation pipeline");
+    context.logger.debug(`[${testCaseId}] Starting validation pipeline`);
 
     // Step 1: Clean diff content
     const cleanedDiff = this.cleanDiffContent(diffContent);
-    this.logStep(
-      context.logger,
-      testCaseId,
-      "Content cleaned",
-      `${cleanedDiff.length} chars`,
+    context.logger.debug(
+      `[${testCaseId}] Content cleaned: ${cleanedDiff.length} chars`,
     );
 
     // Step 2: Validate format
@@ -402,7 +396,7 @@ Please generate a unified diff that applies this modification to the source code
       validationResults,
     );
     if (!isValidFormat) {
-      this.logStep(context.logger, testCaseId, "Format validation failed");
+      context.logger.debug(`[${testCaseId}] Format validation failed`);
       context.result.validationResults = validationResults;
       context.result.error = {
         type: "validation",
@@ -412,7 +406,7 @@ Please generate a unified diff that applies this modification to the source code
       };
       return;
     }
-    this.logStep(context.logger, testCaseId, "Format validation passed");
+    context.logger.debug(`[${testCaseId}] Format validation passed`);
 
     // Step 3: Apply diff
     const {
@@ -420,11 +414,8 @@ Please generate a unified diff that applies this modification to the source code
       appliedCode,
       error: applyError,
     } = await this.applyDiff(sourceCode, cleanedDiff, validationResults);
-    this.logStep(
-      context.logger,
-      testCaseId,
-      "Diff application",
-      applySuccess ? "succeeded" : "failed",
+    context.logger.debug(
+      `[${testCaseId}] Diff application: ${applySuccess ? "succeeded" : "failed"}`,
     );
 
     // Step 4: Run unit tests (if applicable)
@@ -434,8 +425,9 @@ Please generate a unified diff that applies this modification to the source code
         context.testCase,
         validationResults,
         context.executionEnvironment,
+        context.logger,
       );
-      this.logStep(context.logger, testCaseId, "Unit tests completed");
+      context.logger.debug(`[${testCaseId}] Unit tests completed`);
     }
 
     // Step 5: Store results and calculate metrics
@@ -453,11 +445,8 @@ Please generate a unified diff that applies this modification to the source code
       isValidFormat,
       applySuccess,
     );
-    this.logStep(
-      context.logger,
-      testCaseId,
-      "Pipeline completed",
-      `${validationResults.filter((r) => r.passed).length}/${validationResults.length} steps passed`,
+    context.logger.debug(
+      `[${testCaseId}] Pipeline completed: ${validationResults.filter((r) => r.passed).length}/${validationResults.length} steps passed`,
     );
   }
 
@@ -491,11 +480,7 @@ Please generate a unified diff that applies this modification to the source code
     );
     result.llmRequest = llmRequest;
 
-    const { content, latency } = await this.executeLLMRequest(
-      messages,
-      systemPrompt,
-      model,
-    );
+    const { content, latency } = await this.executeLLMRequest(messages, model);
 
     // Record LLM response
     result.llmResponse = { content, latency, timestamp: new Date() };
