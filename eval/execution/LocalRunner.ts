@@ -1,35 +1,39 @@
-import { spawn } from 'child_process';
-import { promises as fs } from 'fs';
-import { join, dirname } from 'path';
-import { tmpdir } from 'os';
-import { v4 as uuidv4 } from 'uuid';
-import { ExecutionEnvironment, ExecutionResult, ExecutionOptions } from '../core/types.js';
+import { spawn } from "child_process";
+import { promises as fs } from "fs";
+import { tmpdir } from "os";
+import { dirname, join } from "path";
+import { v4 as uuidv4 } from "uuid";
+import {
+  ExecutionEnvironment,
+  ExecutionOptions,
+  ExecutionResult,
+} from "../core/types.js";
 
 export class LocalExecutionEnvironment implements ExecutionEnvironment {
-  name = 'local';
-  type = 'local' as const;
+  name = "local";
+  type = "local" as const;
   private tempDir: string;
 
   constructor() {
-    this.tempDir = join(tmpdir(), 'continue-eval-local');
+    this.tempDir = join(tmpdir(), "continue-eval-local");
   }
 
   async runCode(
-    code: string, 
-    language: string, 
-    options: ExecutionOptions = {}
+    code: string,
+    language: string,
+    options: ExecutionOptions = {},
   ): Promise<ExecutionResult> {
     const {
       timeout = 30000,
       memoryLimit,
       workingDirectory,
       environment = {},
-      files = {}
+      files = {},
     } = options;
 
     const executionId = uuidv4();
     const execDir = workingDirectory || join(this.tempDir, executionId);
-    
+
     try {
       // Create execution directory
       await fs.mkdir(execDir, { recursive: true });
@@ -38,40 +42,39 @@ export class LocalExecutionEnvironment implements ExecutionEnvironment {
       for (const [filename, content] of Object.entries(files)) {
         const filePath = join(execDir, filename);
         await fs.mkdir(dirname(filePath), { recursive: true });
-        await fs.writeFile(filePath, content, 'utf-8');
+        await fs.writeFile(filePath, content, "utf-8");
       }
 
       // Get language-specific execution command
-      const { command, args, filename } = this.getExecutionCommand(language, code, execDir);
+      const { command, args, filename } = this.getExecutionCommand(
+        language,
+        code,
+        execDir,
+      );
 
       // Write the main code file
       const codeFilePath = join(execDir, filename);
-      await fs.writeFile(codeFilePath, code, 'utf-8');
+      await fs.writeFile(codeFilePath, code, "utf-8");
 
       // Execute the code
       const startTime = Date.now();
       const result = await this.executeCommand(
-        command, 
-        args, 
-        execDir, 
-        timeout, 
-        environment
+        command,
+        args,
+        execDir,
+        timeout,
+        environment,
       );
       const executionTime = Date.now() - startTime;
 
-      return {
-        ...result,
-        executionTime,
-        successful: result.exitCode === 0
-      };
-
+      return { ...result, executionTime, successful: result.exitCode === 0 };
     } catch (error) {
       return {
-        stdout: '',
+        stdout: "",
         stderr: (error as Error).message,
         exitCode: -1,
         successful: false,
-        error: (error as Error).message
+        error: (error as Error).message,
       };
     } finally {
       // Cleanup temporary files
@@ -85,88 +88,68 @@ export class LocalExecutionEnvironment implements ExecutionEnvironment {
     }
   }
 
-  private getExecutionCommand(language: string, code: string, execDir: string): {
-    command: string;
-    args: string[];
-    filename: string;
-  } {
+  private getExecutionCommand(
+    language: string,
+    code: string,
+    execDir: string,
+  ): { command: string; args: string[]; filename: string } {
     switch (language.toLowerCase()) {
-      case 'javascript':
-      case 'js':
+      case "javascript":
+      case "js":
+        return { command: "node", args: ["main.js"], filename: "main.js" };
+
+      case "typescript":
+      case "ts":
         return {
-          command: 'node',
-          args: ['main.js'],
-          filename: 'main.js'
+          command: "npx",
+          args: ["tsx", "main.ts"],
+          filename: "main.ts",
         };
 
-      case 'typescript':
-      case 'ts':
-        return {
-          command: 'npx',
-          args: ['tsx', 'main.ts'],
-          filename: 'main.ts'
-        };
+      case "python":
+      case "py":
+        return { command: "python3", args: ["main.py"], filename: "main.py" };
 
-      case 'python':
-      case 'py':
-        return {
-          command: 'python3',
-          args: ['main.py'],
-          filename: 'main.py'
-        };
+      case "python2":
+        return { command: "python2", args: ["main.py"], filename: "main.py" };
 
-      case 'python2':
-        return {
-          command: 'python2',
-          args: ['main.py'],
-          filename: 'main.py'
-        };
+      case "bash":
+      case "sh":
+        return { command: "bash", args: ["main.sh"], filename: "main.sh" };
 
-      case 'bash':
-      case 'sh':
-        return {
-          command: 'bash',
-          args: ['main.sh'],
-          filename: 'main.sh'
-        };
-
-      case 'java':
+      case "java":
         // Extract class name from code for Java
         const classMatch = code.match(/public\s+class\s+(\w+)/);
-        const className = classMatch ? classMatch[1] : 'Main';
+        const className = classMatch ? classMatch[1] : "Main";
         return {
-          command: 'sh',
-          args: ['-c', `javac ${className}.java && java ${className}`],
-          filename: `${className}.java`
+          command: "sh",
+          args: ["-c", `javac ${className}.java && java ${className}`],
+          filename: `${className}.java`,
         };
 
-      case 'cpp':
-      case 'c++':
+      case "cpp":
+      case "c++":
         return {
-          command: 'sh',
-          args: ['-c', 'g++ -o main main.cpp && ./main'],
-          filename: 'main.cpp'
+          command: "sh",
+          args: ["-c", "g++ -o main main.cpp && ./main"],
+          filename: "main.cpp",
         };
 
-      case 'c':
+      case "c":
         return {
-          command: 'sh',
-          args: ['-c', 'gcc -o main main.c && ./main'],
-          filename: 'main.c'
+          command: "sh",
+          args: ["-c", "gcc -o main main.c && ./main"],
+          filename: "main.c",
         };
 
-      case 'go':
-        return {
-          command: 'go',
-          args: ['run', 'main.go'],
-          filename: 'main.go'
-        };
+      case "go":
+        return { command: "go", args: ["run", "main.go"], filename: "main.go" };
 
-      case 'rust':
+      case "rust":
         return {
-          command: 'sh',
-          args: ['-c', 'rustc main.rs && ./main'],
-          filename: 'main.rs'
+          command: "sh",
+          args: ["-c", "rustc main.rs && ./main"],
+          filename: "main.rs",
         };
 
       default:
@@ -179,54 +162,92 @@ export class LocalExecutionEnvironment implements ExecutionEnvironment {
     args: string[],
     cwd: string,
     timeout: number,
-    environment: Record<string, string>
-  ): Promise<{stdout: string; stderr: string; exitCode: number}> {
+    environment: Record<string, string>,
+  ): Promise<{ stdout: string; stderr: string; exitCode: number }> {
     return new Promise((resolve, reject) => {
       const childProcess = spawn(command, args, {
         cwd,
         env: { ...process.env, ...environment },
-        stdio: ['pipe', 'pipe', 'pipe']
+        stdio: ["pipe", "pipe", "pipe"],
       });
 
-      let stdout = '';
-      let stderr = '';
+      let stdout = "";
+      let stderr = "";
       let isTimedOut = false;
 
       // Set up timeout
       const timer = setTimeout(() => {
         isTimedOut = true;
-        childProcess.kill('SIGKILL');
+        childProcess.kill("SIGKILL");
         reject(new Error(`Execution timed out after ${timeout}ms`));
       }, timeout);
 
       // Collect output
-      childProcess.stdout?.on('data', (data: any) => {
+      childProcess.stdout?.on("data", (data: any) => {
         stdout += data.toString();
       });
 
-      childProcess.stderr?.on('data', (data: any) => {
+      childProcess.stderr?.on("data", (data: any) => {
         stderr += data.toString();
       });
 
       // Handle process completion
-      childProcess.on('close', (code: any) => {
+      childProcess.on("close", (code: any) => {
         clearTimeout(timer);
         if (!isTimedOut) {
           resolve({
             stdout: stdout.trim(),
             stderr: stderr.trim(),
-            exitCode: code || 0
+            exitCode: code || 0,
           });
         }
       });
 
-      childProcess.on('error', (error: any) => {
+      childProcess.on("error", (error: any) => {
         clearTimeout(timer);
         if (!isTimedOut) {
           reject(error);
         }
       });
     });
+  }
+
+  async runTest(
+    test: string,
+    code: string,
+    language: string,
+    options: ExecutionOptions = {},
+  ): Promise<ExecutionResult> {
+    // Combine the code with the test
+    const combinedCode = this.combineCodeWithTest(code, test, language);
+
+    return this.runCode(combinedCode, language, options);
+  }
+
+  private combineCodeWithTest(
+    code: string,
+    test: string,
+    language: string,
+  ): string {
+    switch (language.toLowerCase()) {
+      case "javascript":
+      case "js":
+        return `${code}\n\n// Test code\nconst assert = require('assert');\n\n${test}\n\n// Run the test\ntry {\n  ${this.extractTestFunctionName(test)}();\n  console.log('✓ Test passed');\n} catch (error) {\n  console.error('✗ Test failed:', error.message);\n  process.exit(1);\n}`;
+
+      case "python":
+      case "py":
+        return `${code}\n\n# Test code\nimport sys\n\n${test}\n\n# Run the test\ntry:\n    ${this.extractTestFunctionName(test)}()\n    print('✓ Test passed')\nexcept Exception as e:\n    print(f'✗ Test failed: {e}')\n    sys.exit(1)`;
+
+      default:
+        throw new Error(
+          `Test execution not yet supported for language: ${language}`,
+        );
+    }
+  }
+
+  private extractTestFunctionName(test: string): string {
+    const match = test.match(/function\s+(\w+)\s*\(|def\s+(\w+)\s*\(/);
+    return match ? match[1] || match[2] : "test";
   }
 
   async cleanup(): Promise<void> {
@@ -240,31 +261,39 @@ export class LocalExecutionEnvironment implements ExecutionEnvironment {
   // Utility methods for language detection and validation
   static getSupportedLanguages(): string[] {
     return [
-      'javascript', 'js',
-      'typescript', 'ts',
-      'python', 'py', 'python2',
-      'bash', 'sh',
-      'java',
-      'cpp', 'c++',
-      'c',
-      'go',
-      'rust'
+      "javascript",
+      "js",
+      "typescript",
+      "ts",
+      "python",
+      "py",
+      "python2",
+      "bash",
+      "sh",
+      "java",
+      "cpp",
+      "c++",
+      "c",
+      "go",
+      "rust",
     ];
   }
 
   static isLanguageSupported(language: string): boolean {
-    return LocalExecutionEnvironment.getSupportedLanguages().includes(language.toLowerCase());
+    return LocalExecutionEnvironment.getSupportedLanguages().includes(
+      language.toLowerCase(),
+    );
   }
 
-  async validateEnvironment(): Promise<{valid: boolean; missing: string[]}> {
+  async validateEnvironment(): Promise<{ valid: boolean; missing: string[] }> {
     const commands = [
-      { name: 'node', test: ['--version'] },
-      { name: 'python3', test: ['--version'] },
-      { name: 'npx', test: ['--version'] }
+      { name: "node", test: ["--version"] },
+      { name: "python3", test: ["--version"] },
+      { name: "npx", test: ["--version"] },
     ];
 
     const missing: string[] = [];
-    
+
     for (const cmd of commands) {
       try {
         await this.executeCommand(cmd.name, cmd.test, process.cwd(), 5000, {});
@@ -273,9 +302,6 @@ export class LocalExecutionEnvironment implements ExecutionEnvironment {
       }
     }
 
-    return {
-      valid: missing.length === 0,
-      missing
-    };
+    return { valid: missing.length === 0, missing };
   }
 }

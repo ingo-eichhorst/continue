@@ -20,16 +20,12 @@
         "modificationPrompt": "Add try-catch error handling to this function that catches any errors and returns null"
       },
       "expected": {
-        "diffShouldApply": true,
-        "expectedChanges": ["try", "catch"]
+        "unitTest": "function testCalculate() {\n  // Test normal operation\n  assert.strictEqual(calculate(2, 3), 5);\n  // Test error handling\n  assert.strictEqual(calculate('invalid', 'args'), null);\n}"
       },
-      "metadata": {
-        "language": "javascript",
-        "difficulty": "easy"
-      }
+      "metadata": { "language": "javascript", "difficulty": "easy" }
     },
     {
-      "id": "test-002", 
+      "id": "test-002",
       "name": "Add JSDoc comments to function",
       "description": "Test adding documentation comments to a function",
       "input": {
@@ -38,13 +34,9 @@
         "modificationPrompt": "Add proper JSDoc comments to document this function's parameters and return value"
       },
       "expected": {
-        "diffShouldApply": true,
-        "expectedChanges": ["/**", "@param", "@returns"]
+        "unitTest": "function testMultiply() {\n  // Test normal operation\n  assert.strictEqual(multiply(3, 4), 12);\n  assert.strictEqual(multiply(0, 5), 0);\n  assert.strictEqual(multiply(-2, 3), -6);\n}"
       },
-      "metadata": {
-        "language": "javascript",
-        "difficulty": "easy"
-      }
+      "metadata": { "language": "javascript", "difficulty": "easy" }
     }
   ]
 }

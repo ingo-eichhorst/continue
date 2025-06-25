@@ -1,7 +1,7 @@
-import type { ILLM } from '../../core/index.js';
+import type { ILLM } from "../../core/index.js";
 
 export interface ChatMessage {
-  role: 'user' | 'assistant' | 'system';
+  role: "user" | "assistant" | "system";
   content: string;
 }
 
@@ -11,7 +11,7 @@ export interface BenchmarkPlugin {
   description: string;
   propertiesSchema: Record<string, PropertySchema>;
   defaultDataset?: string;
-  
+
   execute(context: BenchmarkContext): Promise<BenchmarkResult>;
   validateDataset?(dataset: Dataset): Promise<boolean>;
 }
@@ -74,6 +74,7 @@ export interface TestExpected {
   output?: string;
   shouldPass?: boolean;
   metrics?: Record<string, number>;
+  unitTest?: string;
   validationRules?: ValidationRule[];
 }
 
@@ -100,20 +101,20 @@ export interface TestCaseResult {
   startTime?: Date;
   endTime?: Date;
   duration?: number;
-  
+
   // LLM interaction
   llmRequest?: LLMRequest;
   llmResponse?: LLMResponse;
-  
+
   // Execution results
   executionResult?: ExecutionResult;
-  
+
   // Validation results
   validationResults?: ValidationResult[];
-  
+
   // Metrics
   metrics?: TestCaseMetrics;
-  
+
   // Error information
   error?: BenchmarkError;
 }
@@ -164,11 +165,11 @@ export interface BenchmarkSession {
   startTime: Date;
   lastUpdateTime: Date;
   status: "running" | "completed" | "failed" | "paused";
-  
+
   config: SessionConfig;
   progress: SessionProgress;
   results: TestCaseResult[];
-  
+
   metadata?: Record<string, any>;
 }
 
@@ -194,8 +195,19 @@ export interface SessionProgress {
 export interface ExecutionEnvironment {
   name: string;
   type: "local" | "docker";
-  
-  runCode(code: string, language: string, options?: ExecutionOptions): Promise<ExecutionResult>;
+
+  runTest(
+    test: string,
+    code: string,
+    language: string,
+    options?: ExecutionOptions,
+  ): Promise<ExecutionResult>;
+
+  runCode(
+    code: string,
+    language: string,
+    options?: ExecutionOptions,
+  ): Promise<ExecutionResult>;
   cleanup?(): Promise<void>;
 }
 
@@ -246,11 +258,7 @@ export interface QualityMetrics {
 
 export interface TestCaseMetrics {
   latency: number;
-  tokens: {
-    prompt: number;
-    completion: number;
-    total: number;
-  };
+  tokens: { prompt: number; completion: number; total: number };
   cost?: number;
   qualityScores?: Record<string, number>;
 }
@@ -304,10 +312,7 @@ export interface ExecutionConfig {
   timeout: number;
   maxRetries: number;
   parallel?: boolean;
-  resources?: {
-    memoryLimit?: string;
-    cpuLimit?: string;
-  };
+  resources?: { memoryLimit?: string; cpuLimit?: string };
 }
 
 export interface ReportingConfig {
@@ -348,28 +353,13 @@ export interface CLIOptions {
   help?: boolean;
 }
 
-// Plugin-specific types
-export interface UnifiedDiffTestCase extends TestCase {
-  input: TestInput & {
-    sourceCode: string;
-    modificationPrompt: string;
-  };
-  expected?: TestExpected & {
-    diffShouldApply: boolean;
-    expectedChanges?: string[];
-  };
-}
-
 export interface PromptOptimizationTestCase extends TestCase {
   input: TestInput & {
     problemDescription: string;
     signature: string;
     examples?: string[];
   };
-  expected: TestExpected & {
-    unitTests: string[];
-    shouldPass: true;
-  };
+  expected: TestExpected & { unitTests: string[]; shouldPass: true };
 }
 
 export interface PromptEvaluationTestCase extends TestCase {
