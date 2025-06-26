@@ -7,6 +7,9 @@ import {
   TestStepResult,
 } from "../../core/types.js";
 
+/**
+ * A simple benchmark that sends prompts to LLM and validates responses against expected content.
+ */
 export class SimpleBenchmarkExample implements BenchmarkPlugin {
   name = "simple-example";
   description =
@@ -24,6 +27,9 @@ export class SimpleBenchmarkExample implements BenchmarkPlugin {
 
   defaultDataset = "datasets/simple-demo-dataset";
 
+  /**
+   * Orchestrates the execution of a simple test case example.
+   */
   async executeTestCase(
     testCase: TestCase,
     context: TestExecutionContext,
