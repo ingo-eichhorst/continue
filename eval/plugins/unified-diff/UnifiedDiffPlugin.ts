@@ -36,23 +36,7 @@ export class UnifiedDiffPlugin implements BenchmarkPlugin {
   defaultDataset = "datasets/diff-dataset";
 
   async execute(context: BenchmarkContext): Promise<BenchmarkResult> {
-    const { dataset, logger } = context;
-
-    // Use TestCaseExecutor to handle all orchestration logic
-    const executor = new TestCaseExecutor(logger);
-    const testCases = await executor.executeTestCases(
-      dataset.testCases as TestCase[],
-      context,
-      (testCase, execContext) => this.executeTestCase(testCase, execContext),
-    );
-
-    // Build and return the benchmark result
-    return TestCaseExecutor.buildBenchmarkResult(
-      this.name,
-      testCases,
-      context,
-      logger,
-    );
+    return TestCaseExecutor.executePlugin(this, context, this.executeTestCase.bind(this));
   }
 
   private buildLLMRequest(

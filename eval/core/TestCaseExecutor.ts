@@ -279,6 +279,34 @@ export class TestCaseExecutor {
   }
 
   /**
+   * Executes a complete benchmark plugin with standardized orchestration
+   * This method handles the entire execution pattern that's common to all plugins
+   */
+  static async executePlugin<TPlugin extends { name: string }>(
+    plugin: TPlugin,
+    context: BenchmarkContext,
+    testCaseExecutor: (testCase: TestCase, execContext: TestExecutionContext) => Promise<TestCaseExecution>
+  ): Promise<BenchmarkResult> {
+    const { dataset, logger } = context;
+
+    // Use TestCaseExecutor to handle all orchestration logic
+    const executor = new TestCaseExecutor(logger);
+    const testCases = await executor.executeTestCases(
+      dataset.testCases as TestCase[],
+      context,
+      testCaseExecutor,
+    );
+
+    // Build and return the benchmark result
+    return TestCaseExecutor.buildBenchmarkResult(
+      plugin.name,
+      testCases,
+      context,
+      logger,
+    );
+  }
+
+  /**
    * Builds a standardized BenchmarkResult from test case results
    * This is a utility method that plugins can use to create their final results
    */
