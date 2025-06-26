@@ -1,24 +1,24 @@
-import type { ILLM } from '../../core/index.js';
+import type { ILLM } from "../../core/index.js";
 import {
   BenchmarkContext,
-  BenchmarkSession,
   BenchmarkResult,
-  TestCase,
-  TestCaseResult,
-  TestCaseExecution,
-  TestExecutionContext,
-  TestCaseExecutorOptions,
-  TestStepResult,
+  BenchmarkSession,
   ChatMessage,
-  Logger,
   LLMRequest,
   LLMResponse,
-} from './types.js';
+  Logger,
+  TestCase,
+  TestCaseExecution,
+  TestCaseExecutorOptions,
+  TestCaseResult,
+  TestExecutionContext,
+  TestStepResult,
+} from "./types.js";
 
 /**
  * TestCaseExecutor handles the common orchestration logic for executing test cases
  * that was previously duplicated across all BenchmarkPlugin implementations.
- * 
+ *
  * This class provides:
  * - Test case ID generation
  * - Session recovery logic
@@ -39,26 +39,29 @@ export class TestCaseExecutor {
   async executeTestCases<TTestCase extends TestCase>(
     testCases: TTestCase[],
     context: BenchmarkContext,
-    testCaseExecutor: (testCase: TTestCase, execContext: TestExecutionContext) => Promise<TestCaseExecution>,
-    options: TestCaseExecutorOptions = {}
+    testCaseExecutor: (
+      testCase: TTestCase,
+      execContext: TestExecutionContext,
+    ) => Promise<TestCaseExecution>,
+    options: TestCaseExecutorOptions = {},
   ): Promise<TestCaseResult[]> {
     const { model, session } = context;
     const results: TestCaseResult[] = [];
-    
+
     this.logger.info(
       `Starting test execution for model ${model.uniqueId} with ${testCases.length} test cases`,
     );
 
     for (let i = 0; i < testCases.length; i++) {
       const testCase = testCases[i];
-      
+
       // 1. Generate consistent test case ID
       const testCaseId = this.generateTestCaseId(testCase, model);
-      
+
       this.logger.debug(
         `Processing test case: ${testCase.id}, full testCaseId: ${testCaseId}`,
       );
-      
+
       // 2. Check session recovery
       const existingResult = this.checkSessionRecovery(session, testCaseId);
       if (existingResult) {
@@ -66,22 +69,28 @@ export class TestCaseExecutor {
         this.logSkipped(testCaseId);
         continue;
       }
-      
+
       // 3. Execute test case with full lifecycle management
       const result = await this.executeWithLifecycle(
         testCase,
         testCaseId,
         context,
         testCaseExecutor,
-        options
+        options,
       );
-      
+
       results.push(result);
-      
+
       // 4. Update session progress
-      this.updateSessionProgress(session, result, i + 1, testCases.length, model);
+      this.updateSessionProgress(
+        session,
+        result,
+        i + 1,
+        testCases.length,
+        model,
+      );
     }
-    
+
     return results;
   }
 
@@ -90,11 +99,11 @@ export class TestCaseExecutor {
   }
 
   private checkSessionRecovery(
-    session: BenchmarkSession, 
-    testCaseId: string
+    session: BenchmarkSession,
+    testCaseId: string,
   ): TestCaseResult | null {
     const existingResult = session.results?.find(
-      (r) => r.testCaseId === testCaseId && r.status === "completed"
+      (r) => r.testCaseId === testCaseId && r.status === "completed",
     );
     return existingResult || null;
   }
@@ -107,12 +116,15 @@ export class TestCaseExecutor {
     testCase: TTestCase,
     testCaseId: string,
     context: BenchmarkContext,
-    testCaseExecutor: (testCase: TTestCase, execContext: TestExecutionContext) => Promise<TestCaseExecution>,
-    options: TestCaseExecutorOptions
+    testCaseExecutor: (
+      testCase: TTestCase,
+      execContext: TestExecutionContext,
+    ) => Promise<TestCaseExecution>,
+    options: TestCaseExecutorOptions,
   ): Promise<TestCaseResult> {
     // Create initial result with timing
     const result = this.createInitialResult(testCaseId, context.model);
-    
+
     this.logger.debug(
       `Processing test case: ${testCase.id} with model: ${context.model.title} at ${result.startTime!.toISOString()}`,
     );
@@ -123,22 +135,21 @@ export class TestCaseExecutor {
         model: context.model,
         properties: context.properties,
         logger: context.logger,
-        executionEnvironment: context.executionEnvironment
+        executionEnvironment: context.executionEnvironment,
       };
-      
+
       const execution = await testCaseExecutor(testCase, execContext);
-      
+
       // Determine success/failure
       const success = this.evaluateSuccess(execution, options.successEvaluator);
-      
+
       // Finalize result
       this.finalizeResult(result, execution, success, testCaseId);
-      
     } catch (error) {
       // Standardized error handling
       this.handleExecutionError(result, error as Error, testCaseId);
     }
-    
+
     return result;
   }
 
@@ -152,17 +163,17 @@ export class TestCaseExecutor {
   }
 
   private evaluateSuccess(
-    execution: TestCaseExecution, 
-    customEvaluator?: (execution: TestCaseExecution) => boolean
+    execution: TestCaseExecution,
+    customEvaluator?: (execution: TestCaseExecution) => boolean,
   ): boolean {
     // Use custom evaluator if provided
     if (customEvaluator) {
       return customEvaluator(execution);
     }
-    
+
     // Default success evaluation
     if (execution.testStepResults) {
-      return execution.testStepResults.every(tsr => tsr.passed);
+      return execution.testStepResults.every((tsr) => tsr.passed);
     }
     if (execution.executionResult) {
       return execution.executionResult.successful;
@@ -174,22 +185,28 @@ export class TestCaseExecutor {
     result: TestCaseResult,
     execution: TestCaseExecution,
     success: boolean,
-    testCaseId: string
+    testCaseId: string,
   ): void {
     result.endTime = new Date();
     result.duration = result.endTime.getTime() - result.startTime!.getTime();
     result.status = success ? "completed" : "failed";
-    
+
     // Copy execution data to result
     result.testStepResults = execution.testStepResults;
     result.executionResult = execution.executionResult;
-    
+
     // Enhance metrics with timing and token information
     // Extract LLM response data from test steps for metrics calculation
-    const llmResponses = execution.testStepResults?.filter(step => step.llmResponse) || [];
-    const primaryLlmResponse = llmResponses.length > 0 ? llmResponses[0].llmResponse : undefined;
-    result.metrics = this.enhanceMetrics(execution.metrics, primaryLlmResponse, result.duration);
-    
+    const llmResponses =
+      execution.testStepResults?.filter((step) => step.llmResponse) || [];
+    const primaryLlmResponse =
+      llmResponses.length > 0 ? llmResponses[0].llmResponse : undefined;
+    result.metrics = this.enhanceMetrics(
+      execution.metrics,
+      primaryLlmResponse,
+      result.duration,
+    );
+
     if (success) {
       this.logger.debug(
         `Test case ${testCaseId} completed successfully in ${result.duration}ms`,
@@ -205,7 +222,11 @@ export class TestCaseExecutor {
     }
   }
 
-  private enhanceMetrics(baseMetrics: any, llmResponse: any, duration: number): any {
+  private enhanceMetrics(
+    baseMetrics: any,
+    llmResponse: any,
+    duration: number,
+  ): any {
     if (!baseMetrics) {
       return {
         latency: duration,
@@ -230,7 +251,7 @@ export class TestCaseExecutor {
    */
   static buildBaseMetrics(
     testStepResults: TestStepResult[],
-    qualityScores: Record<string, number> = {}
+    qualityScores: Record<string, number> = {},
   ): any {
     const overallQuality =
       testStepResults.length > 0
@@ -258,7 +279,7 @@ export class TestCaseExecutor {
    */
   static async executeLLMRequest(
     messages: ChatMessage[],
-    model: ILLM
+    model: ILLM,
   ): Promise<TestStepResult> {
     const startTime = Date.now();
     const abortController = new AbortController();
@@ -270,10 +291,7 @@ export class TestCaseExecutor {
       timestamp: new Date(),
     };
 
-    const response = await model.streamChat(
-      messages,
-      abortController.signal,
-    );
+    const response = await model.streamChat(messages, abortController.signal);
 
     let content = "";
     for await (const chunk of response) {
@@ -283,7 +301,7 @@ export class TestCaseExecutor {
     }
 
     const latency = Date.now() - startTime;
-    
+
     // Create LLM response object
     const llmResponse: LLMResponse = {
       content: content.trim(),
@@ -294,9 +312,11 @@ export class TestCaseExecutor {
     // Return as TestStepResult representing one test step
     return {
       passed: content.trim().length > 0,
-      details: content.trim().length > 0 
-        ? `LLM generated response (${content.trim().length} characters)`
-        : "Empty response from LLM",
+      score: content.trim().length > 0 ? 1 : 0,
+      details:
+        content.trim().length > 0
+          ? `LLM generated response (${content.trim().length} characters)`
+          : "Empty response from LLM",
       llmRequest,
       llmResponse,
     };
@@ -309,7 +329,10 @@ export class TestCaseExecutor {
   static async executePlugin<TPlugin extends { name: string }>(
     plugin: TPlugin,
     context: BenchmarkContext,
-    testCaseExecutor: (testCase: TestCase, execContext: TestExecutionContext) => Promise<TestCaseExecution>
+    testCaseExecutor: (
+      testCase: TestCase,
+      execContext: TestExecutionContext,
+    ) => Promise<TestCaseExecution>,
   ): Promise<BenchmarkResult> {
     const { dataset, logger } = context;
 
@@ -334,15 +357,17 @@ export class TestCaseExecutor {
    * Completes a test case by summarizing all test step results into a final TestCaseExecution
    * This function automatically extracts metrics, determines success, and builds execution results
    */
-  static completeTestCase(testStepResults: TestStepResult[]): TestCaseExecution {
+  static completeTestCase(
+    testStepResults: TestStepResult[],
+  ): TestCaseExecution {
     // Extract content from the first LLM step result for stdout
-    const firstLlmStep = testStepResults.find(step => step.llmResponse);
+    const firstLlmStep = testStepResults.find((step) => step.llmResponse);
     const content = firstLlmStep?.llmResponse?.content || "";
-    
+
     // Determine overall success
     const allPassed = testStepResults.every((tsr) => tsr.passed);
-    const failedSteps = testStepResults.filter(step => !step.passed);
-    
+    const failedSteps = testStepResults.filter((step) => !step.passed);
+
     // Build execution result
     const executionResult = {
       stdout: content,
@@ -360,7 +385,10 @@ export class TestCaseExecutor {
     });
 
     // Build metrics
-    const metrics = TestCaseExecutor.buildBaseMetrics(testStepResults, qualityScores);
+    const metrics = TestCaseExecutor.buildBaseMetrics(
+      testStepResults,
+      qualityScores,
+    );
 
     return {
       testStepResults,
@@ -377,7 +405,7 @@ export class TestCaseExecutor {
     pluginName: string,
     testCases: TestCaseResult[],
     context: BenchmarkContext,
-    logger: Logger
+    logger: Logger,
   ): BenchmarkResult {
     const { session } = context;
 
@@ -424,11 +452,16 @@ export class TestCaseExecutor {
     };
   }
 
-  private handleExecutionError(result: TestCaseResult, error: Error, testCaseId: string): void {
+  private handleExecutionError(
+    result: TestCaseResult,
+    error: Error,
+    testCaseId: string,
+  ): void {
     this.logger.error(`Test case ${testCaseId} failed:`, error);
-    
+
     result.endTime = new Date();
-    result.duration = result.endTime.getTime() - (result.startTime?.getTime() || 0);
+    result.duration =
+      result.endTime.getTime() - (result.startTime?.getTime() || 0);
     result.status = "failed";
     result.error = {
       type: "execution",
@@ -443,7 +476,7 @@ export class TestCaseExecutor {
     result: TestCaseResult,
     currentIndex: number,
     totalTests: number,
-    model: ILLM
+    model: ILLM,
   ): void {
     // Update session progress
     session.progress.completedTestCases++;
@@ -451,7 +484,7 @@ export class TestCaseExecutor {
       session.progress.failedTestCases++;
     }
     session.progress.currentTestCase = result.testCaseId;
-    
+
     this.logger.info(
       `Progress: ${currentIndex}/${totalTests} test cases completed for model ${model.uniqueId}`,
     );
