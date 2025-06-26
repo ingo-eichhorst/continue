@@ -175,7 +175,7 @@ export class PluginLoader {
       typeof obj.name === 'string' &&
       typeof obj.description === 'string' &&
       typeof obj.propertiesSchema === 'object' &&
-      typeof obj.execute === 'function'
+      typeof obj.executeTestCase === 'function'
     );
   }
 }

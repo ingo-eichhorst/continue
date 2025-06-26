@@ -1,8 +1,6 @@
 import { TestCaseExecutor } from "../../core/TestCaseExecutor.js";
 import {
-  BenchmarkContext,
   BenchmarkPlugin,
-  BenchmarkResult,
   ChatMessage,
   ExecutionEnvironment,
   LLMRequest,
@@ -35,9 +33,6 @@ export class UnifiedDiffPlugin implements BenchmarkPlugin {
 
   defaultDataset = "datasets/diff-dataset";
 
-  async execute(context: BenchmarkContext): Promise<BenchmarkResult> {
-    return TestCaseExecutor.executePlugin(this, context, this.executeTestCase.bind(this));
-  }
 
   private buildLLMRequest(
     testCase: TestCase,
@@ -158,7 +153,7 @@ ${modificationPrompt}`,
     });
   }
 
-  private async executeTestCase(
+  async executeTestCase(
     testCase: TestCase,
     context: TestExecutionContext,
   ): Promise<TestCaseExecution> {

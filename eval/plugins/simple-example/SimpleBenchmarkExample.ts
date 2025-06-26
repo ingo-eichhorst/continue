@@ -1,8 +1,6 @@
 import { TestCaseExecutor } from "../../core/TestCaseExecutor.js";
 import {
-  BenchmarkContext,
   BenchmarkPlugin,
-  BenchmarkResult,
   TestCase,
   TestCaseExecution,
   TestExecutionContext,
@@ -26,15 +24,8 @@ export class SimpleBenchmarkExample implements BenchmarkPlugin {
 
   defaultDataset = "datasets/simple-demo-dataset";
 
-  async execute(context: BenchmarkContext): Promise<BenchmarkResult> {
-    return TestCaseExecutor.executePlugin(
-      this,
-      context,
-      this.executeTestCase.bind(this),
-    );
-  }
 
-  private async executeTestCase(
+  async executeTestCase(
     testCase: TestCase,
     context: TestExecutionContext,
   ): Promise<TestCaseExecution> {

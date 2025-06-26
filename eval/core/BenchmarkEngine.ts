@@ -1,6 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import type { ILLM } from '../../core/index.js';
 import { SessionManager } from './SessionManager.js';
+import { TestCaseExecutor } from './TestCaseExecutor.js';
 import {
   BenchmarkContext,
   BenchmarkMetrics,
@@ -239,7 +240,13 @@ export class BenchmarkEngine {
     const startTime = new Date();
     
     try {
-      const result = await plugin.execute(context);
+      // Use TestCaseExecutor.executePlugin to handle the standard execution pattern
+      const result = await TestCaseExecutor.executePlugin(
+        plugin,
+        context,
+        plugin.executeTestCase.bind(plugin)
+      );
+      
       const endTime = new Date();
 
       // Enhance result with timing information

@@ -12,7 +12,7 @@ export interface BenchmarkPlugin {
   propertiesSchema: Record<string, PropertySchema>;
   defaultDataset?: string;
 
-  execute(context: BenchmarkContext): Promise<BenchmarkResult>;
+  executeTestCase(testCase: TestCase, context: TestExecutionContext): Promise<TestCaseExecution>;
   validateDataset?(dataset: Dataset): Promise<boolean>;
 }
 
