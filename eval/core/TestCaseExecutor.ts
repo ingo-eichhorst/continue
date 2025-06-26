@@ -8,7 +8,7 @@ import {
   TestCaseExecution,
   TestExecutionContext,
   TestCaseExecutorOptions,
-  ValidationResult,
+  TestStepResult,
   ChatMessage,
   Logger,
 } from './types.js';
@@ -159,13 +159,13 @@ export class TestCaseExecutor {
     }
     
     // Default success evaluation
-    if (execution.validationResults) {
-      return execution.validationResults.every(vr => vr.passed);
+    if (execution.testStepResults) {
+      return execution.testStepResults.every(tsr => tsr.passed);
     }
     if (execution.executionResult) {
       return execution.executionResult.successful;
     }
-    return true; // If no validation/execution results, assume success
+    return true; // If no test step/execution results, assume success
   }
 
   private finalizeResult(
@@ -181,7 +181,7 @@ export class TestCaseExecutor {
     // Copy execution data to result
     result.llmRequest = execution.llmRequest;
     result.llmResponse = execution.llmResponse;
-    result.validationResults = execution.validationResults;
+    result.testStepResults = execution.testStepResults;
     result.executionResult = execution.executionResult;
     
     // Enhance metrics with timing and token information
@@ -195,7 +195,7 @@ export class TestCaseExecutor {
       result.error = {
         type: "validation",
         message: "One or more validation steps failed",
-        details: "Check validationResults for specific failures",
+        details: "Check testStepResults for specific failures",
         recoverable: true,
       };
       this.logger.error(`Test case ${testCaseId} failed validation steps`);
@@ -222,17 +222,17 @@ export class TestCaseExecutor {
   }
 
   /**
-   * Creates base metrics structure with validation results and quality scores
+   * Creates base metrics structure with test step results and quality scores
    * This is a utility method that plugins can use to build their metrics
    */
   static buildBaseMetrics(
-    validationResults: ValidationResult[],
+    testStepResults: TestStepResult[],
     qualityScores: Record<string, number> = {}
   ): any {
     const overallQuality =
-      validationResults.length > 0
-        ? validationResults.filter((r) => r.passed).length /
-          validationResults.length
+      testStepResults.length > 0
+        ? testStepResults.filter((r) => r.passed).length /
+          testStepResults.length
         : 0;
 
     return {

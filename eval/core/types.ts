@@ -27,7 +27,7 @@ export interface TestExecutionContext {
 export interface TestCaseExecution {
   llmRequest?: LLMRequest;
   llmResponse?: LLMResponse;
-  validationResults?: ValidationResult[];
+  testStepResults?: TestStepResult[];
   executionResult?: ExecutionResult;
   metrics?: TestCaseMetrics;
   customData?: Record<string, any>;
@@ -130,8 +130,8 @@ export interface TestCaseResult {
   // Execution results
   executionResult?: ExecutionResult;
 
-  // Validation results
-  validationResults?: ValidationResult[];
+  // Test step results
+  testStepResults?: TestStepResult[];
 
   // Metrics
   metrics?: TestCaseMetrics;
@@ -171,7 +171,7 @@ export interface ExecutionResult {
   error?: string;
 }
 
-export interface ValidationResult {
+export interface TestStepResult {
   passed: boolean;
   score?: number;
   details?: string;

@@ -7,7 +7,7 @@ import {
   TestCase,
   TestCaseExecution,
   TestExecutionContext,
-  ValidationResult,
+  TestStepResult,
 } from "../../core/types.js";
 
 // Import Continue's actual diff functions (local copy)
@@ -82,10 +82,10 @@ ${modificationPrompt}`,
 
   private validateDiffFormat(
     cleanedDiff: string,
-    validationResults: ValidationResult[],
+    testStepResults: TestStepResult[],
   ): boolean {
     const isValid = isUnifiedDiffFormat(cleanedDiff);
-    validationResults.push({
+    testStepResults.push({
       passed: isValid,
       details: isValid
         ? "Valid unified diff format"
@@ -97,13 +97,13 @@ ${modificationPrompt}`,
   private async applyDiff(
     sourceCode: string,
     cleanedDiff: string,
-    validationResults: ValidationResult[],
+    testStepResults: TestStepResult[],
   ): Promise<{ success: boolean; appliedCode: string; error: string }> {
     try {
       const diffLines = applyUnifiedDiff(sourceCode, cleanedDiff);
       const appliedCode = diffLines.map((line) => line.line).join("\n");
 
-      validationResults.push({
+      testStepResults.push({
         passed: true,
         details: "Diff applied successfully",
       });
@@ -111,7 +111,7 @@ ${modificationPrompt}`,
       return { success: true, appliedCode, error: "" };
     } catch (error) {
       const errorMessage = (error as Error).message;
-      validationResults.push({
+      testStepResults.push({
         passed: false,
         details: `Diff application failed: ${errorMessage}`,
       });
@@ -123,7 +123,7 @@ ${modificationPrompt}`,
   private async runUnitTests(
     appliedCode: string,
     testCase: TestCase,
-    validationResults: ValidationResult[],
+    testStepResults: TestStepResult[],
     executionEnvironment: ExecutionEnvironment,
     logger: any,
   ): Promise<void> {
@@ -145,7 +145,7 @@ ${modificationPrompt}`,
     logger.debug(`Unit test result for ${testCase.id}:`, testResult);
 
     const passed = testResult.exitCode === 0;
-    validationResults.push({
+    testStepResults.push({
       passed,
       details: passed
         ? `Unit test passed: ${testResult.stdout}`
@@ -193,13 +193,13 @@ ${modificationPrompt}`,
     const llmResponse = { content, latency, timestamp: new Date() };
 
     // Run validation pipeline
-    const { validationResults, executionResult, metrics } =
+    const { testStepResults, executionResult, metrics } =
       await this.runValidationPipeline(sourceCode, content, testCase, context);
 
     return {
       llmRequest,
       llmResponse,
-      validationResults,
+      testStepResults,
       executionResult,
       metrics,
     };
@@ -211,11 +211,11 @@ ${modificationPrompt}`,
     testCase: TestCase,
     context: TestExecutionContext,
   ): Promise<{
-    validationResults: ValidationResult[];
+    testStepResults: TestStepResult[];
     executionResult: any;
     metrics: any;
   }> {
-    const validationResults: ValidationResult[] = [];
+    const testStepResults: TestStepResult[] = [];
     const testCaseId = testCase.id;
 
     context.logger.debug(`[${testCaseId}] Starting validation pipeline`);
@@ -229,7 +229,7 @@ ${modificationPrompt}`,
     // Step 2: Validate format
     const isValidFormat = this.validateDiffFormat(
       cleanedDiff,
-      validationResults,
+      testStepResults,
     );
     if (!isValidFormat) {
       context.logger.debug(`[${testCaseId}] Format validation failed`);
@@ -241,12 +241,12 @@ ${modificationPrompt}`,
         successful: false,
       };
 
-      const metrics = TestCaseExecutor.buildBaseMetrics(validationResults, {
+      const metrics = TestCaseExecutor.buildBaseMetrics(testStepResults, {
         formatValid: isValidFormat ? 1 : 0,
         applySuccess: 0,
       });
 
-      return { validationResults, executionResult, metrics };
+      return { testStepResults, executionResult, metrics };
     }
     context.logger.debug(`[${testCaseId}] Format validation passed`);
 
@@ -255,7 +255,7 @@ ${modificationPrompt}`,
       success: applySuccess,
       appliedCode,
       error: applyError,
-    } = await this.applyDiff(sourceCode, cleanedDiff, validationResults);
+    } = await this.applyDiff(sourceCode, cleanedDiff, testStepResults);
     context.logger.debug(
       `[${testCaseId}] Diff application: ${applySuccess ? "succeeded" : "failed"}`,
     );
@@ -265,7 +265,7 @@ ${modificationPrompt}`,
       await this.runUnitTests(
         appliedCode,
         testCase,
-        validationResults,
+        testStepResults,
         context.executionEnvironment,
         context.logger,
       );
@@ -280,15 +280,15 @@ ${modificationPrompt}`,
       successful: applySuccess,
     };
 
-    const metrics = TestCaseExecutor.buildBaseMetrics(validationResults, {
+    const metrics = TestCaseExecutor.buildBaseMetrics(testStepResults, {
       formatValid: isValidFormat ? 1 : 0,
       applySuccess: applySuccess ? 1 : 0,
     });
 
     context.logger.debug(
-      `[${testCaseId}] Pipeline completed: ${validationResults.filter((r) => r.passed).length}/${validationResults.length} steps passed`,
+      `[${testCaseId}] Pipeline completed: ${testStepResults.filter((r) => r.passed).length}/${testStepResults.length} steps passed`,
     );
 
-    return { validationResults, executionResult, metrics };
+    return { testStepResults, executionResult, metrics };
   }
 }

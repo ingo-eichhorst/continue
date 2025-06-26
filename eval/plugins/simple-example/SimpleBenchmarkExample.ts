@@ -4,7 +4,7 @@ import {
   TestCase,
   TestCaseExecution,
   TestExecutionContext,
-  ValidationResult,
+  TestStepResult,
 } from "../../core/types.js";
 
 export class SimpleBenchmarkExample implements BenchmarkPlugin {
@@ -47,7 +47,7 @@ export class SimpleBenchmarkExample implements BenchmarkPlugin {
     );
 
     // Simple validation: check if response is not empty
-    const validationResults: ValidationResult[] = [
+    const testStepResults: TestStepResult[] = [
       {
         passed: content.length > 0,
         details:
@@ -64,7 +64,7 @@ export class SimpleBenchmarkExample implements BenchmarkPlugin {
         .toLowerCase()
         .includes(expectedOutput.toLowerCase());
 
-      validationResults.push({
+      testStepResults.push({
         passed: containsExpected,
         details: containsExpected
           ? `Response contains expected content: "${expectedOutput}"`
@@ -73,7 +73,7 @@ export class SimpleBenchmarkExample implements BenchmarkPlugin {
     }
 
     // Build metrics using TestCaseExecutor utility
-    const metrics = TestCaseExecutor.buildBaseMetrics(validationResults, {
+    const metrics = TestCaseExecutor.buildBaseMetrics(testStepResults, {
       responseLength: content.length,
       hasExpectedContent: testCase.expected?.output
         ? content.toLowerCase().includes(testCase.expected.output.toLowerCase())
@@ -93,14 +93,14 @@ export class SimpleBenchmarkExample implements BenchmarkPlugin {
     const executionResult = {
       stdout: content,
       stderr: "",
-      exitCode: validationResults.every((vr) => vr.passed) ? 0 : 1,
-      successful: validationResults.every((vr) => vr.passed),
+      exitCode: testStepResults.every((tsr) => tsr.passed) ? 0 : 1,
+      successful: testStepResults.every((tsr) => tsr.passed),
     };
 
     return {
       llmRequest,
       llmResponse,
-      validationResults,
+      testStepResults,
       executionResult,
       metrics,
     };

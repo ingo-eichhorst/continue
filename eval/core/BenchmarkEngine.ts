@@ -271,7 +271,7 @@ export class BenchmarkEngine {
     const totalTests = testCases.length;
     const completedTests = testCases.filter(tc => tc.status === 'completed');
     const passedTests = completedTests.filter(tc => 
-      tc.validationResults?.every(vr => vr.passed) ?? false
+      tc.testStepResults?.every(tsr => tsr.passed) ?? false
     );
     const failedTests = testCases.filter(tc => tc.status === 'failed');
 
@@ -304,12 +304,12 @@ export class BenchmarkEngine {
       ? totalTokens / tokenUsage.length 
       : 0;
 
-    // Quality metrics - calculate based on all validation results
-    const allValidationResults = completedTests.flatMap(tc => tc.validationResults || []);
-    const syntaxCorrectness = allValidationResults.length > 0 
-      ? allValidationResults.filter(vr => vr.passed).length / allValidationResults.length 
+    // Quality metrics - calculate based on all test step results
+    const allTestStepResults = completedTests.flatMap(tc => tc.testStepResults || []);
+    const syntaxCorrectness = allTestStepResults.length > 0 
+      ? allTestStepResults.filter(tsr => tsr.passed).length / allTestStepResults.length 
       : 0;
-    const compilationSuccess = syntaxCorrectness; // Same as overall validation success
+    const compilationSuccess = syntaxCorrectness; // Same as overall test step success
 
     return {
       functional: {
