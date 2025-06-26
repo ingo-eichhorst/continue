@@ -33,7 +33,6 @@ export class UnifiedDiffPlugin implements BenchmarkPlugin {
 
   defaultDataset = "datasets/diff-dataset";
 
-
   private buildLLMRequest(
     testCase: TestCase,
     systemPrompt: string,
@@ -80,55 +79,66 @@ ${modificationPrompt}`,
     return cleaned.trim();
   }
 
-  private validateDiffFormat(
-    cleanedDiff: string,
-    testStepResults: TestStepResult[],
-  ): boolean {
+  /**
+   * Executes format validation as a single test step
+   * Returns TestStepResult with validation outcome
+   */
+  private executeFormatValidationStep(cleanedDiff: string): TestStepResult {
     const isValid = isUnifiedDiffFormat(cleanedDiff);
-    testStepResults.push({
+    return {
       passed: isValid,
+      score: isValid ? 1 : 0,
       details: isValid
         ? "Valid unified diff format"
         : "Invalid unified diff format",
-    });
-    return isValid;
+    };
   }
 
-  private async applyDiff(
+  /**
+   * Executes diff application as a single test step
+   * Returns TestStepResult with application outcome and applied code
+   */
+  private async executeDiffApplicationStep(
     sourceCode: string,
     cleanedDiff: string,
-    testStepResults: TestStepResult[],
-  ): Promise<{ success: boolean; appliedCode: string; error: string }> {
+  ): Promise<TestStepResult & { appliedCode?: string }> {
     try {
       const diffLines = applyUnifiedDiff(sourceCode, cleanedDiff);
       const appliedCode = diffLines.map((line) => line.line).join("\n");
 
-      testStepResults.push({
+      return {
         passed: true,
+        score: 1,
         details: "Diff applied successfully",
-      });
-
-      return { success: true, appliedCode, error: "" };
+        appliedCode,
+      };
     } catch (error) {
       const errorMessage = (error as Error).message;
-      testStepResults.push({
+      return {
         passed: false,
+        score: 0,
         details: `Diff application failed: ${errorMessage}`,
-      });
-
-      return { success: false, appliedCode: "", error: errorMessage };
+        error: errorMessage,
+      };
     }
   }
 
-  private async runUnitTests(
+  /**
+   * Executes unit test as a single test step
+   * Returns TestStepResult with test outcome
+   */
+  private async executeUnitTestStep(
     appliedCode: string,
     testCase: TestCase,
-    testStepResults: TestStepResult[],
     executionEnvironment: ExecutionEnvironment,
     logger: any,
-  ): Promise<void> {
+  ): Promise<TestStepResult> {
     if (!testCase.expected?.unitTest) {
-      return;
+      return {
+        passed: true,
+        score: 1,
+        details: "No unit test specified - skipped",
+      };
     }
 
     logger.debug(
@@ -136,31 +146,42 @@ ${modificationPrompt}`,
     );
     logger.debug(`Applied code: ${appliedCode}`);
 
-    const testResult = await executionEnvironment.runTest(
-      testCase.expected.unitTest,
-      appliedCode,
-      testCase.metadata?.language,
-    );
+    try {
+      const testResult = await executionEnvironment.runTest(
+        testCase.expected.unitTest,
+        appliedCode,
+        testCase.metadata?.language,
+      );
 
-    logger.debug(`Unit test result for ${testCase.id}:`, testResult);
+      logger.debug(`Unit test result for ${testCase.id}:`, testResult);
 
-    const passed = testResult.exitCode === 0;
-    testStepResults.push({
-      passed,
-      details: passed
-        ? `Unit test passed: ${testResult.stdout}`
-        : `Unit test failed: ${testResult.stderr}`,
-    });
+      const passed = testResult.exitCode === 0;
+      return {
+        passed,
+        score: passed ? 1 : 0,
+        details: passed
+          ? `Unit test passed: ${testResult.stdout}`
+          : `Unit test failed: ${testResult.stderr}`,
+        error: passed ? undefined : testResult.stderr,
+      };
+    } catch (error) {
+      const errorMessage = (error as Error).message;
+      return {
+        passed: false,
+        score: 0,
+        details: `Unit test execution failed: ${errorMessage}`,
+        error: errorMessage,
+      };
+    }
   }
+
 
   async executeTestCase(
     testCase: TestCase,
     context: TestExecutionContext,
   ): Promise<TestCaseExecution> {
     const sourceCode = testCase.input.sourceCode;
-    const modificationPrompt =
-      testCase.input.additionalData?.modificationPrompt ||
-      testCase.input.prompt;
+    const modificationPrompt = testCase.input.prompt;
 
     // Validate inputs
     if (!sourceCode) {
@@ -172,10 +193,10 @@ ${modificationPrompt}`,
       );
     }
 
-    // Properties are validated and populated by BenchmarkEngine
     const systemPrompt = context.properties.systemPrompt;
+    const testStepResults: TestStepResult[] = [];
 
-    // Build and execute LLM request
+    // Step 1: LLM Generation
     const { messages } = this.buildLLMRequest(
       testCase,
       systemPrompt,
@@ -186,113 +207,55 @@ ${modificationPrompt}`,
       messages,
       context.model,
     );
+    testStepResults.push(llmStepResult);
 
     const content = llmStepResult.llmResponse?.content || "";
 
-    // Run validation pipeline with LLM data
-    const { testStepResults, executionResult, metrics } =
-      await this.runValidationPipeline(sourceCode, content, testCase, context, llmStepResult);
-
-    return {
-      testStepResults,
-      executionResult,
-      metrics,
-    };
-  }
-
-  private async runValidationPipeline(
-    sourceCode: string,
-    diffContent: string,
-    testCase: TestCase,
-    context: TestExecutionContext,
-    llmStepResult: TestStepResult,
-  ): Promise<TestCaseExecution> {
-    const testStepResults: TestStepResult[] = [];
-    const testCaseId = testCase.id;
-
-    context.logger.debug(`[${testCaseId}] Starting validation pipeline`);
-
-    // Step 1: LLM Generation - use the passed LLM step result
-    testStepResults.push(llmStepResult);
-    context.logger.debug(`[${testCaseId}] LLM generation completed`);
-
-    // Step 2: Clean diff content
-    const cleanedDiff = this.cleanDiffContent(diffContent);
+    // Step 2: Clean diff content (pure function)
+    const cleanedDiff = this.cleanDiffContent(content);
     context.logger.debug(
-      `[${testCaseId}] Content cleaned: ${cleanedDiff.length} chars`,
+      `[${testCase.id}] Content cleaned: ${cleanedDiff.length} chars`,
     );
 
-    // Step 3: Validate format
-    const isValidFormat = this.validateDiffFormat(
-      cleanedDiff,
-      testStepResults,
-    );
-    if (!isValidFormat) {
-      context.logger.debug(`[${testCaseId}] Format validation failed`);
+    // Step 3: Format validation
+    const formatStep = this.executeFormatValidationStep(cleanedDiff);
+    testStepResults.push(formatStep);
 
-      // Add format validation as a score
-      const formatStep = testStepResults.find(step => step.details?.includes("unified diff format"));
-      if (formatStep) {
-        formatStep.score = isValidFormat ? 1 : 0;
-      }
-
-      const execution = TestCaseExecutor.completeTestCase(testStepResults);
-
-      // Override stderr for validation failure
-      if (execution.executionResult) {
-        execution.executionResult.stderr = "Generated content is not a valid unified diff";
-      }
-
-      return execution;
+    if (!formatStep.passed) {
+      context.logger.debug(`[${testCase.id}] Format validation failed`);
+      return TestCaseExecutor.completeTestCase(testStepResults);
     }
-    context.logger.debug(`[${testCaseId}] Format validation passed`);
+    context.logger.debug(`[${testCase.id}] Format validation passed`);
 
     // Step 4: Apply diff
-    const {
-      success: applySuccess,
-      appliedCode,
-      error: applyError,
-    } = await this.applyDiff(sourceCode, cleanedDiff, testStepResults);
-    context.logger.debug(
-      `[${testCaseId}] Diff application: ${applySuccess ? "succeeded" : "failed"}`,
+    const applyStep = await this.executeDiffApplicationStep(
+      sourceCode,
+      cleanedDiff,
     );
+    testStepResults.push(applyStep);
 
-    // Step 5: Run unit tests (if applicable)
-    if (applySuccess && testCase.expected?.unitTest) {
-      await this.runUnitTests(
-        appliedCode,
+    if (!applyStep.passed) {
+      context.logger.debug(`[${testCase.id}] Diff application failed`);
+      return TestCaseExecutor.completeTestCase(testStepResults);
+    }
+    context.logger.debug(`[${testCase.id}] Diff application succeeded`);
+
+    // Step 5: Unit tests (if applicable and diff was applied successfully)
+    if (applyStep.appliedCode && testCase.expected?.unitTest) {
+      const unitTestStep = await this.executeUnitTestStep(
+        applyStep.appliedCode,
         testCase,
-        testStepResults,
         context.executionEnvironment,
         context.logger,
       );
-      context.logger.debug(`[${testCaseId}] Unit tests completed`);
+      testStepResults.push(unitTestStep);
+      context.logger.debug(`[${testCase.id}] Unit tests completed`);
     }
 
-    // Step 5: Add metrics as scores to relevant steps
-    const formatStep = testStepResults.find(step => step.details?.includes("unified diff format"));
-    if (formatStep) {
-      formatStep.score = isValidFormat ? 1 : 0;
-    }
-
-    const applyStep = testStepResults.find(step => step.details?.includes("Diff application") || step.details?.includes("Diff applied"));
-    if (applyStep) {
-      applyStep.score = applySuccess ? 1 : 0;
-    }
-
-    // Build results using TestCaseExecutor utility
     context.logger.debug(
-      `[${testCaseId}] Pipeline completed: ${testStepResults.filter((r) => r.passed).length}/${testStepResults.length} steps passed`,
+      `[${testCase.id}] Pipeline completed: ${testStepResults.filter((r) => r.passed).length}/${testStepResults.length} steps passed`,
     );
 
-    const execution = TestCaseExecutor.completeTestCase(testStepResults);
-
-    // Override stdout/stderr for diff-specific messaging
-    if (execution.executionResult) {
-      execution.executionResult.stdout = applySuccess ? "Diff applied successfully" : "";
-      execution.executionResult.stderr = applyError;
-    }
-
-    return execution;
+    return TestCaseExecutor.completeTestCase(testStepResults);
   }
 }

@@ -104,10 +104,10 @@ async function runBenchmark(options: any): Promise<void> {
   const __filename = fileURLToPath(import.meta.url);
   const __dirname = dirname(__filename);
   const pluginsDir = join(__dirname, "..", "plugins");
-  
+
   const pluginLoader = new PluginLoader(logger, pluginsDir);
   const plugins = await pluginLoader.loadPlugins();
-  
+
   for (const plugin of plugins) {
     engine.registerPlugin(plugin);
   }
@@ -320,7 +320,7 @@ async function displayResults(
   const passed = result.testCases.filter(
     (tc: any) =>
       tc.status === "completed" &&
-      tc.validationResults?.every((vr: any) => vr.passed),
+      tc.testStepResults?.every((tsr: any) => tsr.passed),
   ).length;
   const failed = result.testCases.filter(
     (tc: any) => tc.status === "failed",
@@ -342,22 +342,34 @@ async function displayResults(
       `   Status: ${tc.status === "completed" ? chalk.green(tc.status) : chalk.red(tc.status)}`,
     );
 
-    if (tc.validationResults) {
-      console.log(`   Validations:`);
-      tc.validationResults.forEach((vr: any) => {
-        const status = vr.passed ? chalk.green("✓") : chalk.red("✗");
-        console.log(`     ${status} ${vr.type}: ${vr.details}`);
+    if (tc.testStepResults && tc.testStepResults.length > 0) {
+      console.log(`   Steps:`);
+      tc.testStepResults.forEach((step: any) => {
+        const status = step.passed ? chalk.green("✓") : chalk.red("✗");
+        let stepDisplay = `     ${status} ${step.details || 'No details'}`;
+        
+        // Add score if available
+        if (step.score !== undefined) {
+          stepDisplay += chalk.gray(` (score: ${step.score})`);
+        }
+        
+        console.log(stepDisplay);
+        
+        // Show LLM response details for LLM steps
+        if (step.llmResponse) {
+          const responsePreview = step.llmResponse.content.substring(0, 80);
+          console.log(`       ${chalk.gray(`LLM: "${responsePreview}${step.llmResponse.content.length > 80 ? '...' : ''}" (${step.llmResponse.content.length} chars, ${step.llmResponse.latency}ms)`)}`);
+        }
+        
+        // Show error details if step failed
+        if (!step.passed && step.error) {
+          console.log(`       ${chalk.red(`Error: ${step.error}`)}`);
+        }
       });
     }
 
     if (tc.error) {
       console.log(`   Error: ${chalk.red(tc.error.message)}`);
-    }
-
-    if (tc.llmResponse) {
-      console.log(
-        `   LLM Response (${tc.llmResponse.content.length} chars): ${tc.llmResponse.content.substring(0, 100)}...`,
-      );
     }
   });
 
