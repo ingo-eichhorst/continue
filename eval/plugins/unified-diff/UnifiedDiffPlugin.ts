@@ -16,6 +16,9 @@ import {
   isUnifiedDiffFormat,
 } from "../../../core/edit/lazy/unifiedDiffApply.js";
 
+/**
+ * Evaluates LLM-generated unified diffs through format validation, application testing, and optional unit tests.
+ */
 export class UnifiedDiffPlugin implements BenchmarkPlugin {
   name = "unified-diff-testing";
   description =
@@ -33,6 +36,9 @@ export class UnifiedDiffPlugin implements BenchmarkPlugin {
 
   defaultDataset = "datasets/diff-dataset";
 
+  /**
+   * Builds the LLM request with source code and modification instructions.
+   */
   private buildLLMRequest(
     testCase: TestCase,
     systemPrompt: string,
@@ -66,6 +72,9 @@ ${modificationPrompt}`,
     return { messages, llmRequest };
   }
 
+  /**
+   * Removes markdown code block formatting from LLM-generated diff content.
+   */
   private cleanDiffContent(diffContent: string): string {
     let cleaned = diffContent.trim();
     if (cleaned.startsWith("```diff")) {
@@ -80,8 +89,7 @@ ${modificationPrompt}`,
   }
 
   /**
-   * Executes format validation as a single test step
-   * Returns TestStepResult with validation outcome
+   * Validates that the diff content conforms to unified diff format specification.
    */
   private executeFormatValidationStep(cleanedDiff: string): TestStepResult {
     const isValid = isUnifiedDiffFormat(cleanedDiff);
@@ -95,8 +103,7 @@ ${modificationPrompt}`,
   }
 
   /**
-   * Executes diff application as a single test step
-   * Returns TestStepResult with application outcome and applied code
+   * Applies the validated unified diff to the original source code.
    */
   private async executeDiffApplicationStep(
     sourceCode: string,
@@ -124,8 +131,7 @@ ${modificationPrompt}`,
   }
 
   /**
-   * Executes unit test as a single test step
-   * Returns TestStepResult with test outcome
+   * Runs unit tests against the code that resulted from applying the diff.
    */
   private async executeUnitTestStep(
     appliedCode: string,
@@ -175,7 +181,9 @@ ${modificationPrompt}`,
     }
   }
 
-
+  /**
+   * Orchestrates the complete diff testing workflow: LLM generation, format validation, diff application, and optional unit testing.
+   */
   async executeTestCase(
     testCase: TestCase,
     context: TestExecutionContext,
