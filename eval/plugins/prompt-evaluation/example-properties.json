@@ -1,0 +1,5 @@
+{
+  "systemPrompt": "You are a skilled JavaScript developer. Generate clean, well-tested code following best practices. Focus on proper error handling, input validation, and writing maintainable code.",
+  "rulesFile": "datasets/prompt-evaluation-dataset/rules-example.txt",
+  "promptFile": "datasets/prompt-evaluation-dataset/prompt-example.md"
+}

@@ -2,6 +2,7 @@
 
 import chalk from "chalk";
 import { Command } from "commander";
+import { readFileSync, existsSync } from "fs";
 import ora from "ora";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
@@ -39,6 +40,8 @@ program
   .option("-o, --output <format>", "Output format (console|json)", "console")
   .option("-v, --verbose", "Enable verbose logging")
   .option("--dry-run", "Show what would be executed without running")
+  .option("--properties <json>", "Plugin properties as JSON string")
+  .option("--properties-file <path>", "Path to JSON file with plugin properties")
   .action(async (options) => {
     try {
       await runBenchmark(options);
@@ -90,6 +93,42 @@ program
   .action(async (options) => {
     await listDatasets(options);
   });
+
+/**
+ * Parses plugin properties from CLI options (JSON string or file).
+ */
+function parseProperties(options: any): Record<string, any> {
+  let properties: Record<string, any> = {};
+
+  // Parse properties from JSON string
+  if (options.properties) {
+    try {
+      properties = JSON.parse(options.properties);
+    } catch (error) {
+      throw new Error(`Invalid JSON in --properties: ${(error as Error).message}`);
+    }
+  }
+
+  // Parse properties from file
+  if (options.propertiesFile) {
+    const filePath = join(process.cwd(), options.propertiesFile);
+    if (!existsSync(filePath)) {
+      throw new Error(`Properties file not found: ${options.propertiesFile}`);
+    }
+    
+    try {
+      const fileContent = readFileSync(filePath, 'utf-8');
+      const fileProperties = JSON.parse(fileContent);
+      
+      // Merge with existing properties (CLI properties take precedence)
+      properties = { ...fileProperties, ...properties };
+    } catch (error) {
+      throw new Error(`Invalid JSON in properties file ${options.propertiesFile}: ${(error as Error).message}`);
+    }
+  }
+
+  return properties;
+}
 
 async function runBenchmark(options: any): Promise<void> {
   const logger = new ConsoleLogger(options.verbose);
@@ -201,6 +240,12 @@ async function runBenchmark(options: any): Promise<void> {
     return;
   }
 
+  // Parse properties from CLI
+  const properties = parseProperties(options);
+  if (Object.keys(properties).length > 0) {
+    logger.info(`Using properties: ${JSON.stringify(properties, null, 2)}`);
+  }
+
   // Validate environment
   await validateExecutionEnvironment(executionEnv, logger);
 
@@ -212,7 +257,7 @@ async function runBenchmark(options: any): Promise<void> {
       models,
       dataset,
       executionEnv,
-      {}, // Default properties
+      properties,
     );
 
     spinner.succeed("Benchmark completed successfully");

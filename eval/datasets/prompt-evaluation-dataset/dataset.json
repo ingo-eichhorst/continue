@@ -1,0 +1,49 @@
+{
+  "name": "prompt-evaluation-dataset",
+  "description": "Dataset for evaluating how rules files and prompt files improve code generation quality",
+  "version": "1.0.0",
+  "metadata": {
+    "language": "javascript",
+    "difficulty": "medium",
+    "tags": ["code-generation", "functions", "classes", "testing"],
+    "createdAt": "2024-12-26T00:00:00Z",
+    "modifiedAt": "2024-12-26T00:00:00Z"
+  },
+  "testCases": [
+    {
+      "id": "array-utils-function",
+      "name": "Array Utility Function Generation",
+      "description": "Generate a function that filters and transforms array data with error handling",
+      "input": {
+        "prompt": "Create a JavaScript function called 'processNumbers' that takes an array of numbers and returns a new array containing only the even numbers, each multiplied by 2. The function should handle edge cases like empty arrays, null/undefined inputs, and non-numeric values."
+      },
+      "expected": {
+        "unitTest": "function testProcessNumbers() {\n  // Test normal operation\n  const result1 = processNumbers([1, 2, 3, 4, 5, 6]);\n  assert.deepEqual(result1, [4, 8, 12], 'Should filter even numbers and multiply by 2');\n  \n  // Test empty array\n  const result2 = processNumbers([]);\n  assert.deepEqual(result2, [], 'Should handle empty array');\n  \n  // Test null/undefined\n  const result3 = processNumbers(null);\n  assert.deepEqual(result3, [], 'Should handle null input');\n  \n  // Test mixed types\n  const result4 = processNumbers([1, 'hello', 2, null, 4]);\n  assert.deepEqual(result4, [4, 8], 'Should handle mixed types');\n  \n  // Test odd numbers only\n  const result5 = processNumbers([1, 3, 5]);\n  assert.deepEqual(result5, [], 'Should return empty array for odd numbers only');\n}"
+      },
+      "metadata": {
+        "language": "javascript",
+        "difficulty": "medium",
+        "expectedFunctions": ["processNumbers"],
+        "requiresErrorHandling": true
+      }
+    },
+    {
+      "id": "user-management-class",
+      "name": "User Management Class Creation",
+      "description": "Generate a class for managing user data with validation and CRUD operations",
+      "input": {
+        "prompt": "Create a JavaScript class called 'UserManager' that manages a collection of user objects. Each user should have properties: id, name, email, and age. The class should have methods: addUser(user), getUserById(id), updateUser(id, updates), deleteUser(id), and getAllUsers(). Include proper validation for email format and age (must be positive number). The class should throw appropriate errors for invalid operations."
+      },
+      "expected": {
+        "unitTest": "function testUserManager() {\n  const manager = new UserManager();\n  \n  // Test adding valid user\n  const user1 = { id: 1, name: 'John Doe', email: 'john@example.com', age: 30 };\n  manager.addUser(user1);\n  assert.deepEqual(manager.getUserById(1), user1, 'Should add and retrieve user');\n  \n  // Test adding user with invalid email\n  const invalidUser = { id: 2, name: 'Jane', email: 'invalid-email', age: 25 };\n  assert.throws(() => manager.addUser(invalidUser), Error, 'Should throw error for invalid email');\n  \n  // Test adding user with invalid age\n  const invalidAgeUser = { id: 3, name: 'Bob', email: 'bob@example.com', age: -5 };\n  assert.throws(() => manager.addUser(invalidAgeUser), Error, 'Should throw error for negative age');\n  \n  // Test updating user\n  manager.updateUser(1, { age: 31 });\n  assert.equal(manager.getUserById(1).age, 31, 'Should update user age');\n  \n  // Test deleting user\n  manager.deleteUser(1);\n  assert.equal(manager.getUserById(1), undefined, 'Should delete user');\n  \n  // Test getting all users\n  const user2 = { id: 4, name: 'Alice', email: 'alice@example.com', age: 28 };\n  manager.addUser(user2);\n  assert.equal(manager.getAllUsers().length, 1, 'Should return all users');\n}"
+      },
+      "metadata": {
+        "language": "javascript",
+        "difficulty": "medium",
+        "expectedClasses": ["UserManager"],
+        "requiresValidation": true,
+        "requiresErrorHandling": true
+      }
+    }
+  ]
+}

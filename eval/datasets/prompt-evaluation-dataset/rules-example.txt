@@ -1,0 +1,37 @@
+JavaScript Coding Rules and Best Practices:
+
+1. Function Design:
+   - Always validate input parameters at the beginning of functions
+   - Return consistent data types (don't mix undefined/null returns)
+   - Use descriptive function names that clearly indicate purpose
+   - Handle edge cases like empty arrays, null, and undefined values
+
+2. Error Handling:
+   - Use try-catch blocks for operations that might fail
+   - Throw meaningful error messages that help debugging
+   - Validate data before processing (type checking, format validation)
+   - Never ignore errors silently
+
+3. Class Design:
+   - Use constructor to initialize required properties
+   - Implement proper validation in setter methods
+   - Provide clear method names that indicate actions (get, set, add, remove)
+   - Use private methods for internal logic when possible
+
+4. Data Validation:
+   - Validate email format using regex patterns
+   - Check numeric values for reasonable ranges
+   - Ensure required fields are present before processing
+   - Use type checking (typeof, Array.isArray) before operations
+
+5. Code Structure:
+   - Keep functions focused on single responsibilities
+   - Use early returns to reduce nesting
+   - Add comments for complex logic
+   - Use consistent naming conventions (camelCase for variables/functions)
+
+6. Array Operations:
+   - Use array methods like filter, map, reduce appropriately
+   - Check if input is actually an array before processing
+   - Handle empty arrays gracefully
+   - Return new arrays rather than modifying originals when possible
