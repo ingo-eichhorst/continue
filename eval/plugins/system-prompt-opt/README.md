@@ -18,7 +18,7 @@ The System Prompt Optimization Plugin evaluates and compares the effectiveness o
 npm run benchmark -- benchmark \
   --plugin system-prompt-optimization \
   --models gpt-4,claude-3-sonnet \
-  --properties-file eval/plugins/system-prompt-opt/example-properties.json
+  --properties-file plugins/system-prompt-opt/example-properties.json
 ```
 
 ### Properties Configuration

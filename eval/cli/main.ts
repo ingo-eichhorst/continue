@@ -111,7 +111,10 @@ function parseProperties(options: any): Record<string, any> {
 
   // Parse properties from file
   if (options.propertiesFile) {
-    const filePath = join(process.cwd(), options.propertiesFile);
+    // Use the same path resolution strategy as loadDataset
+    const currentDir = dirname(fileURLToPath(import.meta.url));
+    const evalDir = dirname(currentDir); // Go up from eval/cli to eval
+    const filePath = join(evalDir, options.propertiesFile);
     if (!existsSync(filePath)) {
       throw new Error(`Properties file not found: ${options.propertiesFile}`);
     }

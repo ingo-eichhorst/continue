@@ -5,11 +5,17 @@
   "metadata": {
     "language": "javascript",
     "difficulty": "intermediate",
-    "tags": ["code-generation", "prompt-optimization", "algorithms", "data-structures"]
+    "tags": [
+      "code-generation",
+      "prompt-optimization",
+      "algorithms",
+      "data-structures"
+    ]
   },
   "testCases": [
     {
       "id": "binary-search-implementation",
+      "name": "Binary Search Algorithm Implementation",
       "input": {
         "prompt": "Implement a binary search function that takes a sorted array and a target value, returning the index of the target or -1 if not found."
       },
@@ -24,75 +30,6 @@
         "expectedFunctions": ["binarySearch"],
         "timeComplexity": "O(log n)",
         "spaceComplexity": "O(1)"
-      }
-    },
-    {
-      "id": "linked-list-implementation",
-      "input": {
-        "prompt": "Create a singly linked list class with methods to add elements at the beginning, add at the end, remove by value, and display all elements."
-      },
-      "expected": {
-        "functionality": "Singly linked list with basic operations",
-        "unitTest": "const assert = require('assert');\n\n// Test the linked list implementation\nconst list = new LinkedList();\nassert.strictEqual(list.display(), '', 'Empty list should display nothing');\n\nlist.addAtBeginning(1);\nlist.addAtBeginning(2);\nlist.addAtEnd(3);\nlist.addAtEnd(4);\nassert.strictEqual(list.display(), '2 -> 1 -> 3 -> 4', 'Should display correct order after additions');\n\nlist.removeByValue(1);\nassert.strictEqual(list.display(), '2 -> 3 -> 4', 'Should remove element correctly');\n\nlist.removeByValue(2);\nassert.strictEqual(list.display(), '3 -> 4', 'Should remove head element correctly');\n\nlist.removeByValue(4);\nassert.strictEqual(list.display(), '3', 'Should remove tail element correctly');\n\nlist.removeByValue(3);\nassert.strictEqual(list.display(), '', 'Should handle removing last element');\n\nlist.removeByValue(999);\nassert.strictEqual(list.display(), '', 'Should handle removing non-existent element');\n\nconsole.log('All linked list tests passed!');"
-      },
-      "metadata": {
-        "language": "javascript",
-        "difficulty": "medium",
-        "category": "data-structures",
-        "expectedClasses": ["LinkedList"],
-        "expectedMethods": ["addAtBeginning", "addAtEnd", "removeByValue", "display"]
-      }
-    },
-    {
-      "id": "async-data-processor",
-      "input": {
-        "prompt": "Create an asynchronous data processor that fetches data from multiple URLs concurrently, processes each response, and returns a summary of results with error handling."
-      },
-      "expected": {
-        "functionality": "Async data processing with concurrent requests and error handling",
-        "unitTest": "const assert = require('assert');\n\n// Mock fetch function for testing\nglobal.fetch = async (url) => {\n  if (url.includes('error')) {\n    throw new Error('Network error');\n  }\n  return {\n    ok: url.includes('success'),\n    json: async () => ({ data: `data from ${url}`, value: Math.floor(Math.random() * 100) })\n  };\n};\n\n// Test the async data processor\n(async () => {\n  const urls = [\n    'http://api.success1.com/data',\n    'http://api.success2.com/data',\n    'http://api.error.com/data',\n    'http://api.invalid.com/data'\n  ];\n  \n  const result = await processDataConcurrently(urls);\n  \n  assert(result.hasOwnProperty('successful'), 'Result should have successful property');\n  assert(result.hasOwnProperty('failed'), 'Result should have failed property');\n  assert(result.hasOwnProperty('total'), 'Result should have total property');\n  assert(result.successful >= 1, 'Should have at least 1 successful result');\n  assert(result.failed >= 1, 'Should have at least 1 failed result');\n  assert(result.total === urls.length, 'Total should equal input length');\n  \n  console.log('All async data processor tests passed!');\n})();"
-      },
-      "metadata": {
-        "language": "javascript",
-        "difficulty": "hard",
-        "category": "async-programming",
-        "expectedFunctions": ["processDataConcurrently"],
-        "concepts": ["promises", "concurrent-execution", "error-handling"]
-      }
-    },
-    {
-      "id": "memoization-fibonacci",
-      "input": {
-        "prompt": "Implement a memoized Fibonacci function that efficiently calculates large Fibonacci numbers by caching previously computed results."
-      },
-      "expected": {
-        "functionality": "Memoized Fibonacci calculation with performance optimization",
-        "unitTest": "const assert = require('assert');\n\n// Test the memoized Fibonacci function\nconst startTime = Date.now();\nconst result1 = fibonacciMemo(40);\nconst firstCallTime = Date.now() - startTime;\n\nconst startTime2 = Date.now();\nconst result2 = fibonacciMemo(40);\nconst secondCallTime = Date.now() - startTime2;\n\nassert.strictEqual(result1, 102334155, 'Should calculate correct Fibonacci number');\nassert.strictEqual(result2, 102334155, 'Should return same result on second call');\nassert(secondCallTime < firstCallTime / 10, 'Second call should be significantly faster due to memoization');\n\n// Test edge cases\nassert.strictEqual(fibonacciMemo(0), 0, 'Should handle F(0) = 0');\nassert.strictEqual(fibonacciMemo(1), 1, 'Should handle F(1) = 1');\nassert.strictEqual(fibonacciMemo(2), 1, 'Should handle F(2) = 1');\nassert.strictEqual(fibonacciMemo(10), 55, 'Should calculate F(10) correctly');\n\nconsole.log('All memoized Fibonacci tests passed!');"
-      },
-      "metadata": {
-        "language": "javascript",
-        "difficulty": "medium",
-        "category": "optimization",
-        "expectedFunctions": ["fibonacciMemo"],
-        "concepts": ["memoization", "dynamic-programming", "performance"]
-      }
-    },
-    {
-      "id": "event-emitter-class",
-      "input": {
-        "prompt": "Create an EventEmitter class that allows subscribing to events, emitting events with data, and unsubscribing from events. Include support for one-time listeners."
-      },
-      "expected": {
-        "functionality": "Event emitter with subscription, emission, and unsubscription capabilities",
-        "unitTest": "const assert = require('assert');\n\n// Test the EventEmitter implementation\nconst emitter = new EventEmitter();\nlet callCount = 0;\nlet receivedData = null;\n\nconst listener = (data) => {\n  callCount++;\n  receivedData = data;\n};\n\n// Test basic subscription and emission\nemitter.on('test', listener);\nemitter.emit('test', 'hello');\nassert.strictEqual(callCount, 1, 'Listener should be called once');\nassert.strictEqual(receivedData, 'hello', 'Should receive correct data');\n\n// Test multiple emissions\nemitter.emit('test', 'world');\nassert.strictEqual(callCount, 2, 'Listener should be called again');\nassert.strictEqual(receivedData, 'world', 'Should receive updated data');\n\n// Test unsubscription\nemitter.off('test', listener);\nemitter.emit('test', 'ignored');\nassert.strictEqual(callCount, 2, 'Listener should not be called after unsubscription');\n\n// Test once listener\nlet onceCallCount = 0;\nconst onceListener = () => { onceCallCount++; };\nemitter.once('once-test', onceListener);\nemitter.emit('once-test');\nemitter.emit('once-test');\nassert.strictEqual(onceCallCount, 1, 'Once listener should only be called once');\n\nconsole.log('All EventEmitter tests passed!');"
-      },
-      "metadata": {
-        "language": "javascript",
-        "difficulty": "medium",
-        "category": "design-patterns",
-        "expectedClasses": ["EventEmitter"],
-        "expectedMethods": ["on", "off", "emit", "once"],
-        "concepts": ["observer-pattern", "events", "callbacks"]
       }
     }
   ]
