@@ -14,6 +14,7 @@ import { SessionManager } from "../core/SessionManager.js";
 import { Dataset } from "../core/types.js";
 import { DockerExecutionEnvironment } from "../execution/DockerRunner.js";
 import { LocalExecutionEnvironment } from "../execution/LocalRunner.js";
+import { SimpleBenchmarkExample } from "../plugins/simple-example/SimpleBenchmarkExample.js";
 import { UnifiedDiffPlugin } from "../plugins/unified-diff/UnifiedDiffPlugin.js";
 
 const program = new Command();
@@ -102,6 +103,7 @@ async function runBenchmark(options: any): Promise<void> {
 
   // Register available plugins
   engine.registerPlugin(new UnifiedDiffPlugin());
+  engine.registerPlugin(new SimpleBenchmarkExample());
 
   logger.info("Continue.dev Benchmarking Framework");
   logger.info("====================================");
