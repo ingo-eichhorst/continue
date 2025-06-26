@@ -1,0 +1,368 @@
+import type { ILLM } from '../../core/index.js';
+import {
+  BenchmarkContext,
+  BenchmarkSession,
+  BenchmarkResult,
+  TestCase,
+  TestCaseResult,
+  TestCaseExecution,
+  TestExecutionContext,
+  TestCaseExecutorOptions,
+  ValidationResult,
+  ChatMessage,
+  Logger,
+} from './types.js';
+
+/**
+ * TestCaseExecutor handles the common orchestration logic for executing test cases
+ * that was previously duplicated across all BenchmarkPlugin implementations.
+ * 
+ * This class provides:
+ * - Test case ID generation
+ * - Session recovery logic
+ * - Result lifecycle management (timing, status transitions)
+ * - Progress tracking
+ * - Standardized error handling
+ */
+export class TestCaseExecutor {
+  private logger: Logger;
+
+  constructor(logger: Logger) {
+    this.logger = logger;
+  }
+
+  /**
+   * Execute a list of test cases with full orchestration logic
+   */
+  async executeTestCases<TTestCase extends TestCase>(
+    testCases: TTestCase[],
+    context: BenchmarkContext,
+    testCaseExecutor: (testCase: TTestCase, execContext: TestExecutionContext) => Promise<TestCaseExecution>,
+    options: TestCaseExecutorOptions = {}
+  ): Promise<TestCaseResult[]> {
+    const { model, session } = context;
+    const results: TestCaseResult[] = [];
+    
+    this.logger.info(
+      `Starting test execution for model ${model.uniqueId} with ${testCases.length} test cases`,
+    );
+
+    for (let i = 0; i < testCases.length; i++) {
+      const testCase = testCases[i];
+      
+      // 1. Generate consistent test case ID
+      const testCaseId = this.generateTestCaseId(testCase, model);
+      
+      this.logger.debug(
+        `Processing test case: ${testCase.id}, full testCaseId: ${testCaseId}`,
+      );
+      
+      // 2. Check session recovery
+      const existingResult = this.checkSessionRecovery(session, testCaseId);
+      if (existingResult) {
+        results.push(existingResult);
+        this.logSkipped(testCaseId);
+        continue;
+      }
+      
+      // 3. Execute test case with full lifecycle management
+      const result = await this.executeWithLifecycle(
+        testCase,
+        testCaseId,
+        context,
+        testCaseExecutor,
+        options
+      );
+      
+      results.push(result);
+      
+      // 4. Update session progress
+      this.updateSessionProgress(session, result, i + 1, testCases.length, model);
+    }
+    
+    return results;
+  }
+
+  private generateTestCaseId(testCase: TestCase, model: ILLM): string {
+    return `${testCase.id}-${model.uniqueId}`;
+  }
+
+  private checkSessionRecovery(
+    session: BenchmarkSession, 
+    testCaseId: string
+  ): TestCaseResult | null {
+    const existingResult = session.results?.find(
+      (r) => r.testCaseId === testCaseId && r.status === "completed"
+    );
+    return existingResult || null;
+  }
+
+  private logSkipped(testCaseId: string): void {
+    this.logger.debug(`Skipping completed test case: ${testCaseId}`);
+  }
+
+  private async executeWithLifecycle<TTestCase extends TestCase>(
+    testCase: TTestCase,
+    testCaseId: string,
+    context: BenchmarkContext,
+    testCaseExecutor: (testCase: TTestCase, execContext: TestExecutionContext) => Promise<TestCaseExecution>,
+    options: TestCaseExecutorOptions
+  ): Promise<TestCaseResult> {
+    // Create initial result with timing
+    const result = this.createInitialResult(testCaseId, context.model);
+    
+    this.logger.debug(
+      `Processing test case: ${testCase.id} with model: ${context.model.title} at ${result.startTime!.toISOString()}`,
+    );
+
+    try {
+      // Execute plugin-specific logic
+      const execContext: TestExecutionContext = {
+        model: context.model,
+        properties: context.properties,
+        logger: context.logger,
+        executionEnvironment: context.executionEnvironment
+      };
+      
+      const execution = await testCaseExecutor(testCase, execContext);
+      
+      // Determine success/failure
+      const success = this.evaluateSuccess(execution, options.successEvaluator);
+      
+      // Finalize result
+      this.finalizeResult(result, execution, success, testCaseId);
+      
+    } catch (error) {
+      // Standardized error handling
+      this.handleExecutionError(result, error as Error, testCaseId);
+    }
+    
+    return result;
+  }
+
+  private createInitialResult(testCaseId: string, model: ILLM): TestCaseResult {
+    return {
+      testCaseId,
+      modelId: model.uniqueId,
+      status: "running",
+      startTime: new Date(),
+    };
+  }
+
+  private evaluateSuccess(
+    execution: TestCaseExecution, 
+    customEvaluator?: (execution: TestCaseExecution) => boolean
+  ): boolean {
+    // Use custom evaluator if provided
+    if (customEvaluator) {
+      return customEvaluator(execution);
+    }
+    
+    // Default success evaluation
+    if (execution.validationResults) {
+      return execution.validationResults.every(vr => vr.passed);
+    }
+    if (execution.executionResult) {
+      return execution.executionResult.successful;
+    }
+    return true; // If no validation/execution results, assume success
+  }
+
+  private finalizeResult(
+    result: TestCaseResult,
+    execution: TestCaseExecution,
+    success: boolean,
+    testCaseId: string
+  ): void {
+    result.endTime = new Date();
+    result.duration = result.endTime.getTime() - result.startTime!.getTime();
+    result.status = success ? "completed" : "failed";
+    
+    // Copy execution data to result
+    result.llmRequest = execution.llmRequest;
+    result.llmResponse = execution.llmResponse;
+    result.validationResults = execution.validationResults;
+    result.executionResult = execution.executionResult;
+    
+    // Enhance metrics with timing and token information
+    result.metrics = this.enhanceMetrics(execution.metrics, execution.llmResponse, result.duration);
+    
+    if (success) {
+      this.logger.debug(
+        `Test case ${testCaseId} completed successfully in ${result.duration}ms`,
+      );
+    } else {
+      result.error = {
+        type: "validation",
+        message: "One or more validation steps failed",
+        details: "Check validationResults for specific failures",
+        recoverable: true,
+      };
+      this.logger.error(`Test case ${testCaseId} failed validation steps`);
+    }
+  }
+
+  private enhanceMetrics(baseMetrics: any, llmResponse: any, duration: number): any {
+    if (!baseMetrics) {
+      return {
+        latency: duration,
+        tokens: { prompt: 0, completion: 0, total: 0 },
+      };
+    }
+
+    return {
+      ...baseMetrics,
+      latency: llmResponse?.latency || duration,
+      tokens: {
+        prompt: llmResponse?.usage?.promptTokens || 0,
+        completion: llmResponse?.usage?.completionTokens || 0,
+        total: llmResponse?.usage?.totalTokens || 0,
+      },
+    };
+  }
+
+  /**
+   * Creates base metrics structure with validation results and quality scores
+   * This is a utility method that plugins can use to build their metrics
+   */
+  static buildBaseMetrics(
+    validationResults: ValidationResult[],
+    qualityScores: Record<string, number> = {}
+  ): any {
+    const overallQuality =
+      validationResults.length > 0
+        ? validationResults.filter((r) => r.passed).length /
+          validationResults.length
+        : 0;
+
+    return {
+      latency: 0, // Will be populated by TestCaseExecutor
+      tokens: {
+        prompt: 0, // Will be populated by TestCaseExecutor
+        completion: 0, // Will be populated by TestCaseExecutor
+        total: 0, // Will be populated by TestCaseExecutor
+      },
+      qualityScores: {
+        ...qualityScores,
+        overallQuality,
+      },
+    };
+  }
+
+  /**
+   * Executes an LLM request with timing and streaming response handling
+   * This is a utility method that plugins can use for standardized LLM interaction
+   */
+  static async executeLLMRequest(
+    messages: ChatMessage[],
+    model: ILLM,
+    options: Record<string, any> = {}
+  ): Promise<{ content: string; latency: number }> {
+    const startTime = Date.now();
+    const abortController = new AbortController();
+
+    const response = await model.streamChat(
+      messages,
+      abortController.signal,
+      options,
+    );
+
+    let content = "";
+    for await (const chunk of response) {
+      if (chunk.content) {
+        content += chunk.content;
+      }
+    }
+
+    const latency = Date.now() - startTime;
+    return { content: content.trim(), latency };
+  }
+
+  /**
+   * Builds a standardized BenchmarkResult from test case results
+   * This is a utility method that plugins can use to create their final results
+   */
+  static buildBenchmarkResult(
+    pluginName: string,
+    testCases: TestCaseResult[],
+    context: BenchmarkContext,
+    logger: Logger
+  ): BenchmarkResult {
+    const { session } = context;
+
+    const endTime = new Date();
+    const totalDuration = endTime.getTime() - session.startTime.getTime();
+    logger.info(`Benchmark execution completed in ${totalDuration}ms`);
+
+    const completedTestCases = testCases.filter(
+      (tc) => tc.status === "completed",
+    ).length;
+    const failedTestCases = testCases.filter(
+      (tc) => tc.status === "failed",
+    ).length;
+    const successRate = (completedTestCases / testCases.length) * 100;
+
+    return {
+      pluginName,
+      sessionId: session.id,
+      testCases,
+      metrics: {
+        functional: {
+          totalTests: testCases.length,
+          passedTests: completedTestCases,
+          failedTests: failedTestCases,
+          successRate: successRate,
+        },
+        // TODO: These should be calculated from actual test case metrics
+        performance: {
+          averageLatency: 0,
+          medianLatency: 0,
+          p95Latency: 0,
+          totalTokens: 0,
+          averageTokensPerRequest: 0,
+        },
+        // TODO: These should be calculated from validation results
+        quality: { syntaxCorrectness: 0, compilationSuccess: 0 },
+      },
+      // TODO: Generate actual summary
+      summary: { overallScore: 0, recommendations: [], insights: [] },
+
+      startTime: session.startTime,
+      endTime,
+      duration: totalDuration,
+    };
+  }
+
+  private handleExecutionError(result: TestCaseResult, error: Error, testCaseId: string): void {
+    this.logger.error(`Test case ${testCaseId} failed:`, error);
+    
+    result.endTime = new Date();
+    result.duration = result.endTime.getTime() - (result.startTime?.getTime() || 0);
+    result.status = "failed";
+    result.error = {
+      type: "execution",
+      message: error.message,
+      details: error.stack,
+      recoverable: false,
+    };
+  }
+
+  private updateSessionProgress(
+    session: BenchmarkSession,
+    result: TestCaseResult,
+    currentIndex: number,
+    totalTests: number,
+    model: ILLM
+  ): void {
+    // Update session progress
+    session.progress.completedTestCases++;
+    if (result.status === "failed") {
+      session.progress.failedTestCases++;
+    }
+    session.progress.currentTestCase = result.testCaseId;
+    
+    this.logger.info(
+      `Progress: ${currentIndex}/${totalTests} test cases completed for model ${model.uniqueId}`,
+    );
+  }
+}

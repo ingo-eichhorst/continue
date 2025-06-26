@@ -16,6 +16,27 @@ export interface BenchmarkPlugin {
   validateDataset?(dataset: Dataset): Promise<boolean>;
 }
 
+// Helper interfaces for TestCaseExecutor
+export interface TestExecutionContext {
+  model: ILLM;
+  properties: Record<string, any>;
+  logger: Logger;
+  executionEnvironment: ExecutionEnvironment;
+}
+
+export interface TestCaseExecution {
+  llmRequest?: LLMRequest;
+  llmResponse?: LLMResponse;
+  validationResults?: ValidationResult[];
+  executionResult?: ExecutionResult;
+  metrics?: TestCaseMetrics;
+  customData?: Record<string, any>;
+}
+
+export interface TestCaseExecutorOptions {
+  successEvaluator?: (execution: TestCaseExecution) => boolean;
+}
+
 export interface PropertySchema {
   type: "string" | "number" | "boolean" | "array" | "object";
   required?: boolean;

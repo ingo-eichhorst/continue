@@ -1,3 +1,4 @@
+import { TestCaseExecutor } from "../../core/TestCaseExecutor.js";
 import {
   BenchmarkContext,
   BenchmarkPlugin,
@@ -6,27 +7,10 @@ import {
   ExecutionEnvironment,
   LLMRequest,
   TestCase,
-  TestCaseResult,
-  TestExpected,
-  TestInput,
+  TestCaseExecution,
+  TestExecutionContext,
   ValidationResult,
 } from "../../core/types.js";
-
-// Plugin-specific types
-interface UnifiedDiffTestCase extends TestCase {
-  input: TestInput & { sourceCode: string; modificationPrompt: string };
-  expected?: TestExpected & {
-    diffShouldApply: boolean;
-    expectedChanges?: string[];
-  };
-}
-
-interface ValidationContext {
-  testCase: UnifiedDiffTestCase;
-  result: TestCaseResult;
-  logger: any;
-  executionEnvironment: ExecutionEnvironment;
-}
 
 // Import Continue's actual diff functions (local copy)
 import {
@@ -39,16 +23,12 @@ export class UnifiedDiffPlugin implements BenchmarkPlugin {
   description =
     "Evaluates quality of generated unified diffs and their application success";
 
-  // Constants
-  private static readonly DEFAULT_SYSTEM_PROMPT =
-    "You are a helpful assistant that generates unified diffs. Generate only the unified diff without any additional explanation or markdown formatting.";
-  private static readonly MAX_TOKENS = 4000;
-
   propertiesSchema = {
     systemPrompt: {
       type: "string" as const,
       required: false,
-      default: UnifiedDiffPlugin.DEFAULT_SYSTEM_PROMPT,
+      default:
+        "You are a helpful assistant that generates unified diffs. Generate only the unified diff without any additional explanation or markdown formatting.",
       description: "System prompt for LLM when generating diffs",
     },
   };
@@ -56,154 +36,27 @@ export class UnifiedDiffPlugin implements BenchmarkPlugin {
   defaultDataset = "datasets/diff-dataset";
 
   async execute(context: BenchmarkContext): Promise<BenchmarkResult> {
-    const { model, dataset, session, properties, logger } = context;
-    const systemPrompt =
-      properties.systemPrompt || this.propertiesSchema.systemPrompt.default;
+    const { dataset, logger } = context;
 
-    logger.info(
-      `Starting unified diff benchmark for model ${model.uniqueId} with ${dataset.testCases.length} test cases`,
+    // Use TestCaseExecutor to handle all orchestration logic
+    const executor = new TestCaseExecutor(logger);
+    const testCases = await executor.executeTestCases(
+      dataset.testCases as TestCase[],
+      context,
+      (testCase, execContext) => this.executeTestCase(testCase, execContext),
     );
 
-    const testCases: TestCaseResult[] = [];
-    let currentTestIndex = 0;
-
-    for (const testCase of dataset.testCases) {
-      const testCaseId = `${testCase.id}-${model.uniqueId}`;
-      logger.debug(
-        `Processing test case: ${testCase.id}, full testCaseId: ${testCaseId}`,
-      );
-
-      // Check if this test case was already completed (session recovery)
-      const existingResult = session.results?.find(
-        (r) => r.testCaseId === testCaseId && r.status === "completed",
-      );
-
-      // TODO: The BenchmarkEngine should provide only the missing tests
-      //       to the Benchmark Plugin to keep the implementation simple.
-      if (existingResult) {
-        testCases.push(existingResult);
-        logger.debug(`Skipping completed test case: ${testCaseId}`);
-        continue;
-      }
-
-      const startTime = new Date();
-      logger.debug(
-        `Processing test case: ${testCase.id} with model: ${model.title} at ${startTime.toISOString()}`,
-      );
-
-      const result: TestCaseResult = {
-        testCaseId,
-        modelId: model.uniqueId,
-        status: "running",
-        startTime,
-      };
-
-      try {
-        // Execute the test case
-        const testPassed = await this.executeTestCase(
-          testCase as UnifiedDiffTestCase,
-          model,
-          systemPrompt,
-          result,
-          context,
-        );
-
-        if (testPassed) {
-          result.status = "completed";
-          result.endTime = new Date();
-          result.duration = result.endTime.getTime() - startTime.getTime();
-          logger.debug(
-            `Test case ${testCaseId} completed successfully in ${result.duration}ms`,
-          );
-        } else {
-          result.status = "failed";
-          result.endTime = new Date();
-          result.duration = result.endTime.getTime() - startTime.getTime();
-          result.error = {
-            type: "validation",
-            message: "One or more validation steps failed",
-            details: "Check validationResults for specific failures",
-            recoverable: true,
-          };
-          logger.error(`Test case ${testCaseId} failed validation steps`);
-        }
-      } catch (error) {
-        logger.error(`Test case ${testCaseId} failed:`, error as Error);
-
-        result.status = "failed";
-        result.endTime = new Date();
-        result.duration = result.endTime
-          ? result.endTime.getTime() - startTime.getTime()
-          : 0;
-        result.error = {
-          type: "execution",
-          message: (error as Error).message,
-          details: (error as Error).stack,
-          recoverable: false,
-        };
-      }
-
-      testCases.push(result);
-
-      // TODO: This logic should live in the metrics collector
-      // Update session progress
-      session.progress.completedTestCases++;
-      if (result.status === "failed") {
-        session.progress.failedTestCases++;
-      }
-      session.progress.currentTestCase = testCaseId;
-
-      currentTestIndex++;
-      logger.info(
-        `Progress: ${currentTestIndex}/${dataset.testCases.length} test cases completed for model ${model.uniqueId}`,
-      );
-    }
-
-    const endTime = new Date();
-    const totalDuration = endTime.getTime() - session.startTime.getTime();
-    logger.info(`Benchmark execution completed in ${totalDuration}ms`);
-
-    const completedTestCases = testCases.filter(
-      (tc) => tc.status === "completed",
-    ).length;
-    const failedTestCases = testCases.filter(
-      (tc) => tc.status === "failed",
-    ).length;
-    const successRate = (completedTestCases / testCases.length) * 100;
-
-    return {
-      pluginName: this.name,
-      sessionId: session.id,
+    // Build and return the benchmark result
+    return TestCaseExecutor.buildBenchmarkResult(
+      this.name,
       testCases,
-      metrics: {
-        functional: {
-          totalTests: testCases.length,
-          passedTests: completedTestCases,
-          failedTests: failedTestCases,
-          successRate: successRate,
-        },
-        // TODO
-        performance: {
-          averageLatency: 0,
-          medianLatency: 0,
-          p95Latency: 0,
-          totalTokens: 0,
-          averageTokensPerRequest: 0,
-        },
-        // TODO
-        quality: { syntaxCorrectness: 0, compilationSuccess: 0 },
-      },
-      // TODO
-      summary: { overallScore: 0, recommendations: [], insights: [] },
-
-      startTime: session.startTime,
-      endTime,
-      duration: totalDuration,
-    };
+      context,
+      logger,
+    );
   }
 
   private buildLLMRequest(
-    testCase: UnifiedDiffTestCase,
+    testCase: TestCase,
     systemPrompt: string,
     model: any,
   ): { messages: ChatMessage[]; llmRequest: LLMRequest } {
@@ -235,28 +88,6 @@ Please generate a unified diff that applies this modification to the source code
     };
 
     return { messages, llmRequest };
-  }
-
-  private async executeLLMRequest(
-    messages: ChatMessage[],
-    model: any,
-  ): Promise<{ content: string; latency: number }> {
-    const startTime = Date.now();
-    const abortController = new AbortController();
-
-    const response = await model.streamChat(messages, abortController.signal, {
-      maxTokens: UnifiedDiffPlugin.MAX_TOKENS,
-    });
-
-    let content = "";
-    for await (const chunk of response) {
-      if (chunk.content) {
-        content += chunk.content;
-      }
-    }
-
-    const latency = Date.now() - startTime;
-    return { content: content.trim(), latency };
   }
 
   private cleanDiffContent(diffContent: string): string {
@@ -314,7 +145,7 @@ Please generate a unified diff that applies this modification to the source code
 
   private async runUnitTests(
     appliedCode: string,
-    testCase: UnifiedDiffTestCase,
+    testCase: TestCase,
     validationResults: ValidationResult[],
     executionEnvironment: ExecutionEnvironment,
     logger: any,
@@ -345,40 +176,70 @@ Please generate a unified diff that applies this modification to the source code
     });
   }
 
-  private calculateMetrics(
-    result: TestCaseResult,
-    validationResults: ValidationResult[],
-    isValidFormat: boolean,
-    applySuccess: boolean,
-  ): void {
-    const overallQuality =
-      validationResults.length > 0
-        ? validationResults.filter((r) => r.passed).length /
-          validationResults.length
-        : 0;
+  private async executeTestCase(
+    testCase: TestCase,
+    context: TestExecutionContext,
+  ): Promise<TestCaseExecution> {
+    const sourceCode = testCase.input.sourceCode;
+    const modificationPrompt =
+      testCase.input.additionalData?.modificationPrompt ||
+      testCase.input.prompt;
 
-    result.metrics = {
-      latency: result.llmResponse?.latency || 0,
-      tokens: {
-        prompt: result.llmResponse?.usage?.promptTokens || 0,
-        completion: result.llmResponse?.usage?.completionTokens || 0,
-        total: result.llmResponse?.usage?.totalTokens || 0,
-      },
-      qualityScores: {
-        formatValid: isValidFormat ? 1 : 0,
-        applySuccess: applySuccess ? 1 : 0,
-        overallQuality,
-      },
+    // Validate inputs
+    if (!sourceCode) {
+      throw new Error(`No source code provided for test case ${testCase.id}`);
+    }
+    if (!modificationPrompt) {
+      throw new Error(
+        `No modification prompt provided for test case ${testCase.id}`,
+      );
+    }
+
+    // Get system prompt from properties
+    const systemPrompt =
+      context.properties.systemPrompt ||
+      this.propertiesSchema.systemPrompt.default;
+
+    // Build and execute LLM request
+    const { messages, llmRequest } = this.buildLLMRequest(
+      testCase,
+      systemPrompt,
+      context.model,
+    );
+
+    const { content, latency } = await TestCaseExecutor.executeLLMRequest(
+      messages,
+      context.model,
+    );
+
+    // Record LLM response
+    const llmResponse = { content, latency, timestamp: new Date() };
+
+    // Run validation pipeline
+    const { validationResults, executionResult, metrics } =
+      await this.runValidationPipeline(sourceCode, content, testCase, context);
+
+    return {
+      llmRequest,
+      llmResponse,
+      validationResults,
+      executionResult,
+      metrics,
     };
   }
 
-  private async validateDiffPipeline(
+  private async runValidationPipeline(
     sourceCode: string,
     diffContent: string,
-    context: ValidationContext,
-  ): Promise<void> {
+    testCase: TestCase,
+    context: TestExecutionContext,
+  ): Promise<{
+    validationResults: ValidationResult[];
+    executionResult: any;
+    metrics: any;
+  }> {
     const validationResults: ValidationResult[] = [];
-    const testCaseId = context.testCase.id;
+    const testCaseId = testCase.id;
 
     context.logger.debug(`[${testCaseId}] Starting validation pipeline`);
 
@@ -395,14 +256,20 @@ Please generate a unified diff that applies this modification to the source code
     );
     if (!isValidFormat) {
       context.logger.debug(`[${testCaseId}] Format validation failed`);
-      context.result.validationResults = validationResults;
-      context.result.error = {
-        type: "validation",
-        message: "Generated content is not a valid unified diff",
-        details: `Content: ${cleanedDiff.substring(0, 200)}...`,
-        recoverable: true,
+
+      const executionResult = {
+        stdout: "",
+        stderr: "Generated content is not a valid unified diff",
+        exitCode: 1,
+        successful: false,
       };
-      return;
+
+      const metrics = TestCaseExecutor.buildBaseMetrics(validationResults, {
+        formatValid: isValidFormat ? 1 : 0,
+        applySuccess: 0,
+      });
+
+      return { validationResults, executionResult, metrics };
     }
     context.logger.debug(`[${testCaseId}] Format validation passed`);
 
@@ -417,10 +284,10 @@ Please generate a unified diff that applies this modification to the source code
     );
 
     // Step 4: Run unit tests (if applicable)
-    if (applySuccess && context.testCase.expected?.unitTest) {
+    if (applySuccess && testCase.expected?.unitTest) {
       await this.runUnitTests(
         appliedCode,
-        context.testCase,
+        testCase,
         validationResults,
         context.executionEnvironment,
         context.logger,
@@ -428,75 +295,23 @@ Please generate a unified diff that applies this modification to the source code
       context.logger.debug(`[${testCaseId}] Unit tests completed`);
     }
 
-    // Step 5: Store results and calculate metrics
-    context.result.validationResults = validationResults;
-    context.result.executionResult = {
+    // Step 5: Build results
+    const executionResult = {
       stdout: applySuccess ? "Diff applied successfully" : "",
       stderr: applyError,
       exitCode: applySuccess ? 0 : 1,
       successful: applySuccess,
     };
 
-    this.calculateMetrics(
-      context.result,
-      validationResults,
-      isValidFormat,
-      applySuccess,
-    );
+    const metrics = TestCaseExecutor.buildBaseMetrics(validationResults, {
+      formatValid: isValidFormat ? 1 : 0,
+      applySuccess: applySuccess ? 1 : 0,
+    });
+
     context.logger.debug(
       `[${testCaseId}] Pipeline completed: ${validationResults.filter((r) => r.passed).length}/${validationResults.length} steps passed`,
     );
-  }
 
-  private async executeTestCase(
-    testCase: UnifiedDiffTestCase,
-    model: any,
-    systemPrompt: string,
-    result: TestCaseResult,
-    context: BenchmarkContext,
-  ): Promise<boolean> {
-    const sourceCode = testCase.input.sourceCode;
-    const modificationPrompt =
-      testCase.input.additionalData?.modificationPrompt ||
-      testCase.input.prompt;
-
-    // Validate inputs
-    if (!sourceCode) {
-      throw new Error(`No source code provided for test case ${testCase.id}`);
-    }
-    if (!modificationPrompt) {
-      throw new Error(
-        `No modification prompt provided for test case ${testCase.id}`,
-      );
-    }
-
-    // Build and execute LLM request
-    const { messages, llmRequest } = this.buildLLMRequest(
-      testCase,
-      systemPrompt,
-      model,
-    );
-    result.llmRequest = llmRequest;
-
-    const { content, latency } = await this.executeLLMRequest(messages, model);
-
-    // Record LLM response
-    result.llmResponse = { content, latency, timestamp: new Date() };
-
-    // Create validation context and run pipeline
-    const validationContext: ValidationContext = {
-      testCase,
-      result,
-      logger: context.logger,
-      executionEnvironment: context.executionEnvironment,
-    };
-
-    await this.validateDiffPipeline(sourceCode, content, validationContext);
-    
-    // Check if any validation steps failed
-    const validationResults = result.validationResults || [];
-    const allStepsPassed = validationResults.every(vr => vr.passed);
-    
-    return allStepsPassed;
+    return { validationResults, executionResult, metrics };
   }
 }
