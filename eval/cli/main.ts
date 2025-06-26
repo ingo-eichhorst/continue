@@ -10,12 +10,11 @@ import { BenchmarkEngine } from "../core/BenchmarkEngine.js";
 import { DatasetLoader } from "../core/DatasetLoader.js";
 import { ConsoleLogger } from "../core/Logger.js";
 import { ModelLoader } from "../core/ModelLoader.js";
+import { PluginLoader } from "../core/PluginLoader.js";
 import { SessionManager } from "../core/SessionManager.js";
 import { Dataset } from "../core/types.js";
 import { DockerExecutionEnvironment } from "../execution/DockerRunner.js";
 import { LocalExecutionEnvironment } from "../execution/LocalRunner.js";
-import { SimpleBenchmarkExample } from "../plugins/simple-example/SimpleBenchmarkExample.js";
-import { UnifiedDiffPlugin } from "../plugins/unified-diff/UnifiedDiffPlugin.js";
 
 const program = new Command();
 
@@ -101,9 +100,17 @@ async function runBenchmark(options: any): Promise<void> {
 
   const engine = new BenchmarkEngine(logger, sessionManager);
 
-  // Register available plugins
-  engine.registerPlugin(new UnifiedDiffPlugin());
-  engine.registerPlugin(new SimpleBenchmarkExample());
+  // Dynamically load and register all plugins from plugins directory
+  const __filename = fileURLToPath(import.meta.url);
+  const __dirname = dirname(__filename);
+  const pluginsDir = join(__dirname, "..", "plugins");
+  
+  const pluginLoader = new PluginLoader(logger, pluginsDir);
+  const plugins = await pluginLoader.loadPlugins();
+  
+  for (const plugin of plugins) {
+    engine.registerPlugin(plugin);
+  }
 
   logger.info("Continue.dev Benchmarking Framework");
   logger.info("====================================");
