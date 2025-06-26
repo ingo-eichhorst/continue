@@ -28,18 +28,15 @@ export class SimpleBenchmarkExample implements BenchmarkPlugin {
     testCase: TestCase,
     context: TestExecutionContext,
   ): Promise<TestCaseExecution> {
-    // Properties are validated and populated by BenchmarkEngine
     const systemPrompt = context.properties.systemPrompt;
-
     const testStepResults: TestStepResult[] = [];
 
-    // Build LLM request
+    // Step 1: Execute LLM request using TestCaseExecutor utility
     const messages = [
       { role: "system" as const, content: systemPrompt },
       { role: "user" as const, content: testCase.input.prompt },
     ];
 
-    // Step 1: Execute LLM request using TestCaseExecutor utility
     const llmStepResult = await TestCaseExecutor.executeLLMRequest(
       messages,
       context.model,
@@ -47,8 +44,7 @@ export class SimpleBenchmarkExample implements BenchmarkPlugin {
     testStepResults.push(llmStepResult);
 
     // Step 2: Content validation (if expected output is provided)
-    // TODO: this should be validated with the datasetSchema provided
-    if (testCase.expected?.output) {
+    if (testCase.expected.output) {
       const expectedOutput = testCase.expected.output;
       const content = llmStepResult.llmResponse?.content || "";
       const containsExpected = content

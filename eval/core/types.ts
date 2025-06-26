@@ -12,7 +12,10 @@ export interface BenchmarkPlugin {
   propertiesSchema: Record<string, PropertySchema>;
   defaultDataset?: string;
 
-  executeTestCase(testCase: TestCase, context: TestExecutionContext): Promise<TestCaseExecution>;
+  executeTestCase(
+    testCase: TestCase,
+    context: TestExecutionContext,
+  ): Promise<TestCaseExecution>;
   validateDataset?(dataset: Dataset): Promise<boolean>;
 }
 
@@ -77,7 +80,7 @@ export interface TestCase {
   name: string;
   description?: string;
   input: TestInput;
-  expected?: TestExpected;
+  expected: TestExpected;
   metadata?: Record<string, any>;
 }
 
@@ -91,15 +94,8 @@ export interface TestInput {
 
 export interface TestExpected {
   output?: string;
-  shouldPass?: boolean;
   metrics?: Record<string, number>;
   unitTest?: string;
-  validationRules?: ValidationRule[];
-}
-
-export interface ValidationRule {
-  type: "syntax" | "compilation" | "execution" | "unit-test" | "custom";
-  config: Record<string, any>;
 }
 
 export interface DatasetMetadata {
@@ -362,26 +358,4 @@ export interface CLIOptions {
   verbose?: boolean;
   dryRun?: boolean;
   help?: boolean;
-}
-
-export interface PromptOptimizationTestCase extends TestCase {
-  input: TestInput & {
-    problemDescription: string;
-    signature: string;
-    examples?: string[];
-  };
-  expected: TestExpected & { unitTests: string[]; shouldPass: true };
-}
-
-export interface PromptEvaluationTestCase extends TestCase {
-  input: TestInput & {
-    codebaseContext: string;
-    task: string;
-    promptFiles?: string[];
-    continueRules?: string[];
-  };
-  expected?: TestExpected & {
-    qualityThreshold: number;
-    requiredFeatures?: string[];
-  };
 }
