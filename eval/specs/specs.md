@@ -133,8 +133,8 @@ export class UnifiedDiffBenchmark implements BenchmarkPlugin {
 ```typescript
 // properties:
 // - systemPrompt = ""
-// - rulesFiles = []
-// - promptFiles = []
+// - rulesFile = ""
+// - promptFiles = ""
 
 // 1. provide rulesfiles or .prompt files to evaluate
 // 2. Execute every prompt from the dataset

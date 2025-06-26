@@ -1,0 +1,144 @@
+{
+  "id": "6255904b-53e8-464b-9e99-777780b047ef",
+  "pluginName": "simple-example",
+  "startTime": "2025-06-26T14:10:57.676Z",
+  "lastUpdateTime": "2025-06-26T14:11:00.066Z",
+  "status": "completed",
+  "config": {
+    "models": [
+      "None"
+    ],
+    "dataset": "simple-demo-dataset",
+    "properties": {
+      "systemPrompt": "You are a helpful assistant. Please respond to the user's question clearly and concisely."
+    },
+    "executionEnvironment": "local",
+    "maxRetries": 3,
+    "timeout": 300000
+  },
+  "progress": {
+    "totalTestCases": 2,
+    "completedTestCases": 2,
+    "failedTestCases": 0,
+    "skippedTestCases": 0,
+    "currentTestCase": "math-simple-None"
+  },
+  "results": [
+    {
+      "testCaseId": "greeting-test-None",
+      "modelId": "None",
+      "status": "completed",
+      "startTime": "2025-06-26T14:10:57.678Z",
+      "endTime": "2025-06-26T14:10:59.389Z",
+      "duration": 1711,
+      "testStepResults": [
+        {
+          "passed": true,
+          "score": 1,
+          "details": "LLM generated response (62 characters)",
+          "llmRequest": {
+            "model": "None",
+            "messages": [
+              {
+                "role": "system",
+                "content": "You are a helpful assistant. Please respond to the user's question clearly and concisely."
+              },
+              {
+                "role": "user",
+                "content": "Hello! How are you today?"
+              }
+            ],
+            "timestamp": "2025-06-26T14:10:57.678Z"
+          },
+          "llmResponse": {
+            "content": "Hello! I'm here and ready to help. How can I assist you today?",
+            "latency": 1708,
+            "timestamp": "2025-06-26T14:10:59.386Z"
+          }
+        },
+        {
+          "passed": true,
+          "score": 1,
+          "details": "Response contains expected content: \"hello\""
+        }
+      ],
+      "executionResult": {
+        "stdout": "Hello! I'm here and ready to help. How can I assist you today?",
+        "stderr": "",
+        "exitCode": 0,
+        "successful": true
+      },
+      "metrics": {
+        "latency": 1708,
+        "tokens": {
+          "prompt": 0,
+          "completion": 0,
+          "total": 0
+        },
+        "qualityScores": {
+          "step_0_score": 1,
+          "step_1_score": 1,
+          "overallQuality": 1
+        }
+      }
+    },
+    {
+      "testCaseId": "math-simple-None",
+      "modelId": "None",
+      "status": "completed",
+      "startTime": "2025-06-26T14:10:59.390Z",
+      "endTime": "2025-06-26T14:11:00.064Z",
+      "duration": 674,
+      "testStepResults": [
+        {
+          "passed": true,
+          "score": 1,
+          "details": "LLM generated response (15 characters)",
+          "llmRequest": {
+            "model": "None",
+            "messages": [
+              {
+                "role": "system",
+                "content": "You are a helpful assistant. Please respond to the user's question clearly and concisely."
+              },
+              {
+                "role": "user",
+                "content": "What is 2 + 2?"
+              }
+            ],
+            "timestamp": "2025-06-26T14:10:59.390Z"
+          },
+          "llmResponse": {
+            "content": "2 + 2 equals 4.",
+            "latency": 673,
+            "timestamp": "2025-06-26T14:11:00.063Z"
+          }
+        },
+        {
+          "passed": true,
+          "score": 1,
+          "details": "Response contains expected content: \"4\""
+        }
+      ],
+      "executionResult": {
+        "stdout": "2 + 2 equals 4.",
+        "stderr": "",
+        "exitCode": 0,
+        "successful": true
+      },
+      "metrics": {
+        "latency": 673,
+        "tokens": {
+          "prompt": 0,
+          "completion": 0,
+          "total": 0
+        },
+        "qualityScores": {
+          "step_0_score": 1,
+          "step_1_score": 1,
+          "overallQuality": 1
+        }
+      }
+    }
+  ]
+}

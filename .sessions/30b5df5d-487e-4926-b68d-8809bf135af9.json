@@ -1,0 +1,162 @@
+{
+  "id": "30b5df5d-487e-4926-b68d-8809bf135af9",
+  "pluginName": "unified-diff-testing",
+  "startTime": "2025-06-26T13:26:11.762Z",
+  "lastUpdateTime": "2025-06-26T13:26:15.146Z",
+  "status": "completed",
+  "config": {
+    "models": [
+      "None"
+    ],
+    "dataset": "unified-diff-demo-dataset",
+    "properties": {
+      "systemPrompt": "You are a helpful assistant that generates unified diffs. Generate only the unified diff without any additional explanation or markdown formatting."
+    },
+    "executionEnvironment": "local",
+    "maxRetries": 3,
+    "timeout": 300000
+  },
+  "progress": {
+    "totalTestCases": 2,
+    "completedTestCases": 2,
+    "failedTestCases": 2,
+    "skippedTestCases": 0,
+    "currentTestCase": "test-002-None"
+  },
+  "results": [
+    {
+      "testCaseId": "test-001-None",
+      "modelId": "None",
+      "status": "failed",
+      "startTime": "2025-06-26T13:26:11.764Z",
+      "endTime": "2025-06-26T13:26:13.296Z",
+      "duration": 1532,
+      "testStepResults": [
+        {
+          "passed": true,
+          "details": "LLM generated response (223 characters)",
+          "llmRequest": {
+            "model": "None",
+            "messages": [
+              {
+                "role": "system",
+                "content": "You are a helpful assistant that generates unified diffs. Generate only the unified diff without any additional explanation or markdown formatting."
+              },
+              {
+                "role": "user",
+                "content": "Here is the source code:\n\n```\nfunction calculate(a, b) {\n  return a + b;\n}\n```\n\nAdd error handling to the function"
+              }
+            ],
+            "timestamp": "2025-06-26T13:26:11.764Z"
+          },
+          "llmResponse": {
+            "content": "```\n--- original.js\n+++ modified.js\n@@ -1,4 +1,9 @@\n function calculate(a, b) {\n+  if (typeof a !== 'number' || typeof b !== 'number') {\n+    throw new Error('Both arguments must be numbers');\n+  }\n+\n   return a + b;\n }\n```",
+            "latency": 1500,
+            "timestamp": "2025-06-26T13:26:13.264Z"
+          }
+        },
+        {
+          "passed": true,
+          "details": "Valid unified diff format",
+          "score": 1
+        },
+        {
+          "passed": true,
+          "details": "Diff applied successfully",
+          "score": 1
+        },
+        {
+          "passed": false,
+          "details": "Unit test failed: ✗ Test failed: Expected values to be strictly equal:\n\n5 !== 6"
+        }
+      ],
+      "executionResult": {
+        "stdout": "Diff applied successfully",
+        "stderr": "",
+        "exitCode": 1,
+        "successful": false
+      },
+      "metrics": {
+        "latency": 1500,
+        "tokens": {
+          "prompt": 0,
+          "completion": 0,
+          "total": 0
+        },
+        "qualityScores": {
+          "step_1_score": 1,
+          "step_2_score": 1,
+          "overallQuality": 0.75
+        }
+      },
+      "error": {
+        "type": "validation",
+        "message": "One or more validation steps failed",
+        "details": "Check testStepResults for specific failures",
+        "recoverable": true
+      }
+    },
+    {
+      "testCaseId": "test-002-None",
+      "modelId": "None",
+      "status": "failed",
+      "startTime": "2025-06-26T13:26:13.296Z",
+      "endTime": "2025-06-26T13:26:15.145Z",
+      "duration": 1849,
+      "testStepResults": [
+        {
+          "passed": true,
+          "details": "LLM generated response (253 characters)",
+          "llmRequest": {
+            "model": "None",
+            "messages": [
+              {
+                "role": "system",
+                "content": "You are a helpful assistant that generates unified diffs. Generate only the unified diff without any additional explanation or markdown formatting."
+              },
+              {
+                "role": "user",
+                "content": "Here is the source code:\n\n```\nfunction multiply(x, y) {\n  return x * y;\n}\n```\n\nAdd JSDoc documentation to the function"
+              }
+            ],
+            "timestamp": "2025-06-26T13:26:13.296Z"
+          },
+          "llmResponse": {
+            "content": "```diff\n function multiply(x, y) {\n+  /**\n+   * Multiplies two numbers.\n+   *\n+   * @param {number} x - The first number.\n+   * @param {number} y - The second number.\n+   * @returns {number} The product of the two numbers.\n+   */\n   return x * y;\n }\n```",
+            "latency": 1847,
+            "timestamp": "2025-06-26T13:26:15.143Z"
+          }
+        },
+        {
+          "passed": false,
+          "details": "Invalid unified diff format",
+          "score": 0
+        }
+      ],
+      "executionResult": {
+        "stdout": "```diff\n function multiply(x, y) {\n+  /**\n+   * Multiplies two numbers.\n+   *\n+   * @param {number} x - The first number.\n+   * @param {number} y - The second number.\n+   * @returns {number} The product of the two numbers.\n+   */\n   return x * y;\n }\n```",
+        "stderr": "Generated content is not a valid unified diff",
+        "exitCode": 1,
+        "successful": false
+      },
+      "metrics": {
+        "latency": 1847,
+        "tokens": {
+          "prompt": 0,
+          "completion": 0,
+          "total": 0
+        },
+        "qualityScores": {
+          "step_1_score": 0,
+          "overallQuality": 0.5
+        }
+      },
+      "error": {
+        "type": "validation",
+        "message": "One or more validation steps failed",
+        "details": "Check testStepResults for specific failures",
+        "recoverable": true
+      }
+    }
+  ]
+}

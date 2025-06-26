@@ -7,6 +7,5 @@
   "models": [],
   "requirementsFile": "datasets/system-prompt-optimization-dataset/requirements-example.md",
   "contextFile": "datasets/system-prompt-optimization-dataset/context-example.js",
-  "readabilityModel": "gpt-4",
-  "includeReadabilityScore": true
+  "validationModel": "gpt-4"
 }

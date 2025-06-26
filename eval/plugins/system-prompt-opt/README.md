@@ -35,8 +35,7 @@ Create a JSON configuration file with the following properties:
   "models": [],
   "requirementsFile": "datasets/system-prompt-optimization-dataset/requirements-example.md",
   "contextFile": "datasets/system-prompt-optimization-dataset/context-example.js",
-  "readabilityModel": "gpt-4",
-  "includeReadabilityScore": true
+  "validationModel": "gpt-4"
 }
 ```
 
@@ -48,8 +47,7 @@ Create a JSON configuration file with the following properties:
 | `models` | array | ❌ | `[]` | Model IDs for cross-model comparison (empty = use CLI models) |
 | `requirementsFile` | string | ❌ | `""` | Path to requirements document |
 | `contextFile` | string | ❌ | `""` | Path to existing code context |
-| `readabilityModel` | string | ❌ | `"gpt-4"` | Model for readability assessment |
-| `includeReadabilityScore` | boolean | ❌ | `true` | Whether to include readability evaluation |
+| `validationModel` | string | ❌ | `"gpt-4"` | Model for code quality validation assessment |
 
 ## Dataset Format
 
@@ -85,7 +83,7 @@ For each system prompt, the plugin executes:
 2. **Code Extraction**: Extract JavaScript code from LLM response
 3. **Unit Testing**: Execute provided unit tests against generated code
 4. **Performance Measurement**: Measure code generation duration
-5. **Readability Assessment**: LLM-based code quality evaluation
+5. **Code Quality Validation**: LLM-based code quality evaluation
 6. **Comparison Summary**: Statistical analysis and ranking
 
 ## Metrics & Scoring
@@ -93,14 +91,14 @@ For each system prompt, the plugin executes:
 ### Individual Metrics
 - **Unit Tests**: Pass/fail (binary)
 - **Performance**: Normalized by 30-second threshold
-- **Readability**: 5 criteria rated 1-10, overall threshold 6/10
+- **Code Quality**: 5 criteria rated 1-10, overall threshold 6/10
 
 ### Overall Score Calculation
 ```
-Overall Score = (Unit Test Pass × 0.5) + (Performance × 0.3) + (Readability × 0.2)
+Overall Score = (Unit Test Pass × 0.5) + (Performance × 0.3) + (Code Quality × 0.2)
 ```
 
-### Readability Criteria
+### Code Quality Validation Criteria
 1. **Code Structure & Organization**: Logical flow, indentation, separation of concerns
 2. **Naming Conventions**: Descriptive names, consistent style
 3. **Error Handling**: Input validation, edge cases, error recovery
@@ -115,7 +113,7 @@ The plugin generates detailed results for each prompt variant:
 [gpt-4] [Prompt 1] Code generation completed in 2340ms
 [gpt-4] [Prompt 1] Extracted 423 characters of code
 [gpt-4] [Prompt 1] Unit tests passed: All tests completed successfully
-[gpt-4] [Prompt 1] Readability assessment: Overall 8/10 (Structure:8/10, Naming:9/10...)
+[gpt-4] [Prompt 1] Code quality validation: Overall 8/10 (Structure:8/10, Naming:9/10...)
 ```
 
 And a comprehensive comparison summary:
@@ -163,7 +161,7 @@ The plugin includes example datasets for common coding tasks:
 - Consider more detailed prompts or examples
 - Review test case expectations
 
-**Low readability scores**
+**Low code quality scores**
 - Prompt lacks emphasis on code quality
 - Add specific guidelines for naming, structure, error handling
 - Include examples of well-structured code

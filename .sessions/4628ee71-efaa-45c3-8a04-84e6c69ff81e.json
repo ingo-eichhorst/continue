@@ -1,0 +1,302 @@
+{
+  "id": "4628ee71-efaa-45c3-8a04-84e6c69ff81e",
+  "pluginName": "simple-example",
+  "startTime": "2025-06-26T12:16:48.827Z",
+  "lastUpdateTime": "2025-06-26T12:16:57.986Z",
+  "status": "completed",
+  "config": {
+    "models": [
+      "None"
+    ],
+    "dataset": "simple-demo-dataset",
+    "properties": {},
+    "executionEnvironment": "local",
+    "maxRetries": 3,
+    "timeout": 300000
+  },
+  "progress": {
+    "totalTestCases": 5,
+    "completedTestCases": 5,
+    "failedTestCases": 0,
+    "skippedTestCases": 0,
+    "currentTestCase": "open-ended-None"
+  },
+  "results": [
+    {
+      "testCaseId": "greeting-test-None",
+      "modelId": "None",
+      "status": "completed",
+      "startTime": "2025-06-26T12:16:48.828Z",
+      "endTime": "2025-06-26T12:16:49.664Z",
+      "duration": 836,
+      "llmRequest": {
+        "model": "None",
+        "messages": [
+          {
+            "role": "system",
+            "content": "You are a helpful assistant. Please respond to the user's question clearly and concisely."
+          },
+          {
+            "role": "user",
+            "content": "Hello! How are you today?"
+          }
+        ],
+        "timestamp": "2025-06-26T12:16:49.664Z"
+      },
+      "llmResponse": {
+        "content": "Hello! I'm just a program, so I don't have feelings, but I'm here and ready to help you. How can I assist you today?",
+        "latency": 833,
+        "timestamp": "2025-06-26T12:16:49.664Z"
+      },
+      "validationResults": [
+        {
+          "passed": true,
+          "details": "Response generated successfully"
+        },
+        {
+          "passed": true,
+          "details": "Response contains expected content: \"hello\""
+        }
+      ],
+      "executionResult": {
+        "stdout": "Hello! I'm just a program, so I don't have feelings, but I'm here and ready to help you. How can I assist you today?",
+        "stderr": "",
+        "exitCode": 0,
+        "successful": true
+      },
+      "metrics": {
+        "latency": 833,
+        "tokens": {
+          "prompt": 0,
+          "completion": 0,
+          "total": 0
+        },
+        "qualityScores": {
+          "responseLength": 116,
+          "hasExpectedContent": 1,
+          "overallQuality": 1
+        }
+      }
+    },
+    {
+      "testCaseId": "math-simple-None",
+      "modelId": "None",
+      "status": "completed",
+      "startTime": "2025-06-26T12:16:49.664Z",
+      "endTime": "2025-06-26T12:16:50.537Z",
+      "duration": 873,
+      "llmRequest": {
+        "model": "None",
+        "messages": [
+          {
+            "role": "system",
+            "content": "You are a helpful assistant. Please respond to the user's question clearly and concisely."
+          },
+          {
+            "role": "user",
+            "content": "What is 2 + 2?"
+          }
+        ],
+        "timestamp": "2025-06-26T12:16:50.537Z"
+      },
+      "llmResponse": {
+        "content": "2 + 2 equals 4.",
+        "latency": 871,
+        "timestamp": "2025-06-26T12:16:50.537Z"
+      },
+      "validationResults": [
+        {
+          "passed": true,
+          "details": "Response generated successfully"
+        },
+        {
+          "passed": true,
+          "details": "Response contains expected content: \"4\""
+        }
+      ],
+      "executionResult": {
+        "stdout": "2 + 2 equals 4.",
+        "stderr": "",
+        "exitCode": 0,
+        "successful": true
+      },
+      "metrics": {
+        "latency": 871,
+        "tokens": {
+          "prompt": 0,
+          "completion": 0,
+          "total": 0
+        },
+        "qualityScores": {
+          "responseLength": 15,
+          "hasExpectedContent": 1,
+          "overallQuality": 1
+        }
+      }
+    },
+    {
+      "testCaseId": "color-question-None",
+      "modelId": "None",
+      "status": "completed",
+      "startTime": "2025-06-26T12:16:50.537Z",
+      "endTime": "2025-06-26T12:16:52.103Z",
+      "duration": 1566,
+      "llmRequest": {
+        "model": "None",
+        "messages": [
+          {
+            "role": "system",
+            "content": "You are a helpful assistant. Please respond to the user's question clearly and concisely."
+          },
+          {
+            "role": "user",
+            "content": "What color do you get when you mix red and blue?"
+          }
+        ],
+        "timestamp": "2025-06-26T12:16:52.103Z"
+      },
+      "llmResponse": {
+        "content": "When you mix red and blue, you get purple. However, the exact shade can vary based on the specific shades of red and blue used.",
+        "latency": 1565,
+        "timestamp": "2025-06-26T12:16:52.103Z"
+      },
+      "validationResults": [
+        {
+          "passed": true,
+          "details": "Response generated successfully"
+        },
+        {
+          "passed": true,
+          "details": "Response contains expected content: \"purple\""
+        }
+      ],
+      "executionResult": {
+        "stdout": "When you mix red and blue, you get purple. However, the exact shade can vary based on the specific shades of red and blue used.",
+        "stderr": "",
+        "exitCode": 0,
+        "successful": true
+      },
+      "metrics": {
+        "latency": 1565,
+        "tokens": {
+          "prompt": 0,
+          "completion": 0,
+          "total": 0
+        },
+        "qualityScores": {
+          "responseLength": 127,
+          "hasExpectedContent": 1,
+          "overallQuality": 1
+        }
+      }
+    },
+    {
+      "testCaseId": "capital-city-None",
+      "modelId": "None",
+      "status": "completed",
+      "startTime": "2025-06-26T12:16:52.103Z",
+      "endTime": "2025-06-26T12:16:53.021Z",
+      "duration": 918,
+      "llmRequest": {
+        "model": "None",
+        "messages": [
+          {
+            "role": "system",
+            "content": "You are a helpful assistant. Please respond to the user's question clearly and concisely."
+          },
+          {
+            "role": "user",
+            "content": "What is the capital of France?"
+          }
+        ],
+        "timestamp": "2025-06-26T12:16:53.021Z"
+      },
+      "llmResponse": {
+        "content": "The capital of France is Paris.",
+        "latency": 917,
+        "timestamp": "2025-06-26T12:16:53.021Z"
+      },
+      "validationResults": [
+        {
+          "passed": true,
+          "details": "Response generated successfully"
+        },
+        {
+          "passed": true,
+          "details": "Response contains expected content: \"Paris\""
+        }
+      ],
+      "executionResult": {
+        "stdout": "The capital of France is Paris.",
+        "stderr": "",
+        "exitCode": 0,
+        "successful": true
+      },
+      "metrics": {
+        "latency": 917,
+        "tokens": {
+          "prompt": 0,
+          "completion": 0,
+          "total": 0
+        },
+        "qualityScores": {
+          "responseLength": 31,
+          "hasExpectedContent": 1,
+          "overallQuality": 1
+        }
+      }
+    },
+    {
+      "testCaseId": "open-ended-None",
+      "modelId": "None",
+      "status": "completed",
+      "startTime": "2025-06-26T12:16:53.021Z",
+      "endTime": "2025-06-26T12:16:57.985Z",
+      "duration": 4964,
+      "llmRequest": {
+        "model": "None",
+        "messages": [
+          {
+            "role": "system",
+            "content": "You are a helpful assistant. Please respond to the user's question clearly and concisely."
+          },
+          {
+            "role": "user",
+            "content": "What are the benefits of reading books?"
+          }
+        ],
+        "timestamp": "2025-06-26T12:16:57.984Z"
+      },
+      "llmResponse": {
+        "content": "Reading books offers numerous benefits, including:\n\n1. **Mental Stimulation**: Keeps your brain active and engaged, which can help prevent cognitive decline as you age.\n\n2. **Knowledge Acquisition**: Expands your understanding of various subjects and improves your vocabulary.\n\n3. **Improved Focus and Concentration**: Regular reading enhances your attention span and concentration ability.\n\n4. **Stress Reduction**: Provides an escape into different worlds and can help reduce stress.\n\n5. **Enhanced Critical Thinking Skills**: Encourages you to think critically and evaluate different perspectives.\n\n6. **Better Communication Skills**: Improves your language abilities and allows you to express yourself more clearly.\n\n7. **Entertainment and Enjoyment**: Offers a source of enjoyment and can be a valuable pastime.\n\n8. **Empathy Building**: Reading about diverse characters and situations can increase your empathy and understanding of others.\n\n9. **Memory Improvement**: Involves recalling details, facts, and themes, which exercises your memory.\n\n10. **Improved Writing Skills**: Exposure to well-written material can influence your own writing style positively.\n\nOverall, reading books can contribute significantly to personal development and well-being.",
+        "latency": 4962,
+        "timestamp": "2025-06-26T12:16:57.984Z"
+      },
+      "validationResults": [
+        {
+          "passed": true,
+          "details": "Response generated successfully"
+        }
+      ],
+      "executionResult": {
+        "stdout": "Reading books offers numerous benefits, including:\n\n1. **Mental Stimulation**: Keeps your brain active and engaged, which can help prevent cognitive decline as you age.\n\n2. **Knowledge Acquisition**: Expands your understanding of various subjects and improves your vocabulary.\n\n3. **Improved Focus and Concentration**: Regular reading enhances your attention span and concentration ability.\n\n4. **Stress Reduction**: Provides an escape into different worlds and can help reduce stress.\n\n5. **Enhanced Critical Thinking Skills**: Encourages you to think critically and evaluate different perspectives.\n\n6. **Better Communication Skills**: Improves your language abilities and allows you to express yourself more clearly.\n\n7. **Entertainment and Enjoyment**: Offers a source of enjoyment and can be a valuable pastime.\n\n8. **Empathy Building**: Reading about diverse characters and situations can increase your empathy and understanding of others.\n\n9. **Memory Improvement**: Involves recalling details, facts, and themes, which exercises your memory.\n\n10. **Improved Writing Skills**: Exposure to well-written material can influence your own writing style positively.\n\nOverall, reading books can contribute significantly to personal development and well-being.",
+        "stderr": "",
+        "exitCode": 0,
+        "successful": true
+      },
+      "metrics": {
+        "latency": 4962,
+        "tokens": {
+          "prompt": 0,
+          "completion": 0,
+          "total": 0
+        },
+        "qualityScores": {
+          "responseLength": 1259,
+          "hasExpectedContent": 1,
+          "overallQuality": 1
+        }
+      }
+    }
+  ]
+}

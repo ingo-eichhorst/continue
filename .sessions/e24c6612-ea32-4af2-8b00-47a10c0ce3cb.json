@@ -1,0 +1,179 @@
+{
+  "id": "e24c6612-ea32-4af2-8b00-47a10c0ce3cb",
+  "pluginName": "prompt-evaluation",
+  "startTime": "2025-06-26T15:02:51.858Z",
+  "lastUpdateTime": "2025-06-26T15:03:10.293Z",
+  "status": "completed",
+  "config": {
+    "models": [
+      "None"
+    ],
+    "dataset": "prompt-evaluation-dataset",
+    "properties": {
+      "systemPrompt": "",
+      "rulesFile": "",
+      "promptFile": ""
+    },
+    "executionEnvironment": "docker",
+    "maxRetries": 3,
+    "timeout": 300000
+  },
+  "progress": {
+    "totalTestCases": 2,
+    "completedTestCases": 2,
+    "failedTestCases": 1,
+    "skippedTestCases": 0,
+    "currentTestCase": "user-management-class-None"
+  },
+  "results": [
+    {
+      "testCaseId": "array-utils-function-None",
+      "modelId": "None",
+      "status": "completed",
+      "startTime": "2025-06-26T15:02:51.862Z",
+      "endTime": "2025-06-26T15:03:01.390Z",
+      "duration": 9528,
+      "testStepResults": [
+        {
+          "passed": true,
+          "score": 1,
+          "details": "LLM generated response (2203 characters)",
+          "llmRequest": {
+            "model": "None",
+            "messages": [
+              {
+                "role": "system",
+                "content": ""
+              },
+              {
+                "role": "user",
+                "content": "Create a JavaScript function called 'processNumbers' that takes an array of numbers and returns a new array containing only the even numbers, each multiplied by 2. The function should handle edge cases like empty arrays, null/undefined inputs, and non-numeric values."
+              }
+            ],
+            "timestamp": "2025-06-26T15:02:51.863Z"
+          },
+          "llmResponse": {
+            "content": "Here is a JavaScript function called `processNumbers` that takes an array of numbers and processes it according to the requirements:\n\n```javascript\nfunction processNumbers(input) {\n    // Check if the input is a valid array\n    if (!Array.isArray(input)) {\n        return []; // Return an empty array for non-array inputs\n    }\n\n    // Initialize an array to hold the results\n    const result = [];\n\n    // Iterate over each element in the input array\n    for (let i = 0; i < input.length; i++) {\n        const element = input[i];\n\n        // Check if the element is a number\n        if (typeof element === 'number') {\n            // Check if the number is even\n            if (element % 2 === 0) {\n                // Multiply even numbers by 2 and add to the result array\n                result.push(element * 2);\n            }\n        }\n    }\n\n    // Return the resulting array\n    return result;\n}\n\n// Example usage:\nconsole.log(processNumbers([1, 2, 3, 4, 'a', null, undefined, 6])); // Output: [4, 8, 12]\nconsole.log(processNumbers([]));                                    // Output: []\nconsole.log(processNumbers(null));                                  // Output: []\nconsole.log(processNumbers(undefined));                             // Output: []\nconsole.log(processNumbers([10, 15, 20, 25, '30']));                // Output: [20, 40]\n```\n\n### Explanation:\n\n1. **Input Validation**: The function first checks if the input is an array using `Array.isArray(input)`. If it's not an array, it returns an empty array, handling cases where the input is `null`, `undefined`, or any other non-array type.\n\n2. **Iteration and Filtering**: The function iterates over each element in the input array and checks whether the element is a number.\n\n3. **Even Number Check**: For elements that are numbers, it checks if the number is even using the modulus operator `%`.\n\n4. **Transformation**: If the number is even, it is multiplied by 2 and added to the result array.\n\n5. **Return Result**: Finally, the function returns the result array containing only the modified even numbers. \n\nThis function safely handles various edge cases, such as non-array inputs, non-numeric elements within the array, and so on.",
+            "latency": 8638,
+            "timestamp": "2025-06-26T15:03:00.500Z"
+          }
+        },
+        {
+          "passed": true,
+          "score": 1,
+          "details": "Extracted 1195 characters of code",
+          "extractedCode": "function processNumbers(input) {\n    // Check if the input is a valid array\n    if (!Array.isArray(input)) {\n        return []; // Return an empty array for non-array inputs\n    }\n\n    // Initialize an array to hold the results\n    const result = [];\n\n    // Iterate over each element in the input array\n    for (let i = 0; i < input.length; i++) {\n        const element = input[i];\n\n        // Check if the element is a number\n        if (typeof element === 'number') {\n            // Check if the number is even\n            if (element % 2 === 0) {\n                // Multiply even numbers by 2 and add to the result array\n                result.push(element * 2);\n            }\n        }\n    }\n\n    // Return the resulting array\n    return result;\n}\n\n// Example usage:\nconsole.log(processNumbers([1, 2, 3, 4, 'a', null, undefined, 6])); // Output: [4, 8, 12]\nconsole.log(processNumbers([]));                                    // Output: []\nconsole.log(processNumbers(null));                                  // Output: []\nconsole.log(processNumbers(undefined));                             // Output: []\nconsole.log(processNumbers([10, 15, 20, 25, '30']));                // Output: [20, 40]"
+        },
+        {
+          "passed": true,
+          "score": 1,
+          "details": "Generated valid code (1195 characters)"
+        },
+        {
+          "passed": true,
+          "score": 1,
+          "details": "Unit tests passed: [ 4, 8, 12 ]\n[]\n[]\n[]\n[ 20, 40 ]\n✓ Test passed"
+        }
+      ],
+      "executionResult": {
+        "stdout": "Here is a JavaScript function called `processNumbers` that takes an array of numbers and processes it according to the requirements:\n\n```javascript\nfunction processNumbers(input) {\n    // Check if the input is a valid array\n    if (!Array.isArray(input)) {\n        return []; // Return an empty array for non-array inputs\n    }\n\n    // Initialize an array to hold the results\n    const result = [];\n\n    // Iterate over each element in the input array\n    for (let i = 0; i < input.length; i++) {\n        const element = input[i];\n\n        // Check if the element is a number\n        if (typeof element === 'number') {\n            // Check if the number is even\n            if (element % 2 === 0) {\n                // Multiply even numbers by 2 and add to the result array\n                result.push(element * 2);\n            }\n        }\n    }\n\n    // Return the resulting array\n    return result;\n}\n\n// Example usage:\nconsole.log(processNumbers([1, 2, 3, 4, 'a', null, undefined, 6])); // Output: [4, 8, 12]\nconsole.log(processNumbers([]));                                    // Output: []\nconsole.log(processNumbers(null));                                  // Output: []\nconsole.log(processNumbers(undefined));                             // Output: []\nconsole.log(processNumbers([10, 15, 20, 25, '30']));                // Output: [20, 40]\n```\n\n### Explanation:\n\n1. **Input Validation**: The function first checks if the input is an array using `Array.isArray(input)`. If it's not an array, it returns an empty array, handling cases where the input is `null`, `undefined`, or any other non-array type.\n\n2. **Iteration and Filtering**: The function iterates over each element in the input array and checks whether the element is a number.\n\n3. **Even Number Check**: For elements that are numbers, it checks if the number is even using the modulus operator `%`.\n\n4. **Transformation**: If the number is even, it is multiplied by 2 and added to the result array.\n\n5. **Return Result**: Finally, the function returns the result array containing only the modified even numbers. \n\nThis function safely handles various edge cases, such as non-array inputs, non-numeric elements within the array, and so on.",
+        "stderr": "",
+        "exitCode": 0,
+        "successful": true
+      },
+      "metrics": {
+        "latency": 8638,
+        "tokens": {
+          "prompt": 0,
+          "completion": 0,
+          "total": 0
+        },
+        "qualityScores": {
+          "step_0_score": 1,
+          "step_1_score": 1,
+          "step_2_score": 1,
+          "step_3_score": 1,
+          "overallQuality": 1
+        }
+      }
+    },
+    {
+      "testCaseId": "user-management-class-None",
+      "modelId": "None",
+      "status": "failed",
+      "startTime": "2025-06-26T15:03:01.390Z",
+      "endTime": "2025-06-26T15:03:10.289Z",
+      "duration": 8899,
+      "testStepResults": [
+        {
+          "passed": true,
+          "score": 1,
+          "details": "LLM generated response (3235 characters)",
+          "llmRequest": {
+            "model": "None",
+            "messages": [
+              {
+                "role": "system",
+                "content": ""
+              },
+              {
+                "role": "user",
+                "content": "Create a JavaScript class called 'UserManager' that manages a collection of user objects. Each user should have properties: id, name, email, and age. The class should have methods: addUser(user), getUserById(id), updateUser(id, updates), deleteUser(id), and getAllUsers(). Include proper validation for email format and age (must be positive number). The class should throw appropriate errors for invalid operations."
+              }
+            ],
+            "timestamp": "2025-06-26T15:03:01.390Z"
+          },
+          "llmResponse": {
+            "content": "Certainly! Below is a JavaScript class definition for `UserManager` that manages a collection of user objects. It includes the functionalities you've requested along with basic validations for email and age.\n\n```javascript\nclass UserManager {\n    constructor() {\n        this.users = [];\n        this.nextId = 1;\n    }\n\n    // Validate email format using a regular expression\n    static isValidEmail(email) {\n        const emailRegex = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/;\n        return emailRegex.test(email);\n    }\n\n    // Validate that age is a positive number\n    static isValidAge(age) {\n        return Number.isInteger(age) && age > 0;\n    }\n\n    // Add a new user after validating input\n    addUser(user) {\n        const { name, email, age } = user;\n\n        if (!UserManager.isValidEmail(email)) {\n            throw new Error('Invalid email format');\n        }\n\n        if (!UserManager.isValidAge(age)) {\n            throw new Error('Age must be a positive integer');\n        }\n\n        const newUser = {\n            id: this.nextId++,\n            name,\n            email,\n            age\n        };\n\n        this.users.push(newUser);\n        return newUser;\n    }\n\n    // Retrieve a user by their ID\n    getUserById(id) {\n        const user = this.users.find(user => user.id === id);\n        if (!user) {\n            throw new Error('User not found');\n        }\n        return user;\n    }\n\n    // Update user information\n    updateUser(id, updates) {\n        const user = this.getUserById(id); // This will throw if user not found\n\n        const { name, email, age } = updates;\n\n        if (email && !UserManager.isValidEmail(email)) {\n            throw new Error('Invalid email format');\n        }\n\n        if (age && !UserManager.isValidAge(age)) {\n            throw new Error('Age must be a positive integer');\n        }\n\n        if (name !== undefined) user.name = name;\n        if (email !== undefined) user.email = email;\n        if (age !== undefined) user.age = age;\n\n        return user;\n    }\n\n    // Delete a user by their ID\n    deleteUser(id) {\n        const index = this.users.findIndex(user => user.id === id);\n        if (index === -1) {\n             throw new Error('User not found');\n        }\n        this.users.splice(index, 1);\n        return true;\n    }\n\n    // Retrieve all users\n    getAllUsers() {\n        return this.users;\n    }\n}\n\n// Example usage:\nconst userManager = new UserManager();\n\ntry {\n    const user = userManager.addUser({ name: 'John Doe', email: 'john@example.com', age: 30 });\n    console.log('Added User:', user);\n\n    const fetchedUser = userManager.getUserById(1);\n    console.log('Fetched User:', fetchedUser);\n\n    userManager.updateUser(1, { age: 31 });\n    console.log('Updated User:', userManager.getUserById(1));\n\n    userManager.deleteUser(1);\n    console.log('All Users After Deletion:', userManager.getAllUsers());\n} catch (error) {\n    console.error(error.message);\n}\n```\n\nThis `UserManager` class includes a straightforward mechanism for managing a collection of users. Validations ensure that only users with correctly formatted email addresses and positive integer ages are added or updated. Additionally, errors are thrown when attempting to manipulate non-existent users.",
+            "latency": 8547,
+            "timestamp": "2025-06-26T15:03:09.937Z"
+          }
+        },
+        {
+          "passed": true,
+          "score": 1,
+          "details": "Extracted 2703 characters of code",
+          "extractedCode": "class UserManager {\n    constructor() {\n        this.users = [];\n        this.nextId = 1;\n    }\n\n    // Validate email format using a regular expression\n    static isValidEmail(email) {\n        const emailRegex = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/;\n        return emailRegex.test(email);\n    }\n\n    // Validate that age is a positive number\n    static isValidAge(age) {\n        return Number.isInteger(age) && age > 0;\n    }\n\n    // Add a new user after validating input\n    addUser(user) {\n        const { name, email, age } = user;\n\n        if (!UserManager.isValidEmail(email)) {\n            throw new Error('Invalid email format');\n        }\n\n        if (!UserManager.isValidAge(age)) {\n            throw new Error('Age must be a positive integer');\n        }\n\n        const newUser = {\n            id: this.nextId++,\n            name,\n            email,\n            age\n        };\n\n        this.users.push(newUser);\n        return newUser;\n    }\n\n    // Retrieve a user by their ID\n    getUserById(id) {\n        const user = this.users.find(user => user.id === id);\n        if (!user) {\n            throw new Error('User not found');\n        }\n        return user;\n    }\n\n    // Update user information\n    updateUser(id, updates) {\n        const user = this.getUserById(id); // This will throw if user not found\n\n        const { name, email, age } = updates;\n\n        if (email && !UserManager.isValidEmail(email)) {\n            throw new Error('Invalid email format');\n        }\n\n        if (age && !UserManager.isValidAge(age)) {\n            throw new Error('Age must be a positive integer');\n        }\n\n        if (name !== undefined) user.name = name;\n        if (email !== undefined) user.email = email;\n        if (age !== undefined) user.age = age;\n\n        return user;\n    }\n\n    // Delete a user by their ID\n    deleteUser(id) {\n        const index = this.users.findIndex(user => user.id === id);\n        if (index === -1) {\n             throw new Error('User not found');\n        }\n        this.users.splice(index, 1);\n        return true;\n    }\n\n    // Retrieve all users\n    getAllUsers() {\n        return this.users;\n    }\n}\n\n// Example usage:\nconst userManager = new UserManager();\n\ntry {\n    const user = userManager.addUser({ name: 'John Doe', email: 'john@example.com', age: 30 });\n    console.log('Added User:', user);\n\n    const fetchedUser = userManager.getUserById(1);\n    console.log('Fetched User:', fetchedUser);\n\n    userManager.updateUser(1, { age: 31 });\n    console.log('Updated User:', userManager.getUserById(1));\n\n    userManager.deleteUser(1);\n    console.log('All Users After Deletion:', userManager.getAllUsers());\n} catch (error) {\n    console.error(error.message);\n}"
+        },
+        {
+          "passed": true,
+          "score": 1,
+          "details": "Generated valid code (2703 characters)"
+        },
+        {
+          "passed": false,
+          "score": 0,
+          "details": "Unit tests failed: ✗ Test failed: User not found",
+          "error": "✗ Test failed: User not found"
+        }
+      ],
+      "executionResult": {
+        "stdout": "Certainly! Below is a JavaScript class definition for `UserManager` that manages a collection of user objects. It includes the functionalities you've requested along with basic validations for email and age.\n\n```javascript\nclass UserManager {\n    constructor() {\n        this.users = [];\n        this.nextId = 1;\n    }\n\n    // Validate email format using a regular expression\n    static isValidEmail(email) {\n        const emailRegex = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/;\n        return emailRegex.test(email);\n    }\n\n    // Validate that age is a positive number\n    static isValidAge(age) {\n        return Number.isInteger(age) && age > 0;\n    }\n\n    // Add a new user after validating input\n    addUser(user) {\n        const { name, email, age } = user;\n\n        if (!UserManager.isValidEmail(email)) {\n            throw new Error('Invalid email format');\n        }\n\n        if (!UserManager.isValidAge(age)) {\n            throw new Error('Age must be a positive integer');\n        }\n\n        const newUser = {\n            id: this.nextId++,\n            name,\n            email,\n            age\n        };\n\n        this.users.push(newUser);\n        return newUser;\n    }\n\n    // Retrieve a user by their ID\n    getUserById(id) {\n        const user = this.users.find(user => user.id === id);\n        if (!user) {\n            throw new Error('User not found');\n        }\n        return user;\n    }\n\n    // Update user information\n    updateUser(id, updates) {\n        const user = this.getUserById(id); // This will throw if user not found\n\n        const { name, email, age } = updates;\n\n        if (email && !UserManager.isValidEmail(email)) {\n            throw new Error('Invalid email format');\n        }\n\n        if (age && !UserManager.isValidAge(age)) {\n            throw new Error('Age must be a positive integer');\n        }\n\n        if (name !== undefined) user.name = name;\n        if (email !== undefined) user.email = email;\n        if (age !== undefined) user.age = age;\n\n        return user;\n    }\n\n    // Delete a user by their ID\n    deleteUser(id) {\n        const index = this.users.findIndex(user => user.id === id);\n        if (index === -1) {\n             throw new Error('User not found');\n        }\n        this.users.splice(index, 1);\n        return true;\n    }\n\n    // Retrieve all users\n    getAllUsers() {\n        return this.users;\n    }\n}\n\n// Example usage:\nconst userManager = new UserManager();\n\ntry {\n    const user = userManager.addUser({ name: 'John Doe', email: 'john@example.com', age: 30 });\n    console.log('Added User:', user);\n\n    const fetchedUser = userManager.getUserById(1);\n    console.log('Fetched User:', fetchedUser);\n\n    userManager.updateUser(1, { age: 31 });\n    console.log('Updated User:', userManager.getUserById(1));\n\n    userManager.deleteUser(1);\n    console.log('All Users After Deletion:', userManager.getAllUsers());\n} catch (error) {\n    console.error(error.message);\n}\n```\n\nThis `UserManager` class includes a straightforward mechanism for managing a collection of users. Validations ensure that only users with correctly formatted email addresses and positive integer ages are added or updated. Additionally, errors are thrown when attempting to manipulate non-existent users.",
+        "stderr": "1 test step(s) failed",
+        "exitCode": 1,
+        "successful": false
+      },
+      "metrics": {
+        "latency": 8547,
+        "tokens": {
+          "prompt": 0,
+          "completion": 0,
+          "total": 0
+        },
+        "qualityScores": {
+          "step_0_score": 1,
+          "step_1_score": 1,
+          "step_2_score": 1,
+          "step_3_score": 0,
+          "overallQuality": 0.75
+        }
+      },
+      "error": {
+        "type": "validation",
+        "message": "One or more validation steps failed",
+        "details": "Check testStepResults for specific failures",
+        "recoverable": true
+      }
+    }
+  ]
+}

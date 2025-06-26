@@ -1,5 +1,3 @@
-import { readFileSync } from "fs";
-import { join } from "path";
 import { TestCaseExecutor } from "../../core/TestCaseExecutor.js";
 import {
   BenchmarkPlugin,
@@ -40,22 +38,6 @@ export class PromptEvaluationPlugin implements BenchmarkPlugin {
 
   defaultDataset = "datasets/prompt-evaluation-dataset";
 
-  /**
-   * Loads content from a file path if provided, returns empty string if not found or empty path.
-   */
-  private loadFileContent(filePath: string): string {
-    if (!filePath || filePath.trim() === "") {
-      return "";
-    }
-
-    try {
-      const fullPath = join(process.cwd(), filePath);
-      return readFileSync(fullPath, "utf-8");
-    } catch (error) {
-      // Return empty string if file doesn't exist or can't be read
-      return "";
-    }
-  }
 
   /**
    * Builds the enhanced system prompt by combining base prompt with rules and prompt files.
@@ -78,42 +60,6 @@ export class PromptEvaluationPlugin implements BenchmarkPlugin {
     return enhancedPrompt.trim();
   }
 
-  /**
-   * Extracts JavaScript code blocks from LLM response, removing explanatory text and markdown formatting.
-   */
-  private extractCodeFromResponse(response: string): string {
-    const codeBlocks: string[] = [];
-    
-    // Match code blocks with language specifiers: ```javascript, ```js, or plain ```
-    const codeBlockRegex = /```(?:javascript|js)?\s*\n?([\s\S]*?)\n?```/gi;
-    let match;
-    
-    while ((match = codeBlockRegex.exec(response)) !== null) {
-      const codeContent = match[1].trim();
-      if (codeContent) {
-        codeBlocks.push(codeContent);
-      }
-    }
-    
-    // If no code blocks found, try to extract code after common phrases
-    if (codeBlocks.length === 0) {
-      const patterns = [
-        /(?:here'?s?\s+(?:the\s+)?(?:function|code|implementation)(?:\s+(?:for|that))?[\s\S]*?:?\s*\n)((?:function|class|const|let|var)[\s\S]*)/i,
-        /(?:implementation|solution|code)[\s\S]*?:\s*\n((?:function|class|const|let|var)[\s\S]*)/i,
-      ];
-      
-      for (const pattern of patterns) {
-        const match = response.match(pattern);
-        if (match && match[1]) {
-          codeBlocks.push(match[1].trim());
-          break;
-        }
-      }
-    }
-    
-    // Join all code blocks with newlines
-    return codeBlocks.join('\n\n').trim();
-  }
 
   /**
    * Executes code generation step using the enhanced prompt.
@@ -135,7 +81,7 @@ export class PromptEvaluationPlugin implements BenchmarkPlugin {
    * Executes code extraction step to isolate JavaScript code from LLM response.
    */
   private executeCodeExtractionStep(llmResponse: string): TestStepResult & { extractedCode?: string } {
-    const extractedCode = this.extractCodeFromResponse(llmResponse);
+    const extractedCode = TestCaseExecutor.extractCodeFromResponse(llmResponse);
     const hasCode = extractedCode.trim().length > 0;
     
     return {
@@ -233,8 +179,8 @@ export class PromptEvaluationPlugin implements BenchmarkPlugin {
     const testStepResults: TestStepResult[] = [];
 
     // Step 1: Load and combine prompt files
-    const rulesContent = this.loadFileContent(context.properties.rulesFile);
-    const promptContent = this.loadFileContent(context.properties.promptFile);
+    const rulesContent = TestCaseExecutor.loadFileContent(context.properties.rulesFile);
+    const promptContent = TestCaseExecutor.loadFileContent(context.properties.promptFile);
     const enhancedSystemPrompt = this.buildEnhancedSystemPrompt(
       context.properties.systemPrompt,
       rulesContent,

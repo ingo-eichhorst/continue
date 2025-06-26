@@ -1,0 +1,302 @@
+{
+  "id": "f3b837b3-5854-4241-b9a0-1cea634ff3cd",
+  "pluginName": "simple-example",
+  "startTime": "2025-06-26T12:13:40.121Z",
+  "lastUpdateTime": "2025-06-26T12:13:50.449Z",
+  "status": "completed",
+  "config": {
+    "models": [
+      "None"
+    ],
+    "dataset": "simple-demo-dataset",
+    "properties": {},
+    "executionEnvironment": "local",
+    "maxRetries": 3,
+    "timeout": 300000
+  },
+  "progress": {
+    "totalTestCases": 5,
+    "completedTestCases": 5,
+    "failedTestCases": 0,
+    "skippedTestCases": 0,
+    "currentTestCase": "open-ended-None"
+  },
+  "results": [
+    {
+      "testCaseId": "greeting-test-None",
+      "modelId": "None",
+      "status": "completed",
+      "startTime": "2025-06-26T12:13:40.122Z",
+      "endTime": "2025-06-26T12:13:41.317Z",
+      "duration": 1195,
+      "llmRequest": {
+        "model": "None",
+        "messages": [
+          {
+            "role": "system",
+            "content": "You are a helpful assistant. Please respond to the user's question clearly and concisely."
+          },
+          {
+            "role": "user",
+            "content": "Hello! How are you today?"
+          }
+        ],
+        "timestamp": "2025-06-26T12:13:41.316Z"
+      },
+      "llmResponse": {
+        "content": "Hello! I'm just a computer program, so I don't have feelings, but I'm here and ready to help you. How can I assist you today?",
+        "latency": 1191,
+        "timestamp": "2025-06-26T12:13:41.317Z"
+      },
+      "validationResults": [
+        {
+          "passed": true,
+          "details": "Response generated successfully"
+        },
+        {
+          "passed": true,
+          "details": "Response contains expected content: \"hello\""
+        }
+      ],
+      "executionResult": {
+        "stdout": "Hello! I'm just a computer program, so I don't have feelings, but I'm here and ready to help you. How can I assist you today?",
+        "stderr": "",
+        "exitCode": 0,
+        "successful": true
+      },
+      "metrics": {
+        "latency": 1191,
+        "tokens": {
+          "prompt": 0,
+          "completion": 0,
+          "total": 0
+        },
+        "qualityScores": {
+          "responseLength": 125,
+          "hasExpectedContent": 1,
+          "overallQuality": 1
+        }
+      }
+    },
+    {
+      "testCaseId": "math-simple-None",
+      "modelId": "None",
+      "status": "completed",
+      "startTime": "2025-06-26T12:13:41.317Z",
+      "endTime": "2025-06-26T12:13:42.223Z",
+      "duration": 906,
+      "llmRequest": {
+        "model": "None",
+        "messages": [
+          {
+            "role": "system",
+            "content": "You are a helpful assistant. Please respond to the user's question clearly and concisely."
+          },
+          {
+            "role": "user",
+            "content": "What is 2 + 2?"
+          }
+        ],
+        "timestamp": "2025-06-26T12:13:42.223Z"
+      },
+      "llmResponse": {
+        "content": "2 + 2 equals 4.",
+        "latency": 904,
+        "timestamp": "2025-06-26T12:13:42.223Z"
+      },
+      "validationResults": [
+        {
+          "passed": true,
+          "details": "Response generated successfully"
+        },
+        {
+          "passed": true,
+          "details": "Response contains expected content: \"4\""
+        }
+      ],
+      "executionResult": {
+        "stdout": "2 + 2 equals 4.",
+        "stderr": "",
+        "exitCode": 0,
+        "successful": true
+      },
+      "metrics": {
+        "latency": 904,
+        "tokens": {
+          "prompt": 0,
+          "completion": 0,
+          "total": 0
+        },
+        "qualityScores": {
+          "responseLength": 15,
+          "hasExpectedContent": 1,
+          "overallQuality": 1
+        }
+      }
+    },
+    {
+      "testCaseId": "color-question-None",
+      "modelId": "None",
+      "status": "completed",
+      "startTime": "2025-06-26T12:13:42.223Z",
+      "endTime": "2025-06-26T12:13:42.955Z",
+      "duration": 732,
+      "llmRequest": {
+        "model": "None",
+        "messages": [
+          {
+            "role": "system",
+            "content": "You are a helpful assistant. Please respond to the user's question clearly and concisely."
+          },
+          {
+            "role": "user",
+            "content": "What color do you get when you mix red and blue?"
+          }
+        ],
+        "timestamp": "2025-06-26T12:13:42.955Z"
+      },
+      "llmResponse": {
+        "content": "When you mix red and blue, you typically get purple.",
+        "latency": 732,
+        "timestamp": "2025-06-26T12:13:42.955Z"
+      },
+      "validationResults": [
+        {
+          "passed": true,
+          "details": "Response generated successfully"
+        },
+        {
+          "passed": true,
+          "details": "Response contains expected content: \"purple\""
+        }
+      ],
+      "executionResult": {
+        "stdout": "When you mix red and blue, you typically get purple.",
+        "stderr": "",
+        "exitCode": 0,
+        "successful": true
+      },
+      "metrics": {
+        "latency": 732,
+        "tokens": {
+          "prompt": 0,
+          "completion": 0,
+          "total": 0
+        },
+        "qualityScores": {
+          "responseLength": 52,
+          "hasExpectedContent": 1,
+          "overallQuality": 1
+        }
+      }
+    },
+    {
+      "testCaseId": "capital-city-None",
+      "modelId": "None",
+      "status": "completed",
+      "startTime": "2025-06-26T12:13:42.955Z",
+      "endTime": "2025-06-26T12:13:43.691Z",
+      "duration": 736,
+      "llmRequest": {
+        "model": "None",
+        "messages": [
+          {
+            "role": "system",
+            "content": "You are a helpful assistant. Please respond to the user's question clearly and concisely."
+          },
+          {
+            "role": "user",
+            "content": "What is the capital of France?"
+          }
+        ],
+        "timestamp": "2025-06-26T12:13:43.691Z"
+      },
+      "llmResponse": {
+        "content": "The capital of France is Paris.",
+        "latency": 735,
+        "timestamp": "2025-06-26T12:13:43.691Z"
+      },
+      "validationResults": [
+        {
+          "passed": true,
+          "details": "Response generated successfully"
+        },
+        {
+          "passed": true,
+          "details": "Response contains expected content: \"Paris\""
+        }
+      ],
+      "executionResult": {
+        "stdout": "The capital of France is Paris.",
+        "stderr": "",
+        "exitCode": 0,
+        "successful": true
+      },
+      "metrics": {
+        "latency": 735,
+        "tokens": {
+          "prompt": 0,
+          "completion": 0,
+          "total": 0
+        },
+        "qualityScores": {
+          "responseLength": 31,
+          "hasExpectedContent": 1,
+          "overallQuality": 1
+        }
+      }
+    },
+    {
+      "testCaseId": "open-ended-None",
+      "modelId": "None",
+      "status": "completed",
+      "startTime": "2025-06-26T12:13:43.692Z",
+      "endTime": "2025-06-26T12:13:50.448Z",
+      "duration": 6756,
+      "llmRequest": {
+        "model": "None",
+        "messages": [
+          {
+            "role": "system",
+            "content": "You are a helpful assistant. Please respond to the user's question clearly and concisely."
+          },
+          {
+            "role": "user",
+            "content": "What are the benefits of reading books?"
+          }
+        ],
+        "timestamp": "2025-06-26T12:13:50.448Z"
+      },
+      "llmResponse": {
+        "content": "Reading books offers numerous benefits, including:\n\n1. **Knowledge Acquisition**: Books provide information and insights on a wide range of topics, helping you expand your understanding of the world.\n\n2. **Cognitive Stimulation**: Regular reading can improve brain function, enhance memory, and even reduce the risk of cognitive decline as you age.\n\n3. **Vocabulary Expansion**: Exposure to new words and phrases through reading can improve your vocabulary and language skills.\n\n4. **Improved Focus and Concentration**: Reading requires sustained attention, which can help improve your ability to concentrate.\n\n5. **Stress Reduction**: Reading, especially fiction, can offer an escape and help reduce stress by transporting you to different worlds and experiences.\n\n6. **Enhanced Imagination and Creativity**: Reading stimulates the imagination and can inspire creative thinking and innovation.\n\n7. **Empathy and Emotional Intelligence**: Engaging with characters and stories can increase empathy by helping you understand different perspectives and emotions.\n\n8. **Better Writing Skills**: Exposure to well-written content can influence your writing style and improve your ability to express ideas clearly.\n\n9. **Entertainment**: Books provide a source of entertainment and enjoyment, often offering unique and immersive experiences.\n\n10. **Academic and Professional Success**: Improved knowledge, vocabulary, and critical thinking skills gained from reading can enhance academic and professional performance.",
+        "latency": 6755,
+        "timestamp": "2025-06-26T12:13:50.448Z"
+      },
+      "validationResults": [
+        {
+          "passed": true,
+          "details": "Response generated successfully"
+        }
+      ],
+      "executionResult": {
+        "stdout": "Reading books offers numerous benefits, including:\n\n1. **Knowledge Acquisition**: Books provide information and insights on a wide range of topics, helping you expand your understanding of the world.\n\n2. **Cognitive Stimulation**: Regular reading can improve brain function, enhance memory, and even reduce the risk of cognitive decline as you age.\n\n3. **Vocabulary Expansion**: Exposure to new words and phrases through reading can improve your vocabulary and language skills.\n\n4. **Improved Focus and Concentration**: Reading requires sustained attention, which can help improve your ability to concentrate.\n\n5. **Stress Reduction**: Reading, especially fiction, can offer an escape and help reduce stress by transporting you to different worlds and experiences.\n\n6. **Enhanced Imagination and Creativity**: Reading stimulates the imagination and can inspire creative thinking and innovation.\n\n7. **Empathy and Emotional Intelligence**: Engaging with characters and stories can increase empathy by helping you understand different perspectives and emotions.\n\n8. **Better Writing Skills**: Exposure to well-written content can influence your writing style and improve your ability to express ideas clearly.\n\n9. **Entertainment**: Books provide a source of entertainment and enjoyment, often offering unique and immersive experiences.\n\n10. **Academic and Professional Success**: Improved knowledge, vocabulary, and critical thinking skills gained from reading can enhance academic and professional performance.",
+        "stderr": "",
+        "exitCode": 0,
+        "successful": true
+      },
+      "metrics": {
+        "latency": 6755,
+        "tokens": {
+          "prompt": 0,
+          "completion": 0,
+          "total": 0
+        },
+        "qualityScores": {
+          "responseLength": 1510,
+          "hasExpectedContent": 1,
+          "overallQuality": 1
+        }
+      }
+    }
+  ]
+}

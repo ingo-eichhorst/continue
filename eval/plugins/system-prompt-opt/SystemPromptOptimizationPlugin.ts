@@ -1,5 +1,3 @@
-import { readFileSync } from "fs";
-import { join } from "path";
 import { TestCaseExecutor } from "../../core/TestCaseExecutor.js";
 import {
   BenchmarkPlugin,
@@ -41,37 +39,16 @@ export class SystemPromptOptimizationPlugin implements BenchmarkPlugin {
       default: "",
       description: "Path to existing code context file",
     },
-    readabilityModel: {
+    validationModel: {
       type: "string" as const,
       required: false,
       default: "gpt-4",
-      description: "Model ID for readability assessment",
-    },
-    includeReadabilityScore: {
-      type: "boolean" as const,
-      required: false,
-      default: true,
-      description: "Whether to include LLM-based readability assessment",
+      description: "Model ID for code quality validation assessment",
     },
   };
 
   defaultDataset = "datasets/system-prompt-optimization-dataset";
 
-  /**
-   * Loads content from a file path, returns empty string if not found.
-   */
-  private loadFileContent(filePath: string): string {
-    if (!filePath || filePath.trim() === "") {
-      return "";
-    }
-
-    try {
-      const fullPath = join(process.cwd(), filePath);
-      return readFileSync(fullPath, "utf-8");
-    } catch (error) {
-      return "";
-    }
-  }
 
   /**
    * Builds the complete prompt by combining system prompt with requirements and context.
@@ -114,47 +91,12 @@ export class SystemPromptOptimizationPlugin implements BenchmarkPlugin {
     return await TestCaseExecutor.executeLLMRequest(messages, executionContext.model);
   }
 
-  /**
-   * Extracts code from LLM response, handling markdown and explanatory text.
-   */
-  private extractCodeFromResponse(response: string): string {
-    const codeBlocks: string[] = [];
-    
-    // Match code blocks with language specifiers
-    const codeBlockRegex = /```(?:javascript|js|typescript|ts|python|java|cpp|c\+\+|c|go|rust)?\s*\n?([\s\S]*?)\n?```/gi;
-    let match;
-    
-    while ((match = codeBlockRegex.exec(response)) !== null) {
-      const codeContent = match[1].trim();
-      if (codeContent) {
-        codeBlocks.push(codeContent);
-      }
-    }
-    
-    // Fallback patterns for non-markdown code
-    if (codeBlocks.length === 0) {
-      const patterns = [
-        /(?:here'?s?|is|the)\s+(?:the\s+)?(?:function|code|implementation|solution)(?:\s+(?:for|that))?[:\s]*\n((?:function|class|const|let|var|def|public|private|import|from|#include)[\s\S]*)/i,
-        /(?:implementation|solution|code)[:\s]*\n((?:function|class|const|let|var|def|public|private|import|from|#include)[\s\S]*)/i,
-      ];
-      
-      for (const pattern of patterns) {
-        const match = response.match(pattern);
-        if (match && match[1]) {
-          codeBlocks.push(match[1].trim());
-          break;
-        }
-      }
-    }
-    
-    return codeBlocks.join('\n\n').trim();
-  }
 
   /**
    * Executes code extraction step with validation.
    */
   private executeCodeExtractionStep(llmResponse: string): TestStepResult & { extractedCode?: string } {
-    const extractedCode = this.extractCodeFromResponse(llmResponse);
+    const extractedCode = TestCaseExecutor.extractCodeFromResponse(llmResponse);
     const hasCode = extractedCode.trim().length > 0;
     
     return {
@@ -211,14 +153,14 @@ export class SystemPromptOptimizationPlugin implements BenchmarkPlugin {
   }
 
   /**
-   * Executes readability assessment using a separate LLM with detailed criteria.
+   * Executes code quality validation assessment using a separate LLM with detailed criteria.
    */
-  private async executeReadabilityAssessmentStep(
+  private async executeCodeQualityValidationStep(
     generatedCode: string,
     context: TestExecutionContext,
-    readabilityModel: string,
+    validationModel: string,
   ): Promise<TestStepResult> {
-    const readabilityPrompt = `
+    const qualityAssessmentPrompt = `
 Please assess the code quality and readability of the following JavaScript code. Rate each criterion on a scale of 1-10 and provide an overall score.
 
 Assessment Criteria:
@@ -248,19 +190,19 @@ Brief explanation: [your analysis]
         role: "system", 
         content: "You are a senior JavaScript code reviewer with expertise in code quality assessment. Provide objective, detailed evaluations based on industry standards and best practices. Be constructive but honest in your assessment."
       },
-      { role: "user", content: readabilityPrompt },
+      { role: "user", content: qualityAssessmentPrompt },
     ];
 
     try {
-      // Note: In a real implementation, we would need to load the specified readability model
-      // For now, we use the current model as the readability model
+      // Note: In a real implementation, we would need to load the specified validation model
+      // For now, we use the current model as the validation model
       const result = await TestCaseExecutor.executeLLMRequest(messages, context.model);
       
       if (!result.passed || !result.llmResponse) {
         return {
           passed: false,
           score: 0,
-          details: "Readability assessment failed - no response from LLM",
+          details: "Code quality validation failed - no response from LLM",
         };
       }
 
@@ -293,13 +235,13 @@ Brief explanation: [your analysis]
       return {
         passed: overallScore >= 6, // 6/10 as passing threshold
         score: normalizedScore,
-        details: `Readability assessment: Overall ${overallScore}/10 (${detailedScores}). ${explanation.substring(0, 150)}${explanation.length > 150 ? '...' : ''}`,
+        details: `Code quality validation: Overall ${overallScore}/10 (${detailedScores}). ${explanation.substring(0, 150)}${explanation.length > 150 ? '...' : ''}`,
       };
     } catch (error) {
       return {
         passed: false,
         score: 0,
-        details: `Readability assessment error: ${(error as Error).message}`,
+        details: `Code quality validation error: ${(error as Error).message}`,
         error: (error as Error).message,
       };
     }
@@ -370,13 +312,11 @@ Brief explanation: [your analysis]
         score: 0,
         details: `[${modelId}] [Prompt ${promptIndex + 1}] Performance measurement skipped`,
       });
-      if (context.properties.includeReadabilityScore) {
-        variantResults.push({
-          passed: false,
-          score: 0,
-          details: `[${modelId}] [Prompt ${promptIndex + 1}] Readability assessment skipped`,
-        });
-      }
+      variantResults.push({
+        passed: false,
+        score: 0,
+        details: `[${modelId}] [Prompt ${promptIndex + 1}] Code quality validation skipped`,
+      });
       return variantResults;
     }
 
@@ -397,16 +337,14 @@ Brief explanation: [your analysis]
     performanceStep.details = `[${modelId}] [Prompt ${promptIndex + 1}] ${performanceStep.details}`;
     variantResults.push(performanceStep);
 
-    // Step 5: Readability assessment (if enabled)
-    if (context.properties.includeReadabilityScore) {
-      const readabilityStep = await this.executeReadabilityAssessmentStep(
-        extractedCode,
-        context,
-        context.properties.readabilityModel,
-      );
-      readabilityStep.details = `[${modelId}] [Prompt ${promptIndex + 1}] ${readabilityStep.details}`;
-      variantResults.push(readabilityStep);
-    }
+    // Step 5: Code quality validation assessment
+    const qualityValidationStep = await this.executeCodeQualityValidationStep(
+      extractedCode,
+      context,
+      context.properties.validationModel,
+    );
+    qualityValidationStep.details = `[${modelId}] [Prompt ${promptIndex + 1}] ${qualityValidationStep.details}`;
+    variantResults.push(qualityValidationStep);
 
     return variantResults;
   }
@@ -421,8 +359,8 @@ Brief explanation: [your analysis]
     const allTestStepResults: TestStepResult[] = [];
 
     // Load requirements and context files
-    const requirements = this.loadFileContent(context.properties.requirementsFile);
-    const codeContext = this.loadFileContent(context.properties.contextFile);
+    const requirements = TestCaseExecutor.loadFileContent(context.properties.requirementsFile);
+    const codeContext = TestCaseExecutor.loadFileContent(context.properties.contextFile);
 
     // Get system prompts from properties
     const systemPrompts = context.properties.systemPrompts as string[];
@@ -494,7 +432,7 @@ Brief explanation: [your analysis]
       // Extract metrics from this prompt's steps
       const unitTestStep = promptSteps.find(step => step.details?.includes('Unit tests'));
       const performanceStep = promptSteps.find(step => step.details?.includes('completed in'));
-      const readabilityStep = promptSteps.find(step => step.details?.includes('Readability score'));
+      const readabilityStep = promptSteps.find(step => step.details?.includes('Code quality validation'));
       
       const unitTestPassed = unitTestStep?.passed ?? false;
       const performance = performanceStep?.score ?? 0;

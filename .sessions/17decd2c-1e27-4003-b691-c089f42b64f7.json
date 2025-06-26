@@ -1,0 +1,173 @@
+{
+  "id": "17decd2c-1e27-4003-b691-c089f42b64f7",
+  "pluginName": "unified-diff-testing",
+  "startTime": "2025-06-26T13:54:48.827Z",
+  "lastUpdateTime": "2025-06-26T13:54:53.317Z",
+  "status": "completed",
+  "config": {
+    "models": [
+      "None"
+    ],
+    "dataset": "unified-diff-demo-dataset",
+    "properties": {
+      "systemPrompt": "You are a helpful assistant that generates unified diffs. Generate only the unified diff without any additional explanation or markdown formatting."
+    },
+    "executionEnvironment": "local",
+    "maxRetries": 3,
+    "timeout": 300000
+  },
+  "progress": {
+    "totalTestCases": 2,
+    "completedTestCases": 2,
+    "failedTestCases": 1,
+    "skippedTestCases": 0,
+    "currentTestCase": "test-002-None"
+  },
+  "results": [
+    {
+      "testCaseId": "test-001-None",
+      "modelId": "None",
+      "status": "failed",
+      "startTime": "2025-06-26T13:54:48.829Z",
+      "endTime": "2025-06-26T13:54:51.340Z",
+      "duration": 2511,
+      "testStepResults": [
+        {
+          "passed": true,
+          "details": "LLM generated response (224 characters)",
+          "llmRequest": {
+            "model": "None",
+            "messages": [
+              {
+                "role": "system",
+                "content": "You are a helpful assistant that generates unified diffs. Generate only the unified diff without any additional explanation or markdown formatting."
+              },
+              {
+                "role": "user",
+                "content": "Here is the source code:\n\n```\nfunction calculate(a, b) {\n  return a + b;\n}\n```\n\nAdd error handling to the function"
+              }
+            ],
+            "timestamp": "2025-06-26T13:54:48.829Z"
+          },
+          "llmResponse": {
+            "content": "```\n--- original.js\n+++ modified.js\n@@ -1,4 +1,10 @@\n function calculate(a, b) {\n+  if (typeof a !== 'number' || typeof b !== 'number') {\n+    throw new Error('Both arguments must be numbers');\n+  }\n+\n   return a + b;\n }\n```",
+            "latency": 2466,
+            "timestamp": "2025-06-26T13:54:51.295Z"
+          }
+        },
+        {
+          "passed": true,
+          "score": 1,
+          "details": "Valid unified diff format"
+        },
+        {
+          "passed": true,
+          "score": 1,
+          "details": "Diff applied successfully",
+          "appliedCode": "function calculate(a, b) {\n  if (typeof a !== 'number' || typeof b !== 'number') {\n    throw new Error('Both arguments must be numbers');\n  }\n\n  return a + b;\n}"
+        },
+        {
+          "passed": false,
+          "score": 0,
+          "details": "Unit test failed: ✗ Test failed: Expected values to be strictly equal:\n\n5 !== 6",
+          "error": "✗ Test failed: Expected values to be strictly equal:\n\n5 !== 6"
+        }
+      ],
+      "executionResult": {
+        "stdout": "```\n--- original.js\n+++ modified.js\n@@ -1,4 +1,10 @@\n function calculate(a, b) {\n+  if (typeof a !== 'number' || typeof b !== 'number') {\n+    throw new Error('Both arguments must be numbers');\n+  }\n+\n   return a + b;\n }\n```",
+        "stderr": "1 test step(s) failed",
+        "exitCode": 1,
+        "successful": false
+      },
+      "metrics": {
+        "latency": 2466,
+        "tokens": {
+          "prompt": 0,
+          "completion": 0,
+          "total": 0
+        },
+        "qualityScores": {
+          "step_1_score": 1,
+          "step_2_score": 1,
+          "step_3_score": 0,
+          "overallQuality": 0.75
+        }
+      },
+      "error": {
+        "type": "validation",
+        "message": "One or more validation steps failed",
+        "details": "Check testStepResults for specific failures",
+        "recoverable": true
+      }
+    },
+    {
+      "testCaseId": "test-002-None",
+      "modelId": "None",
+      "status": "completed",
+      "startTime": "2025-06-26T13:54:51.341Z",
+      "endTime": "2025-06-26T13:54:53.317Z",
+      "duration": 1976,
+      "testStepResults": [
+        {
+          "passed": true,
+          "details": "LLM generated response (279 characters)",
+          "llmRequest": {
+            "model": "None",
+            "messages": [
+              {
+                "role": "system",
+                "content": "You are a helpful assistant that generates unified diffs. Generate only the unified diff without any additional explanation or markdown formatting."
+              },
+              {
+                "role": "user",
+                "content": "Here is the source code:\n\n```\nfunction multiply(x, y) {\n  return x * y;\n}\n```\n\nAdd JSDoc documentation to the function"
+              }
+            ],
+            "timestamp": "2025-06-26T13:54:51.341Z"
+          },
+          "llmResponse": {
+            "content": "```\n--- original.js\n+++ modified.js\n@@ -1,3 +1,7 @@\n+/**\n+ * Multiplies two numbers.\n+ * @param {number} x - The first number.\n+ * @param {number} y - The second number.\n+ * @returns {number} The product of the two numbers.\n+ */\n function multiply(x, y) {\n   return x * y;\n }\n```",
+            "latency": 1941,
+            "timestamp": "2025-06-26T13:54:53.282Z"
+          }
+        },
+        {
+          "passed": true,
+          "score": 1,
+          "details": "Valid unified diff format"
+        },
+        {
+          "passed": true,
+          "score": 1,
+          "details": "Diff applied successfully",
+          "appliedCode": "/**\n * Multiplies two numbers.\n * @param {number} x - The first number.\n * @param {number} y - The second number.\n * @returns {number} The product of the two numbers.\n */\nfunction multiply(x, y) {\n  return x * y;\n}"
+        },
+        {
+          "passed": true,
+          "score": 1,
+          "details": "Unit test passed: ✓ Test passed"
+        }
+      ],
+      "executionResult": {
+        "stdout": "```\n--- original.js\n+++ modified.js\n@@ -1,3 +1,7 @@\n+/**\n+ * Multiplies two numbers.\n+ * @param {number} x - The first number.\n+ * @param {number} y - The second number.\n+ * @returns {number} The product of the two numbers.\n+ */\n function multiply(x, y) {\n   return x * y;\n }\n```",
+        "stderr": "",
+        "exitCode": 0,
+        "successful": true
+      },
+      "metrics": {
+        "latency": 1941,
+        "tokens": {
+          "prompt": 0,
+          "completion": 0,
+          "total": 0
+        },
+        "qualityScores": {
+          "step_1_score": 1,
+          "step_2_score": 1,
+          "step_3_score": 1,
+          "overallQuality": 1
+        }
+      }
+    }
+  ]
+}

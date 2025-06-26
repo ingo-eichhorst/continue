@@ -13,6 +13,5 @@
   "models": ["gpt-4", "gpt-3.5-turbo", "claude-3-sonnet"],
   "requirementsFile": "datasets/system-prompt-optimization-dataset/requirements-example.md",
   "contextFile": "datasets/system-prompt-optimization-dataset/context-example.js",
-  "readabilityModel": "gpt-4",
-  "includeReadabilityScore": true
+  "validationModel": "gpt-4"
 }

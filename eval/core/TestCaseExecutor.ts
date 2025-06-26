@@ -1,3 +1,5 @@
+import { readFileSync } from "fs";
+import { join } from "path";
 import type { ILLM } from "../../core/index.js";
 import {
   BenchmarkContext,
@@ -488,5 +490,57 @@ export class TestCaseExecutor {
     this.logger.info(
       `Progress: ${currentIndex}/${totalTests} test cases completed for model ${model.uniqueId}`,
     );
+  }
+
+  /**
+   * Loads content from a file path, returns empty string if not found.
+   */
+  static loadFileContent(filePath: string): string {
+    if (!filePath || filePath.trim() === "") {
+      return "";
+    }
+
+    try {
+      const fullPath = join(process.cwd(), filePath);
+      return readFileSync(fullPath, "utf-8");
+    } catch (error) {
+      return "";
+    }
+  }
+
+  /**
+   * Extracts code blocks from LLM response, handling markdown and explanatory text.
+   */
+  static extractCodeFromResponse(response: string): string {
+    const codeBlocks: string[] = [];
+    
+    // Match code blocks with language specifiers
+    const codeBlockRegex = /```(?:javascript|js|typescript|ts|python|java|cpp|c\+\+|c|go|rust)?\s*\n?([\s\S]*?)\n?```/gi;
+    let match;
+    
+    while ((match = codeBlockRegex.exec(response)) !== null) {
+      const codeContent = match[1].trim();
+      if (codeContent) {
+        codeBlocks.push(codeContent);
+      }
+    }
+    
+    // Fallback patterns for non-markdown code
+    if (codeBlocks.length === 0) {
+      const patterns = [
+        /(?:here'?s?|is|the)\s+(?:the\s+)?(?:function|code|implementation|solution)(?:\s+(?:for|that))?[:\s]*\n((?:function|class|const|let|var|def|public|private|import|from|#include)[\s\S]*)/i,
+        /(?:implementation|solution|code)[:\s]*\n((?:function|class|const|let|var|def|public|private|import|from|#include)[\s\S]*)/i,
+      ];
+      
+      for (const pattern of patterns) {
+        const match = response.match(pattern);
+        if (match && match[1]) {
+          codeBlocks.push(match[1].trim());
+          break;
+        }
+      }
+    }
+    
+    return codeBlocks.join('\n\n').trim();
   }
 }

@@ -97,3 +97,9 @@ Supports 30+ providers including OpenAI, Anthropic, Google Gemini, local provide
 
 ### Message-Based Architecture
 Components communicate via TypeScript protocols in `/core/protocol` with messenger pattern abstraction enabling IDE-agnostic core functionality.
+
+## Code Style Guidelines
+
+- **JSDoc Comments**: Always use JSDoc above functions, classes, or methods
+  - Keep descriptions concise
+  - Since TypeScript is used, detailed prop and return type descriptions are not necessary
