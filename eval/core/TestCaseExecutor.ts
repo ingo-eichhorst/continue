@@ -11,6 +11,8 @@ import {
   TestStepResult,
   ChatMessage,
   Logger,
+  LLMRequest,
+  LLMResponse,
 } from './types.js';
 
 /**
@@ -179,13 +181,14 @@ export class TestCaseExecutor {
     result.status = success ? "completed" : "failed";
     
     // Copy execution data to result
-    result.llmRequest = execution.llmRequest;
-    result.llmResponse = execution.llmResponse;
     result.testStepResults = execution.testStepResults;
     result.executionResult = execution.executionResult;
     
     // Enhance metrics with timing and token information
-    result.metrics = this.enhanceMetrics(execution.metrics, execution.llmResponse, result.duration);
+    // Extract LLM response data from test steps for metrics calculation
+    const llmResponses = execution.testStepResults?.filter(step => step.llmResponse) || [];
+    const primaryLlmResponse = llmResponses.length > 0 ? llmResponses[0].llmResponse : undefined;
+    result.metrics = this.enhanceMetrics(execution.metrics, primaryLlmResponse, result.duration);
     
     if (success) {
       this.logger.debug(
@@ -250,21 +253,26 @@ export class TestCaseExecutor {
   }
 
   /**
-   * Executes an LLM request with timing and streaming response handling
+   * Executes an LLM request as exactly one test step with timing and streaming response handling
    * This is a utility method that plugins can use for standardized LLM interaction
    */
   static async executeLLMRequest(
     messages: ChatMessage[],
-    model: ILLM,
-    options: Record<string, any> = {}
-  ): Promise<{ content: string; latency: number }> {
+    model: ILLM
+  ): Promise<TestStepResult> {
     const startTime = Date.now();
     const abortController = new AbortController();
+
+    // Create LLM request object
+    const llmRequest: LLMRequest = {
+      model: model.uniqueId,
+      messages,
+      timestamp: new Date(),
+    };
 
     const response = await model.streamChat(
       messages,
       abortController.signal,
-      options,
     );
 
     let content = "";
@@ -275,7 +283,23 @@ export class TestCaseExecutor {
     }
 
     const latency = Date.now() - startTime;
-    return { content: content.trim(), latency };
+    
+    // Create LLM response object
+    const llmResponse: LLMResponse = {
+      content: content.trim(),
+      latency,
+      timestamp: new Date(),
+    };
+
+    // Return as TestStepResult representing one test step
+    return {
+      passed: content.trim().length > 0,
+      details: content.trim().length > 0 
+        ? `LLM generated response (${content.trim().length} characters)`
+        : "Empty response from LLM",
+      llmRequest,
+      llmResponse,
+    };
   }
 
   /**
@@ -304,6 +328,45 @@ export class TestCaseExecutor {
       context,
       logger,
     );
+  }
+
+  /**
+   * Completes a test case by summarizing all test step results into a final TestCaseExecution
+   * This function automatically extracts metrics, determines success, and builds execution results
+   */
+  static completeTestCase(testStepResults: TestStepResult[]): TestCaseExecution {
+    // Extract content from the first LLM step result for stdout
+    const firstLlmStep = testStepResults.find(step => step.llmResponse);
+    const content = firstLlmStep?.llmResponse?.content || "";
+    
+    // Determine overall success
+    const allPassed = testStepResults.every((tsr) => tsr.passed);
+    const failedSteps = testStepResults.filter(step => !step.passed);
+    
+    // Build execution result
+    const executionResult = {
+      stdout: content,
+      stderr: allPassed ? "" : `${failedSteps.length} test step(s) failed`,
+      exitCode: allPassed ? 0 : 1,
+      successful: allPassed,
+    };
+
+    // Extract quality scores from step results (plugins can add custom scores to step.score)
+    const qualityScores: Record<string, number> = {};
+    testStepResults.forEach((step, index) => {
+      if (step.score !== undefined) {
+        qualityScores[`step_${index}_score`] = step.score;
+      }
+    });
+
+    // Build metrics
+    const metrics = TestCaseExecutor.buildBaseMetrics(testStepResults, qualityScores);
+
+    return {
+      testStepResults,
+      executionResult,
+      metrics,
+    };
   }
 
   /**

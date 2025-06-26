@@ -25,8 +25,6 @@ export interface TestExecutionContext {
 }
 
 export interface TestCaseExecution {
-  llmRequest?: LLMRequest;
-  llmResponse?: LLMResponse;
   testStepResults?: TestStepResult[];
   executionResult?: ExecutionResult;
   metrics?: TestCaseMetrics;
@@ -123,10 +121,6 @@ export interface TestCaseResult {
   endTime?: Date;
   duration?: number;
 
-  // LLM interaction
-  llmRequest?: LLMRequest;
-  llmResponse?: LLMResponse;
-
   // Execution results
   executionResult?: ExecutionResult;
 
@@ -176,6 +170,8 @@ export interface TestStepResult {
   score?: number;
   details?: string;
   error?: string;
+  llmRequest?: LLMRequest;
+  llmResponse?: LLMResponse;
 }
 
 // Session management

@@ -172,33 +172,28 @@ ${modificationPrompt}`,
       );
     }
 
-    // Get system prompt from properties
-    const systemPrompt =
-      context.properties.systemPrompt ||
-      this.propertiesSchema.systemPrompt.default;
+    // Properties are validated and populated by BenchmarkEngine
+    const systemPrompt = context.properties.systemPrompt;
 
     // Build and execute LLM request
-    const { messages, llmRequest } = this.buildLLMRequest(
+    const { messages } = this.buildLLMRequest(
       testCase,
       systemPrompt,
       context.model,
     );
 
-    const { content, latency } = await TestCaseExecutor.executeLLMRequest(
+    const llmStepResult = await TestCaseExecutor.executeLLMRequest(
       messages,
       context.model,
     );
 
-    // Record LLM response
-    const llmResponse = { content, latency, timestamp: new Date() };
+    const content = llmStepResult.llmResponse?.content || "";
 
-    // Run validation pipeline
+    // Run validation pipeline with LLM data
     const { testStepResults, executionResult, metrics } =
-      await this.runValidationPipeline(sourceCode, content, testCase, context);
+      await this.runValidationPipeline(sourceCode, content, testCase, context, llmStepResult);
 
     return {
-      llmRequest,
-      llmResponse,
       testStepResults,
       executionResult,
       metrics,
@@ -210,23 +205,24 @@ ${modificationPrompt}`,
     diffContent: string,
     testCase: TestCase,
     context: TestExecutionContext,
-  ): Promise<{
-    testStepResults: TestStepResult[];
-    executionResult: any;
-    metrics: any;
-  }> {
+    llmStepResult: TestStepResult,
+  ): Promise<TestCaseExecution> {
     const testStepResults: TestStepResult[] = [];
     const testCaseId = testCase.id;
 
     context.logger.debug(`[${testCaseId}] Starting validation pipeline`);
 
-    // Step 1: Clean diff content
+    // Step 1: LLM Generation - use the passed LLM step result
+    testStepResults.push(llmStepResult);
+    context.logger.debug(`[${testCaseId}] LLM generation completed`);
+
+    // Step 2: Clean diff content
     const cleanedDiff = this.cleanDiffContent(diffContent);
     context.logger.debug(
       `[${testCaseId}] Content cleaned: ${cleanedDiff.length} chars`,
     );
 
-    // Step 2: Validate format
+    // Step 3: Validate format
     const isValidFormat = this.validateDiffFormat(
       cleanedDiff,
       testStepResults,
@@ -234,23 +230,24 @@ ${modificationPrompt}`,
     if (!isValidFormat) {
       context.logger.debug(`[${testCaseId}] Format validation failed`);
 
-      const executionResult = {
-        stdout: "",
-        stderr: "Generated content is not a valid unified diff",
-        exitCode: 1,
-        successful: false,
-      };
+      // Add format validation as a score
+      const formatStep = testStepResults.find(step => step.details?.includes("unified diff format"));
+      if (formatStep) {
+        formatStep.score = isValidFormat ? 1 : 0;
+      }
 
-      const metrics = TestCaseExecutor.buildBaseMetrics(testStepResults, {
-        formatValid: isValidFormat ? 1 : 0,
-        applySuccess: 0,
-      });
+      const execution = TestCaseExecutor.completeTestCase(testStepResults);
 
-      return { testStepResults, executionResult, metrics };
+      // Override stderr for validation failure
+      if (execution.executionResult) {
+        execution.executionResult.stderr = "Generated content is not a valid unified diff";
+      }
+
+      return execution;
     }
     context.logger.debug(`[${testCaseId}] Format validation passed`);
 
-    // Step 3: Apply diff
+    // Step 4: Apply diff
     const {
       success: applySuccess,
       appliedCode,
@@ -260,7 +257,7 @@ ${modificationPrompt}`,
       `[${testCaseId}] Diff application: ${applySuccess ? "succeeded" : "failed"}`,
     );
 
-    // Step 4: Run unit tests (if applicable)
+    // Step 5: Run unit tests (if applicable)
     if (applySuccess && testCase.expected?.unitTest) {
       await this.runUnitTests(
         appliedCode,
@@ -272,23 +269,30 @@ ${modificationPrompt}`,
       context.logger.debug(`[${testCaseId}] Unit tests completed`);
     }
 
-    // Step 5: Build results
-    const executionResult = {
-      stdout: applySuccess ? "Diff applied successfully" : "",
-      stderr: applyError,
-      exitCode: applySuccess ? 0 : 1,
-      successful: applySuccess,
-    };
+    // Step 5: Add metrics as scores to relevant steps
+    const formatStep = testStepResults.find(step => step.details?.includes("unified diff format"));
+    if (formatStep) {
+      formatStep.score = isValidFormat ? 1 : 0;
+    }
 
-    const metrics = TestCaseExecutor.buildBaseMetrics(testStepResults, {
-      formatValid: isValidFormat ? 1 : 0,
-      applySuccess: applySuccess ? 1 : 0,
-    });
+    const applyStep = testStepResults.find(step => step.details?.includes("Diff application") || step.details?.includes("Diff applied"));
+    if (applyStep) {
+      applyStep.score = applySuccess ? 1 : 0;
+    }
 
+    // Build results using TestCaseExecutor utility
     context.logger.debug(
       `[${testCaseId}] Pipeline completed: ${testStepResults.filter((r) => r.passed).length}/${testStepResults.length} steps passed`,
     );
 
-    return { testStepResults, executionResult, metrics };
+    const execution = TestCaseExecutor.completeTestCase(testStepResults);
+
+    // Override stdout/stderr for diff-specific messaging
+    if (execution.executionResult) {
+      execution.executionResult.stdout = applySuccess ? "Diff applied successfully" : "";
+      execution.executionResult.stderr = applyError;
+    }
+
+    return execution;
   }
 }

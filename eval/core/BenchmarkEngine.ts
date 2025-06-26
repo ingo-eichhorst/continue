@@ -11,6 +11,7 @@ import {
   Dataset,
   ExecutionEnvironment,
   Logger,
+  PropertySchema,
   ResultSummary,
   TestCaseResult
 } from './types.js';
@@ -43,6 +44,100 @@ export class BenchmarkEngine {
     return Array.from(this.plugins.keys());
   }
 
+  /**
+   * Validates and populates properties according to the plugin's properties schema
+   * Ensures all required properties are present and applies default values where needed
+   */
+  private validateAndPopulateProperties(
+    plugin: BenchmarkPlugin, 
+    inputProperties: Record<string, any>
+  ): Record<string, any> {
+    const validatedProperties: Record<string, any> = { ...inputProperties };
+    const errors: string[] = [];
+
+    // Process each property in the schema
+    for (const [propertyName, schema] of Object.entries(plugin.propertiesSchema)) {
+      const value = validatedProperties[propertyName];
+
+      // Check if required property is missing
+      if (schema.required && (value === undefined || value === null)) {
+        // Try to use default value if available
+        if (schema.default !== undefined) {
+          validatedProperties[propertyName] = schema.default;
+          this.logger.debug(`Applied default value for required property '${propertyName}': ${schema.default}`);
+        } else {
+          errors.push(`Required property '${propertyName}' is missing and has no default value`);
+        }
+      }
+      // Apply default value if property is undefined and default exists
+      else if (value === undefined && schema.default !== undefined) {
+        validatedProperties[propertyName] = schema.default;
+        this.logger.debug(`Applied default value for property '${propertyName}': ${schema.default}`);
+      }
+      // Validate type if value is present
+      else if (value !== undefined) {
+        const validationError = this.validatePropertyType(propertyName, value, schema);
+        if (validationError) {
+          errors.push(validationError);
+        }
+      }
+    }
+
+    // Throw error if validation failed
+    if (errors.length > 0) {
+      throw new Error(`Property validation failed for plugin '${plugin.name}':\n${errors.join('\n')}`);
+    }
+
+    return validatedProperties;
+  }
+
+  /**
+   * Validates that a property value matches its schema type
+   */
+  private validatePropertyType(
+    propertyName: string, 
+    value: any, 
+    schema: PropertySchema
+  ): string | null {
+    const { type, enum: enumValues } = schema;
+
+    // Check enum values first if specified
+    if (enumValues && !enumValues.includes(value)) {
+      return `Property '${propertyName}' value '${value}' is not in allowed enum values: [${enumValues.join(', ')}]`;
+    }
+
+    // Type validation
+    switch (type) {
+      case 'string':
+        if (typeof value !== 'string') {
+          return `Property '${propertyName}' expected string, got ${typeof value}`;
+        }
+        break;
+      case 'number':
+        if (typeof value !== 'number' || isNaN(value)) {
+          return `Property '${propertyName}' expected number, got ${typeof value}`;
+        }
+        break;
+      case 'boolean':
+        if (typeof value !== 'boolean') {
+          return `Property '${propertyName}' expected boolean, got ${typeof value}`;
+        }
+        break;
+      case 'array':
+        if (!Array.isArray(value)) {
+          return `Property '${propertyName}' expected array, got ${typeof value}`;
+        }
+        break;
+      case 'object':
+        if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+          return `Property '${propertyName}' expected object, got ${typeof value}`;
+        }
+        break;
+    }
+
+    return null; // No validation error
+  }
+
   // Session management
   async createSession(
     pluginName: string,
@@ -56,6 +151,9 @@ export class BenchmarkEngine {
       throw new Error(`Plugin ${pluginName} not found`);
     }
 
+    // Validate and populate properties according to plugin schema
+    const validatedProperties = this.validateAndPopulateProperties(plugin, properties);
+
     const sessionId = uuidv4();
     const session: BenchmarkSession = {
       id: sessionId,
@@ -66,7 +164,7 @@ export class BenchmarkEngine {
       config: {
         models: models.map(m => m.uniqueId),
         dataset: dataset.name,
-        properties,
+        properties: validatedProperties,
         executionEnvironment: executionEnvironment.type,
         maxRetries: 3,
         timeout: 300000 // 5 minutes
@@ -81,7 +179,7 @@ export class BenchmarkEngine {
     };
 
     await this.sessionManager.saveSession(session);
-    this.logger.info(`Created session ${sessionId} for plugin ${pluginName}`);
+    this.logger.info(`Created session ${sessionId} for plugin ${pluginName} with validated properties`);
     return session;
   }
 
@@ -164,6 +262,10 @@ export class BenchmarkEngine {
     const startTime = new Date();
     const allTestCases: TestCaseResult[] = [];
 
+    // Validate and populate properties according to plugin schema
+    const validatedProperties = this.validateAndPopulateProperties(plugin, properties);
+    this.logger.info(`Properties validated for plugin '${plugin.name}'`);
+
     this.logger.info(
       `Starting benchmark with ${models.length} models and ${dataset.testCases.length} test cases`
     );
@@ -172,12 +274,12 @@ export class BenchmarkEngine {
     for (const model of models) {
       this.logger.info(`Testing model: ${model.uniqueId}`);
 
-      // Create context for this specific model
+      // Create context for this specific model with validated properties
       const context: BenchmarkContext = {
         model,
         dataset,
         session,
-        properties,
+        properties: validatedProperties,
         executionEnvironment,
         logger: this.logger
       };
@@ -284,7 +386,8 @@ export class BenchmarkEngine {
       .filter((d): d is number => d !== undefined);
     
     const tokenUsage = completedTests
-      .map(tc => tc.llmResponse?.usage?.totalTokens)
+      .flatMap(tc => tc.testStepResults || [])
+      .map(step => step.llmResponse?.usage?.totalTokens)
       .filter((t): t is number => t !== undefined);
 
     const averageLatency = latencies.length > 0 

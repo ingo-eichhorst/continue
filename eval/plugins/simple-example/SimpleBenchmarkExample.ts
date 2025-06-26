@@ -24,15 +24,14 @@ export class SimpleBenchmarkExample implements BenchmarkPlugin {
 
   defaultDataset = "datasets/simple-demo-dataset";
 
-
   async executeTestCase(
     testCase: TestCase,
     context: TestExecutionContext,
   ): Promise<TestCaseExecution> {
-    // Get system prompt from properties
-    const systemPrompt =
-      context.properties.systemPrompt ||
-      this.propertiesSchema.systemPrompt.default;
+    // Properties are validated and populated by BenchmarkEngine
+    const systemPrompt = context.properties.systemPrompt;
+
+    const testStepResults: TestStepResult[] = [];
 
     // Build LLM request
     const messages = [
@@ -40,69 +39,32 @@ export class SimpleBenchmarkExample implements BenchmarkPlugin {
       { role: "user" as const, content: testCase.input.prompt },
     ];
 
-    // Execute LLM request using TestCaseExecutor utility
-    const { content, latency } = await TestCaseExecutor.executeLLMRequest(
+    // Step 1: Execute LLM request using TestCaseExecutor utility
+    const llmStepResult = await TestCaseExecutor.executeLLMRequest(
       messages,
       context.model,
     );
+    testStepResults.push(llmStepResult);
 
-    // Simple validation: check if response is not empty
-    const testStepResults: TestStepResult[] = [
-      {
-        passed: content.length > 0,
-        details:
-          content.length > 0
-            ? "Response generated successfully"
-            : "Empty response from LLM",
-      },
-    ];
-
-    // If expected output is provided, validate against it
+    // Step 2: Content validation (if expected output is provided)
+    // TODO: this should be validated with the datasetSchema provided
     if (testCase.expected?.output) {
       const expectedOutput = testCase.expected.output;
+      const content = llmStepResult.llmResponse?.content || "";
       const containsExpected = content
         .toLowerCase()
         .includes(expectedOutput.toLowerCase());
 
       testStepResults.push({
         passed: containsExpected,
+        score: containsExpected ? 1 : 0,
         details: containsExpected
           ? `Response contains expected content: "${expectedOutput}"`
           : `Response does not contain expected content: "${expectedOutput}"`,
       });
     }
 
-    // Build metrics using TestCaseExecutor utility
-    const metrics = TestCaseExecutor.buildBaseMetrics(testStepResults, {
-      responseLength: content.length,
-      hasExpectedContent: testCase.expected?.output
-        ? content.toLowerCase().includes(testCase.expected.output.toLowerCase())
-          ? 1
-          : 0
-        : 1,
-    });
-
-    const llmRequest = {
-      model: context.model.uniqueId,
-      messages,
-      timestamp: new Date(),
-    };
-
-    const llmResponse = { content, latency, timestamp: new Date() };
-
-    const executionResult = {
-      stdout: content,
-      stderr: "",
-      exitCode: testStepResults.every((tsr) => tsr.passed) ? 0 : 1,
-      successful: testStepResults.every((tsr) => tsr.passed),
-    };
-
-    return {
-      llmRequest,
-      llmResponse,
-      testStepResults,
-      executionResult,
-      metrics,
-    };
+    // Complete test case using TestCaseExecutor utility
+    return TestCaseExecutor.completeTestCase(testStepResults);
   }
 }

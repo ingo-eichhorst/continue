@@ -42,12 +42,16 @@ export class SessionManager {
           session.results?.forEach(result => {
             if (result.startTime) result.startTime = new Date(result.startTime);
             if (result.endTime) result.endTime = new Date(result.endTime);
-            if (result.llmRequest?.timestamp) {
-              result.llmRequest.timestamp = new Date(result.llmRequest.timestamp);
-            }
-            if (result.llmResponse?.timestamp) {
-              result.llmResponse.timestamp = new Date(result.llmResponse.timestamp);
-            }
+            
+            // Convert dates in test step results
+            result.testStepResults?.forEach(stepResult => {
+              if (stepResult.llmRequest?.timestamp) {
+                stepResult.llmRequest.timestamp = new Date(stepResult.llmRequest.timestamp);
+              }
+              if (stepResult.llmResponse?.timestamp) {
+                stepResult.llmResponse.timestamp = new Date(stepResult.llmResponse.timestamp);
+              }
+            });
           });
 
           this.sessions.set(session.id, session);
@@ -97,12 +101,16 @@ export class SessionManager {
       session.results?.forEach(result => {
         if (result.startTime) result.startTime = new Date(result.startTime);
         if (result.endTime) result.endTime = new Date(result.endTime);
-        if (result.llmRequest?.timestamp) {
-          result.llmRequest.timestamp = new Date(result.llmRequest.timestamp);
-        }
-        if (result.llmResponse?.timestamp) {
-          result.llmResponse.timestamp = new Date(result.llmResponse.timestamp);
-        }
+        
+        // Convert dates in test step results
+        result.testStepResults?.forEach(stepResult => {
+          if (stepResult.llmRequest?.timestamp) {
+            stepResult.llmRequest.timestamp = new Date(stepResult.llmRequest.timestamp);
+          }
+          if (stepResult.llmResponse?.timestamp) {
+            stepResult.llmResponse.timestamp = new Date(stepResult.llmResponse.timestamp);
+          }
+        });
       });
 
       this.sessions.set(session.id, session);
