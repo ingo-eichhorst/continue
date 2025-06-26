@@ -1,0 +1,100 @@
+{
+  "id": "3cf1db35-934f-4206-805a-65114733c11d",
+  "pluginName": "unified-diff-testing",
+  "startTime": "2025-06-25T19:52:52.024Z",
+  "lastUpdateTime": "2025-06-25T19:52:59.715Z",
+  "status": "completed",
+  "config": {
+    "models": [
+      "None"
+    ],
+    "dataset": "unified-diff-demo-dataset",
+    "properties": {},
+    "executionEnvironment": "local",
+    "maxRetries": 3,
+    "timeout": 300000
+  },
+  "progress": {
+    "totalTestCases": 2,
+    "completedTestCases": 2,
+    "failedTestCases": 0,
+    "skippedTestCases": 0,
+    "currentTestCase": "test-002-None"
+  },
+  "results": [
+    {
+      "testCaseId": "test-001-None",
+      "modelId": "None",
+      "status": "completed",
+      "startTime": "2025-06-25T19:52:52.026Z",
+      "llmRequest": {
+        "model": "None",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Here is the source code:\n\n```\nfunction calculate(a, b) {\n  return a + b;\n}\n```\n\nAdd error handling to the function"
+          }
+        ],
+        "systemPrompt": "You are a helpful assistant that generates unified diffs. Generate only the unified diff without any additional explanation or markdown formatting.",
+        "timestamp": "2025-06-25T19:52:52.026Z"
+      },
+      "llmResponse": {
+        "content": "To add error handling to the `calculate` function, you can incorporate some checks to ensure that the inputs are numbers. If they're not, you can throw an error. Here's an updated version of the function with basic error handling:\n\n```javascript\nfunction calculate(a, b) {\n  if (typeof a !== 'number' || typeof b !== 'number') {\n    throw new Error('Both arguments must be numbers');\n  }\n\n  return a + b;\n}\n```\n\nThis version of `calculate` will throw an error if either `a` or `b` is not a number. This prevents unexpected results or bugs that might occur if invalid inputs are provided. When using this function, you can also wrap your calls in a `try-catch` block to handle the error gracefully:\n\n```javascript\ntry {\n  const result = calculate(5, '3');\n  console.log('Result:', result);\n} catch (error) {\n  console.error('Error:', error.message);\n}\n```\n\nIn this example, the error will be caught, and you'll see a message in the console indicating that both arguments must be numbers.",
+        "latency": 4585,
+        "timestamp": "2025-06-25T19:52:56.615Z"
+      },
+      "validationResults": [
+        {
+          "type": "format",
+          "passed": false,
+          "details": "Invalid unified diff format"
+        }
+      ],
+      "error": {
+        "type": "validation",
+        "message": "Generated content is not a valid unified diff",
+        "details": "Content: To add error handling to the `calculate` function, you can incorporate some checks to ensure that the inputs are numbers. If they're not, you can throw an error. Here's an updated version of the funct...",
+        "recoverable": true
+      },
+      "endTime": "2025-06-25T19:52:56.616Z",
+      "duration": 4590
+    },
+    {
+      "testCaseId": "test-002-None",
+      "modelId": "None",
+      "status": "completed",
+      "startTime": "2025-06-25T19:52:56.616Z",
+      "llmRequest": {
+        "model": "None",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Here is the source code:\n\n```\nfunction multiply(x, y) {\n  return x * y;\n}\n```\n\nAdd JSDoc documentation to the function"
+          }
+        ],
+        "systemPrompt": "You are a helpful assistant that generates unified diffs. Generate only the unified diff without any additional explanation or markdown formatting.",
+        "timestamp": "2025-06-25T19:52:56.616Z"
+      },
+      "llmResponse": {
+        "content": "Certainly! JSDoc is a standard for documenting JavaScript code, and adding it to your function will help others understand how to use it. Here is how you can add JSDoc documentation to the `multiply` function:\n\n```javascript\n/**\n * Multiplies two numbers and returns the result.\n *\n * @param {number} x - The first number to be multiplied.\n * @param {number} y - The second number to be multiplied.\n * @returns {number} The product of the two numbers.\n */\nfunction multiply(x, y) {\n  return x * y;\n}\n```\n\nThis documentation includes:\n\n- A brief description of what the function does.\n- `@param` tags that describe each parameter, including their types.\n- `@returns` tag describing the return value and its type.",
+        "latency": 3095,
+        "timestamp": "2025-06-25T19:52:59.713Z"
+      },
+      "validationResults": [
+        {
+          "type": "format",
+          "passed": false,
+          "details": "Invalid unified diff format"
+        }
+      ],
+      "error": {
+        "type": "validation",
+        "message": "Generated content is not a valid unified diff",
+        "details": "Content: Certainly! JSDoc is a standard for documenting JavaScript code, and adding it to your function will help others understand how to use it. Here is how you can add JSDoc documentation to the `multiply` ...",
+        "recoverable": true
+      },
+      "endTime": "2025-06-25T19:52:59.714Z",
+      "duration": 3098
+    }
+  ]
+}

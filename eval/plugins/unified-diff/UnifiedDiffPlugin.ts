@@ -75,9 +75,7 @@ export class UnifiedDiffPlugin implements BenchmarkPlugin {
 ${sourceCode}
 \`\`\`
 
-${modificationPrompt}
-
-Please generate a unified diff that applies this modification to the source code. Return only the unified diff without any additional explanation.`,
+${modificationPrompt}`,
       },
     ];
 

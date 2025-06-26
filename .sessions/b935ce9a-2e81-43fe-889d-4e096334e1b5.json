@@ -1,0 +1,24 @@
+{
+  "id": "b935ce9a-2e81-43fe-889d-4e096334e1b5",
+  "pluginName": "unified-diff-testing",
+  "startTime": "2025-06-25T12:09:04.924Z",
+  "lastUpdateTime": "2025-06-25T12:09:04.926Z",
+  "status": "running",
+  "config": {
+    "models": [
+      "None"
+    ],
+    "dataset": "unified-diff-demo-dataset",
+    "properties": {},
+    "executionEnvironment": "local",
+    "maxRetries": 3,
+    "timeout": 300000
+  },
+  "progress": {
+    "totalTestCases": 10,
+    "completedTestCases": 0,
+    "failedTestCases": 0,
+    "skippedTestCases": 0
+  },
+  "results": []
+}

@@ -1,0 +1,152 @@
+{
+  "id": "51a2e965-5f79-4c69-b9d9-e7a4e2822c2d",
+  "pluginName": "unified-diff-testing",
+  "startTime": "2025-06-25T20:30:22.629Z",
+  "lastUpdateTime": "2025-06-25T20:30:27.219Z",
+  "status": "completed",
+  "config": {
+    "models": [
+      "None"
+    ],
+    "dataset": "unified-diff-demo-dataset",
+    "properties": {},
+    "executionEnvironment": "local",
+    "maxRetries": 3,
+    "timeout": 300000
+  },
+  "progress": {
+    "totalTestCases": 2,
+    "completedTestCases": 2,
+    "failedTestCases": 0,
+    "skippedTestCases": 0,
+    "currentTestCase": "test-002-None"
+  },
+  "results": [
+    {
+      "testCaseId": "test-001-None",
+      "modelId": "None",
+      "status": "completed",
+      "startTime": "2025-06-25T20:30:22.630Z",
+      "llmRequest": {
+        "model": "None",
+        "messages": [
+          {
+            "role": "system",
+            "content": "You are a helpful assistant that generates unified diffs. Generate only the unified diff without any additional explanation or markdown formatting."
+          },
+          {
+            "role": "user",
+            "content": "Here is the source code:\n\n```\nfunction calculate(a, b) {\n  return a + b;\n}\n```\n\nAdd error handling to the function\n\nPlease generate a unified diff that applies this modification to the source code. Return only the unified diff without any additional explanation."
+          }
+        ],
+        "timestamp": "2025-06-25T20:30:22.630Z"
+      },
+      "llmResponse": {
+        "content": "```diff\n--- original.js\n+++ modified.js\n@@ -1,4 +1,10 @@\n function calculate(a, b) {\n+  if (typeof a !== 'number' || typeof b !== 'number') {\n+    throw new Error('Both arguments must be numbers');\n+  }\n   return a + b;\n }\n```",
+        "latency": 2023,
+        "timestamp": "2025-06-25T20:30:24.657Z"
+      },
+      "validationResults": [
+        {
+          "type": "format",
+          "passed": true,
+          "details": "Valid unified diff format"
+        },
+        {
+          "type": "application",
+          "passed": true,
+          "details": "Diff applied successfully"
+        },
+        {
+          "type": "execution",
+          "passed": true,
+          "details": "Unit test passed: ✓ Test passed"
+        }
+      ],
+      "executionResult": {
+        "stdout": "Diff applied successfully",
+        "stderr": "",
+        "exitCode": 0,
+        "successful": true
+      },
+      "metrics": {
+        "latency": 2023,
+        "tokens": {
+          "prompt": 0,
+          "completion": 0,
+          "total": 0
+        },
+        "qualityScores": {
+          "formatValid": 1,
+          "applySuccess": 1,
+          "overallQuality": 1
+        }
+      },
+      "endTime": "2025-06-25T20:30:24.704Z",
+      "duration": 2074
+    },
+    {
+      "testCaseId": "test-002-None",
+      "modelId": "None",
+      "status": "completed",
+      "startTime": "2025-06-25T20:30:24.704Z",
+      "llmRequest": {
+        "model": "None",
+        "messages": [
+          {
+            "role": "system",
+            "content": "You are a helpful assistant that generates unified diffs. Generate only the unified diff without any additional explanation or markdown formatting."
+          },
+          {
+            "role": "user",
+            "content": "Here is the source code:\n\n```\nfunction multiply(x, y) {\n  return x * y;\n}\n```\n\nAdd JSDoc documentation to the function\n\nPlease generate a unified diff that applies this modification to the source code. Return only the unified diff without any additional explanation."
+          }
+        ],
+        "timestamp": "2025-06-25T20:30:24.704Z"
+      },
+      "llmResponse": {
+        "content": "```\n--- original.js\n+++ modified.js\n@@ -1,3 +1,7 @@\n+/**\n+ * Multiplies two numbers.\n+ * @param {number} x - The first number.\n+ * @param {number} y - The second number.\n+ * @returns {number} The product of the two numbers.\n+ */\n function multiply(x, y) {\n   return x * y;\n }\n```",
+        "latency": 2466,
+        "timestamp": "2025-06-25T20:30:27.172Z"
+      },
+      "validationResults": [
+        {
+          "type": "format",
+          "passed": true,
+          "details": "Valid unified diff format"
+        },
+        {
+          "type": "application",
+          "passed": true,
+          "details": "Diff applied successfully"
+        },
+        {
+          "type": "execution",
+          "passed": true,
+          "details": "Unit test passed: ✓ Test passed"
+        }
+      ],
+      "executionResult": {
+        "stdout": "Diff applied successfully",
+        "stderr": "",
+        "exitCode": 0,
+        "successful": true
+      },
+      "metrics": {
+        "latency": 2466,
+        "tokens": {
+          "prompt": 0,
+          "completion": 0,
+          "total": 0
+        },
+        "qualityScores": {
+          "formatValid": 1,
+          "applySuccess": 1,
+          "overallQuality": 1
+        }
+      },
+      "endTime": "2025-06-25T20:30:27.219Z",
+      "duration": 2515
+    }
+  ]
+}

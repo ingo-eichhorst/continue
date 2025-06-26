@@ -1,0 +1,78 @@
+{
+  "id": "e8a93144-7fe4-46d1-8836-390b17456073",
+  "pluginName": "unified-diff-testing",
+  "startTime": "2025-06-25T13:20:25.600Z",
+  "lastUpdateTime": "2025-06-25T13:20:31.763Z",
+  "status": "completed",
+  "config": {
+    "models": [
+      "None"
+    ],
+    "dataset": "unified-diff-demo-dataset",
+    "properties": {},
+    "executionEnvironment": "local",
+    "maxRetries": 3,
+    "timeout": 300000
+  },
+  "progress": {
+    "totalTestCases": 2,
+    "completedTestCases": 2,
+    "failedTestCases": 2,
+    "skippedTestCases": 0,
+    "currentTestCase": "test-002-None"
+  },
+  "results": [
+    {
+      "testCaseId": "test-001-None",
+      "modelId": "None",
+      "status": "failed",
+      "startTime": "2025-06-25T13:20:25.601Z",
+      "llmRequest": {
+        "model": "None",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Here is the source code:\n\n```\nfunction calculate(a, b) {\n  return a + b;\n}\n```\n\nAdd error handling to the function\n\nPlease generate a unified diff that applies this modification to the source code. Return only the unified diff without any additional explanation."
+          }
+        ],
+        "systemPrompt": "You are a helpful assistant that generates unified diffs. Generate only the unified diff without any additional explanation or markdown formatting.",
+        "temperature": 0.1,
+        "timestamp": "2025-06-25T13:20:25.601Z"
+      },
+      "endTime": "2025-06-25T13:20:28.742Z",
+      "duration": 3141,
+      "error": {
+        "type": "execution",
+        "message": "Expected signal to be an instanceof AbortSignal or EventTarget",
+        "details": "TypeError: Expected signal to be an instanceof AbortSignal or EventTarget\n    at new Request (/Users/ingo/privat/continue/core/node_modules/node-fetch/src/request.js:106:10)\n    at <anonymous> (/Users/ingo/privat/continue/core/node_modules/node-fetch/src/index.js:51:19)\n    at new Promise (<anonymous>)\n    at fetch (/Users/ingo/privat/continue/core/node_modules/node-fetch/src/index.js:49:9)\n    at fetchwithRequestOptions (/Users/ingo/privat/continue/core/node_modules/@continuedev/fetch/dist/fetch.js:83:24)\n    at customFetch (/Users/ingo/privat/continue/core/llm/index.ts:377:28)\n    at <anonymous> (/Users/ingo/privat/continue/core/llm/index.ts:455:13)\n    at withExponentialBackoff (/Users/ingo/privat/continue/core/util/withExponentialBackoff.ts:14:28)\n    at Anthropic.fetch (/Users/ingo/privat/continue/core/llm/index.ts:454:12)\n    at Anthropic._streamChat (/Users/ingo/privat/continue/core/llm/llms/Anthropic.ts:189:33)",
+        "recoverable": false
+      }
+    },
+    {
+      "testCaseId": "test-002-None",
+      "modelId": "None",
+      "status": "failed",
+      "startTime": "2025-06-25T13:20:28.742Z",
+      "llmRequest": {
+        "model": "None",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Here is the source code:\n\n```\nfunction multiply(x, y) {\n  return x * y;\n}\n```\n\nAdd JSDoc documentation to the function\n\nPlease generate a unified diff that applies this modification to the source code. Return only the unified diff without any additional explanation."
+          }
+        ],
+        "systemPrompt": "You are a helpful assistant that generates unified diffs. Generate only the unified diff without any additional explanation or markdown formatting.",
+        "temperature": 0.1,
+        "timestamp": "2025-06-25T13:20:28.742Z"
+      },
+      "endTime": "2025-06-25T13:20:31.761Z",
+      "duration": 3019,
+      "error": {
+        "type": "execution",
+        "message": "Expected signal to be an instanceof AbortSignal or EventTarget",
+        "details": "TypeError: Expected signal to be an instanceof AbortSignal or EventTarget\n    at new Request (/Users/ingo/privat/continue/core/node_modules/node-fetch/src/request.js:106:10)\n    at <anonymous> (/Users/ingo/privat/continue/core/node_modules/node-fetch/src/index.js:51:19)\n    at new Promise (<anonymous>)\n    at fetch (/Users/ingo/privat/continue/core/node_modules/node-fetch/src/index.js:49:9)\n    at fetchwithRequestOptions (/Users/ingo/privat/continue/core/node_modules/@continuedev/fetch/dist/fetch.js:83:24)\n    at customFetch (/Users/ingo/privat/continue/core/llm/index.ts:377:28)\n    at <anonymous> (/Users/ingo/privat/continue/core/llm/index.ts:455:13)\n    at withExponentialBackoff (/Users/ingo/privat/continue/core/util/withExponentialBackoff.ts:14:28)\n    at Anthropic.fetch (/Users/ingo/privat/continue/core/llm/index.ts:454:12)\n    at Anthropic._streamChat (/Users/ingo/privat/continue/core/llm/llms/Anthropic.ts:189:33)",
+        "recoverable": false
+      }
+    }
+  ]
+}

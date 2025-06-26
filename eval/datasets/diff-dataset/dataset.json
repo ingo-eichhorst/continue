@@ -20,7 +20,7 @@
         "modificationPrompt": "Add try-catch error handling to this function that catches any errors and returns null"
       },
       "expected": {
-        "unitTest": "function testCalculate() {\n  // Test normal operation\n  assert.strictEqual(calculate(2, 3), 5);\n  // Test error handling\n  assert.throws(() => calculate('invalid', 'args'), Error);\n}"
+        "unitTest": "function testCalculate() {\n  // Test normal operation\n  assert.strictEqual(calculate(2, 3), 6);\n  // Test error handling\n  assert.throws(() => calculate('invalid', 'args'), Error);\n}"
       },
       "metadata": { "language": "javascript", "difficulty": "easy" }
     },

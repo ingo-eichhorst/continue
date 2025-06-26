@@ -1,0 +1,152 @@
+{
+  "id": "ee6cf258-08f3-41ab-8be1-e7ff6c74c877",
+  "pluginName": "unified-diff-testing",
+  "startTime": "2025-06-26T06:49:32.031Z",
+  "lastUpdateTime": "2025-06-26T06:49:37.016Z",
+  "status": "completed",
+  "config": {
+    "models": [
+      "None"
+    ],
+    "dataset": "unified-diff-demo-dataset",
+    "properties": {},
+    "executionEnvironment": "docker",
+    "maxRetries": 3,
+    "timeout": 300000
+  },
+  "progress": {
+    "totalTestCases": 2,
+    "completedTestCases": 2,
+    "failedTestCases": 1,
+    "skippedTestCases": 0,
+    "currentTestCase": "test-002-None"
+  },
+  "results": [
+    {
+      "testCaseId": "test-001-None",
+      "modelId": "None",
+      "status": "failed",
+      "startTime": "2025-06-26T06:49:32.036Z",
+      "endTime": "2025-06-26T06:49:34.734Z",
+      "duration": 2698,
+      "llmRequest": {
+        "model": "None",
+        "messages": [
+          {
+            "role": "system",
+            "content": "You are a helpful assistant that generates unified diffs. Generate only the unified diff without any additional explanation or markdown formatting."
+          },
+          {
+            "role": "user",
+            "content": "Here is the source code:\n\n```\nfunction calculate(a, b) {\n  return a + b;\n}\n```\n\nAdd error handling to the function\n\nPlease generate a unified diff that applies this modification to the source code. Return only the unified diff without any additional explanation."
+          }
+        ],
+        "timestamp": "2025-06-26T06:49:32.036Z"
+      },
+      "llmResponse": {
+        "content": "```\n--- original.js\n+++ modified.js\n@@ -1,4 +1,9 @@\n function calculate(a, b) {\n+  if (typeof a !== 'number' || typeof b !== 'number') {\n+    throw new Error('Both arguments must be numbers');\n+  }\n+\n   return a + b;\n }\n```",
+        "latency": 2281,
+        "timestamp": "2025-06-26T06:49:34.322Z"
+      },
+      "validationResults": [
+        {
+          "passed": true,
+          "details": "Valid unified diff format"
+        },
+        {
+          "passed": true,
+          "details": "Diff applied successfully"
+        },
+        {
+          "passed": false,
+          "details": "Unit test failed: ✗ Test failed: Expected values to be strictly equal:\n\n5 !== 6"
+        }
+      ],
+      "executionResult": {
+        "stdout": "Diff applied successfully",
+        "stderr": "",
+        "exitCode": 0,
+        "successful": true
+      },
+      "metrics": {
+        "latency": 2281,
+        "tokens": {
+          "prompt": 0,
+          "completion": 0,
+          "total": 0
+        },
+        "qualityScores": {
+          "formatValid": 1,
+          "applySuccess": 1,
+          "overallQuality": 0.6666666666666666
+        }
+      },
+      "error": {
+        "type": "validation",
+        "message": "One or more validation steps failed",
+        "details": "Check validationResults for specific failures",
+        "recoverable": true
+      }
+    },
+    {
+      "testCaseId": "test-002-None",
+      "modelId": "None",
+      "status": "completed",
+      "startTime": "2025-06-26T06:49:34.734Z",
+      "endTime": "2025-06-26T06:49:37.011Z",
+      "duration": 2277,
+      "llmRequest": {
+        "model": "None",
+        "messages": [
+          {
+            "role": "system",
+            "content": "You are a helpful assistant that generates unified diffs. Generate only the unified diff without any additional explanation or markdown formatting."
+          },
+          {
+            "role": "user",
+            "content": "Here is the source code:\n\n```\nfunction multiply(x, y) {\n  return x * y;\n}\n```\n\nAdd JSDoc documentation to the function\n\nPlease generate a unified diff that applies this modification to the source code. Return only the unified diff without any additional explanation."
+          }
+        ],
+        "timestamp": "2025-06-26T06:49:34.735Z"
+      },
+      "llmResponse": {
+        "content": "```diff\n--- a/source.js\n+++ b/source.js\n@@ -1,4 +1,8 @@\n+/**\n+ * Multiplies two numbers.\n+ * @param {number} x - The first number.\n+ * @param {number} y - The second number.\n+ * @returns {number} The product of the two numbers.\n+ */\n function multiply(x, y) {\n   return x * y;\n }\n```",
+        "latency": 2060,
+        "timestamp": "2025-06-26T06:49:36.797Z"
+      },
+      "validationResults": [
+        {
+          "passed": true,
+          "details": "Valid unified diff format"
+        },
+        {
+          "passed": true,
+          "details": "Diff applied successfully"
+        },
+        {
+          "passed": true,
+          "details": "Unit test passed: ✓ Test passed"
+        }
+      ],
+      "executionResult": {
+        "stdout": "Diff applied successfully",
+        "stderr": "",
+        "exitCode": 0,
+        "successful": true
+      },
+      "metrics": {
+        "latency": 2060,
+        "tokens": {
+          "prompt": 0,
+          "completion": 0,
+          "total": 0
+        },
+        "qualityScores": {
+          "formatValid": 1,
+          "applySuccess": 1,
+          "overallQuality": 1
+        }
+      }
+    }
+  ]
+}

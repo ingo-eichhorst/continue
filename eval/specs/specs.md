@@ -7,13 +7,16 @@ Based on GitHub issue #4906 and community feedback, this architecture implements
 ## Components
 
 ### Entry Point CLI
+
 - CLI param resolution
 - Config Loading
 
 ### MicroKernel Core
+
 **Benchmark Engine**
 
 - Input (cli, env, .env file, config-file, benchmark-plugin-defaults):
+
   - "--continue" last session or "--continue 123" any session by id
   - "--benchmark <benchmark-name>" benchmark
   - models(list or .env file)
@@ -30,16 +33,20 @@ Based on GitHub issue #4906 and community feedback, this architecture implements
     // 7. Generate report from the results
 
 **Session management**
+
 - Persist in ./eval/.sessions/<session-id>.json
 - Session uuid is provided when benchmark is started
 - Session is persistend after every test case execution
 - If benchmark dies, the session is picked up. all testcases that have been executed are skipped
 
 #### Error Handling
+
 - If one tests errors out persist the session and exit
 
 ### Benchmark Plugins
+
 **One Shot Generation**
+
 - Provide general Plugin generation System Prompt
 - Add details in query for the benchmark you want to create
 
@@ -93,21 +100,22 @@ export class UnifiedDiffBenchmark implements BenchmarkPlugin {
   };
 
   async execute(context: BenchmarkContext): Promise<BenchmarkResult> {
-    // 2. For each test case, generate diff via LLM
-    // 3. Apply diff to source code
-    // 4. Run unit tests on modified code in ExecutionEnvironment
-    // 5. Save session state and run next test
-    // 6. Return results
+    // For each test case:
+    // Step 1: generate diff via LLM
+    // Step 2: Analyze diff for correctness
+    // Step 3: Apply diff to source code
+    // Step 4: Run unit tests on modified code in ExecutionEnvironment
+    // Save session state and run next test
+    // Return results
   }
 }
 ```
 
-
 #### System Prompt Optimization
-```typescript
 
-// properties: 
-// - maxImprovementRuns = 0 
+```typescript
+// properties:
+// - maxImprovementRuns = 0
 // - qualityThreshold = 0.8
 // - testPassThreshold = 1.0
 // - maxPromptLength = 1000
@@ -121,8 +129,8 @@ export class UnifiedDiffBenchmark implements BenchmarkPlugin {
 ```
 
 #### Prompt Evaluation
-```typescript
 
+```typescript
 // properties:
 // - systemPrompt = ""
 // - rulesFiles = []
@@ -132,11 +140,12 @@ export class UnifiedDiffBenchmark implements BenchmarkPlugin {
 // 2. Execute every prompt from the dataset
 // 3. Analyze completion for correctness and quality
 // 4. Return results
-
 ```
 
 ### Data-Set Plugins
+
 **Data-Set Interface**
+
 - Data validation and schema enforcement
 - Metadata description and required schema should come from the Plugin
 - Methods: load(), verify()
@@ -151,9 +160,11 @@ interface Dataset {
 ### Adapters
 
 #### LLM Adapter
+
 **LLM Adapter Interface**
 
 #### Code Execution Plugin
+
 **Code Generation Interface**
 
 ```typescript

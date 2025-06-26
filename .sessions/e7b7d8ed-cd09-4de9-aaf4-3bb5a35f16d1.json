@@ -1,0 +1,286 @@
+{
+  "id": "e7b7d8ed-cd09-4de9-aaf4-3bb5a35f16d1",
+  "pluginName": "unified-diff-testing",
+  "startTime": "2025-06-25T12:46:47.815Z",
+  "lastUpdateTime": "2025-06-25T12:47:57.465Z",
+  "status": "completed",
+  "config": {
+    "models": [
+      "None"
+    ],
+    "dataset": "unified-diff-demo-dataset",
+    "properties": {},
+    "executionEnvironment": "local",
+    "maxRetries": 3,
+    "timeout": 300000
+  },
+  "progress": {
+    "totalTestCases": 10,
+    "completedTestCases": 10,
+    "failedTestCases": 10,
+    "skippedTestCases": 0,
+    "currentTestCase": "test-010-None"
+  },
+  "results": [
+    {
+      "testCaseId": "test-001-None",
+      "modelId": "None",
+      "status": "failed",
+      "startTime": "2025-06-25T12:46:47.816Z",
+      "llmRequest": {
+        "model": "None",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Here is the source code:\n\n```\nfunction calculate(a, b) {\n  return a + b;\n}\n```\n\nAdd error handling to the function\n\nPlease generate a unified diff that applies this modification to the source code. Return only the unified diff without any additional explanation."
+          }
+        ],
+        "systemPrompt": "You are a helpful assistant that generates unified diffs. Generate only the unified diff without any additional explanation or markdown formatting.",
+        "temperature": 0.1,
+        "timestamp": "2025-06-25T12:46:47.816Z"
+      },
+      "endTime": "2025-06-25T12:46:54.822Z",
+      "duration": 7006,
+      "error": {
+        "type": "execution",
+        "message": "Connection error.",
+        "details": "Error: Connection error.\n    at OpenAI.makeRequest (/Users/ingo/privat/continue/core/node_modules/openai/src/core.ts:480:13)\n    at async OpenAIApi.chatCompletionStream (/Users/ingo/privat/continue/core/node_modules/@continuedev/openai-adapters/dist/apis/OpenAI.js:46:26)\n    at async OpenAI.streamChat (/Users/ingo/privat/continue/core/llm/index.ts:928:30)\n    at async UnifiedDiffPlugin.executeTestCase (/Users/ingo/privat/continue/eval/plugins/unified-diff/UnifiedDiffPlugin.ts:207:26)\n    at async UnifiedDiffPlugin.execute (/Users/ingo/privat/continue/eval/plugins/unified-diff/UnifiedDiffPlugin.ts:83:11)\n    at async BenchmarkEngine.executeWithErrorHandling (/Users/ingo/privat/continue/eval/core/BenchmarkEngine.ts:172:22)\n    at async BenchmarkEngine.executeBenchmark (/Users/ingo/privat/continue/eval/core/BenchmarkEngine.ts:148:22)\n    at async runBenchmark (/Users/ingo/privat/continue/eval/cli/main.ts:270:20)\n    at async Command.<anonymous> (/Users/ingo/privat/continue/eval/cli/main.ts:132:7)",
+        "recoverable": false
+      }
+    },
+    {
+      "testCaseId": "test-002-None",
+      "modelId": "None",
+      "status": "failed",
+      "startTime": "2025-06-25T12:46:54.822Z",
+      "llmRequest": {
+        "model": "None",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Here is the source code:\n\n```\nfunction multiply(x, y) {\n  return x * y;\n}\n```\n\nAdd JSDoc documentation to the function\n\nPlease generate a unified diff that applies this modification to the source code. Return only the unified diff without any additional explanation."
+          }
+        ],
+        "systemPrompt": "You are a helpful assistant that generates unified diffs. Generate only the unified diff without any additional explanation or markdown formatting.",
+        "temperature": 0.1,
+        "timestamp": "2025-06-25T12:46:54.822Z"
+      },
+      "endTime": "2025-06-25T12:47:01.639Z",
+      "duration": 6817,
+      "error": {
+        "type": "execution",
+        "message": "Connection error.",
+        "details": "Error: Connection error.\n    at OpenAI.makeRequest (/Users/ingo/privat/continue/core/node_modules/openai/src/core.ts:480:13)\n    at runNextTicks (node:internal/process/task_queues:60:5)\n    at process.processTimers (node:internal/timers:516:9)\n    at async OpenAIApi.chatCompletionStream (/Users/ingo/privat/continue/core/node_modules/@continuedev/openai-adapters/dist/apis/OpenAI.js:46:26)\n    at async OpenAI.streamChat (/Users/ingo/privat/continue/core/llm/index.ts:928:30)\n    at async UnifiedDiffPlugin.executeTestCase (/Users/ingo/privat/continue/eval/plugins/unified-diff/UnifiedDiffPlugin.ts:207:26)\n    at async UnifiedDiffPlugin.execute (/Users/ingo/privat/continue/eval/plugins/unified-diff/UnifiedDiffPlugin.ts:83:11)\n    at async BenchmarkEngine.executeWithErrorHandling (/Users/ingo/privat/continue/eval/core/BenchmarkEngine.ts:172:22)\n    at async BenchmarkEngine.executeBenchmark (/Users/ingo/privat/continue/eval/core/BenchmarkEngine.ts:148:22)\n    at async runBenchmark (/Users/ingo/privat/continue/eval/cli/main.ts:270:20)",
+        "recoverable": false
+      }
+    },
+    {
+      "testCaseId": "test-003-None",
+      "modelId": "None",
+      "status": "failed",
+      "startTime": "2025-06-25T12:47:01.639Z",
+      "llmRequest": {
+        "model": "None",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Here is the source code:\n\n```\nclass Calculator {\n  constructor() {\n    this.result = 0;\n  }\n\n  add(value) {\n    this.result += value;\n    return this;\n  }\n}\n```\n\nAdd a method to the class\n\nPlease generate a unified diff that applies this modification to the source code. Return only the unified diff without any additional explanation."
+          }
+        ],
+        "systemPrompt": "You are a helpful assistant that generates unified diffs. Generate only the unified diff without any additional explanation or markdown formatting.",
+        "temperature": 0.1,
+        "timestamp": "2025-06-25T12:47:01.639Z"
+      },
+      "endTime": "2025-06-25T12:47:08.268Z",
+      "duration": 6629,
+      "error": {
+        "type": "execution",
+        "message": "Connection error.",
+        "details": "Error: Connection error.\n    at OpenAI.makeRequest (/Users/ingo/privat/continue/core/node_modules/openai/src/core.ts:480:13)\n    at async OpenAIApi.chatCompletionStream (/Users/ingo/privat/continue/core/node_modules/@continuedev/openai-adapters/dist/apis/OpenAI.js:46:26)\n    at async OpenAI.streamChat (/Users/ingo/privat/continue/core/llm/index.ts:928:30)\n    at async UnifiedDiffPlugin.executeTestCase (/Users/ingo/privat/continue/eval/plugins/unified-diff/UnifiedDiffPlugin.ts:207:26)\n    at async UnifiedDiffPlugin.execute (/Users/ingo/privat/continue/eval/plugins/unified-diff/UnifiedDiffPlugin.ts:83:11)\n    at async BenchmarkEngine.executeWithErrorHandling (/Users/ingo/privat/continue/eval/core/BenchmarkEngine.ts:172:22)\n    at async BenchmarkEngine.executeBenchmark (/Users/ingo/privat/continue/eval/core/BenchmarkEngine.ts:148:22)\n    at async runBenchmark (/Users/ingo/privat/continue/eval/cli/main.ts:270:20)\n    at async Command.<anonymous> (/Users/ingo/privat/continue/eval/cli/main.ts:132:7)",
+        "recoverable": false
+      }
+    },
+    {
+      "testCaseId": "test-004-None",
+      "modelId": "None",
+      "status": "failed",
+      "startTime": "2025-06-25T12:47:08.268Z",
+      "llmRequest": {
+        "model": "None",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Here is the source code:\n\n```\nfunction greet(name) {\n  var message = 'Hello, ' + name + '!';\n  return message;\n}\n```\n\nFix variable declaration\n\nPlease generate a unified diff that applies this modification to the source code. Return only the unified diff without any additional explanation."
+          }
+        ],
+        "systemPrompt": "You are a helpful assistant that generates unified diffs. Generate only the unified diff without any additional explanation or markdown formatting.",
+        "temperature": 0.1,
+        "timestamp": "2025-06-25T12:47:08.268Z"
+      },
+      "endTime": "2025-06-25T12:47:15.447Z",
+      "duration": 7179,
+      "error": {
+        "type": "execution",
+        "message": "Connection error.",
+        "details": "Error: Connection error.\n    at OpenAI.makeRequest (/Users/ingo/privat/continue/core/node_modules/openai/src/core.ts:480:13)\n    at async OpenAIApi.chatCompletionStream (/Users/ingo/privat/continue/core/node_modules/@continuedev/openai-adapters/dist/apis/OpenAI.js:46:26)\n    at async OpenAI.streamChat (/Users/ingo/privat/continue/core/llm/index.ts:928:30)\n    at async UnifiedDiffPlugin.executeTestCase (/Users/ingo/privat/continue/eval/plugins/unified-diff/UnifiedDiffPlugin.ts:207:26)\n    at async UnifiedDiffPlugin.execute (/Users/ingo/privat/continue/eval/plugins/unified-diff/UnifiedDiffPlugin.ts:83:11)\n    at async BenchmarkEngine.executeWithErrorHandling (/Users/ingo/privat/continue/eval/core/BenchmarkEngine.ts:172:22)\n    at async BenchmarkEngine.executeBenchmark (/Users/ingo/privat/continue/eval/core/BenchmarkEngine.ts:148:22)\n    at async runBenchmark (/Users/ingo/privat/continue/eval/cli/main.ts:270:20)\n    at async Command.<anonymous> (/Users/ingo/privat/continue/eval/cli/main.ts:132:7)",
+        "recoverable": false
+      }
+    },
+    {
+      "testCaseId": "test-005-None",
+      "modelId": "None",
+      "status": "failed",
+      "startTime": "2025-06-25T12:47:15.447Z",
+      "llmRequest": {
+        "model": "None",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Here is the source code:\n\n```\nfunction divide(a, b) {\n  return a / b;\n}\n```\n\nAdd input validation\n\nPlease generate a unified diff that applies this modification to the source code. Return only the unified diff without any additional explanation."
+          }
+        ],
+        "systemPrompt": "You are a helpful assistant that generates unified diffs. Generate only the unified diff without any additional explanation or markdown formatting.",
+        "temperature": 0.1,
+        "timestamp": "2025-06-25T12:47:15.447Z"
+      },
+      "endTime": "2025-06-25T12:47:22.321Z",
+      "duration": 6874,
+      "error": {
+        "type": "execution",
+        "message": "Connection error.",
+        "details": "Error: Connection error.\n    at OpenAI.makeRequest (/Users/ingo/privat/continue/core/node_modules/openai/src/core.ts:480:13)\n    at async OpenAIApi.chatCompletionStream (/Users/ingo/privat/continue/core/node_modules/@continuedev/openai-adapters/dist/apis/OpenAI.js:46:26)\n    at async OpenAI.streamChat (/Users/ingo/privat/continue/core/llm/index.ts:928:30)\n    at async UnifiedDiffPlugin.executeTestCase (/Users/ingo/privat/continue/eval/plugins/unified-diff/UnifiedDiffPlugin.ts:207:26)\n    at async UnifiedDiffPlugin.execute (/Users/ingo/privat/continue/eval/plugins/unified-diff/UnifiedDiffPlugin.ts:83:11)\n    at async BenchmarkEngine.executeWithErrorHandling (/Users/ingo/privat/continue/eval/core/BenchmarkEngine.ts:172:22)\n    at async BenchmarkEngine.executeBenchmark (/Users/ingo/privat/continue/eval/core/BenchmarkEngine.ts:148:22)\n    at async runBenchmark (/Users/ingo/privat/continue/eval/cli/main.ts:270:20)\n    at async Command.<anonymous> (/Users/ingo/privat/continue/eval/cli/main.ts:132:7)",
+        "recoverable": false
+      }
+    },
+    {
+      "testCaseId": "test-006-None",
+      "modelId": "None",
+      "status": "failed",
+      "startTime": "2025-06-25T12:47:22.321Z",
+      "llmRequest": {
+        "model": "None",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Here is the source code:\n\n```\nconst numbers = [1, 2, 3, 4, 5];\nconst doubled = numbers.map(function(n) {\n  return n * 2;\n});\n```\n\nConvert to arrow function\n\nPlease generate a unified diff that applies this modification to the source code. Return only the unified diff without any additional explanation."
+          }
+        ],
+        "systemPrompt": "You are a helpful assistant that generates unified diffs. Generate only the unified diff without any additional explanation or markdown formatting.",
+        "temperature": 0.1,
+        "timestamp": "2025-06-25T12:47:22.321Z"
+      },
+      "endTime": "2025-06-25T12:47:29.465Z",
+      "duration": 7144,
+      "error": {
+        "type": "execution",
+        "message": "Connection error.",
+        "details": "Error: Connection error.\n    at OpenAI.makeRequest (/Users/ingo/privat/continue/core/node_modules/openai/src/core.ts:480:13)\n    at async OpenAIApi.chatCompletionStream (/Users/ingo/privat/continue/core/node_modules/@continuedev/openai-adapters/dist/apis/OpenAI.js:46:26)\n    at async OpenAI.streamChat (/Users/ingo/privat/continue/core/llm/index.ts:928:30)\n    at async UnifiedDiffPlugin.executeTestCase (/Users/ingo/privat/continue/eval/plugins/unified-diff/UnifiedDiffPlugin.ts:207:26)\n    at async UnifiedDiffPlugin.execute (/Users/ingo/privat/continue/eval/plugins/unified-diff/UnifiedDiffPlugin.ts:83:11)\n    at async BenchmarkEngine.executeWithErrorHandling (/Users/ingo/privat/continue/eval/core/BenchmarkEngine.ts:172:22)\n    at async BenchmarkEngine.executeBenchmark (/Users/ingo/privat/continue/eval/core/BenchmarkEngine.ts:148:22)\n    at async runBenchmark (/Users/ingo/privat/continue/eval/cli/main.ts:270:20)\n    at async Command.<anonymous> (/Users/ingo/privat/continue/eval/cli/main.ts:132:7)",
+        "recoverable": false
+      }
+    },
+    {
+      "testCaseId": "test-007-None",
+      "modelId": "None",
+      "status": "failed",
+      "startTime": "2025-06-25T12:47:29.465Z",
+      "llmRequest": {
+        "model": "None",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Here is the source code:\n\n```\nfunction createUser(name, role) {\n  return {\n    name: name,\n    role: role || 'user'\n  };\n}\n```\n\nAdd default parameter\n\nPlease generate a unified diff that applies this modification to the source code. Return only the unified diff without any additional explanation."
+          }
+        ],
+        "systemPrompt": "You are a helpful assistant that generates unified diffs. Generate only the unified diff without any additional explanation or markdown formatting.",
+        "temperature": 0.1,
+        "timestamp": "2025-06-25T12:47:29.465Z"
+      },
+      "endTime": "2025-06-25T12:47:36.398Z",
+      "duration": 6933,
+      "error": {
+        "type": "execution",
+        "message": "Connection error.",
+        "details": "Error: Connection error.\n    at OpenAI.makeRequest (/Users/ingo/privat/continue/core/node_modules/openai/src/core.ts:480:13)\n    at async OpenAIApi.chatCompletionStream (/Users/ingo/privat/continue/core/node_modules/@continuedev/openai-adapters/dist/apis/OpenAI.js:46:26)\n    at async OpenAI.streamChat (/Users/ingo/privat/continue/core/llm/index.ts:928:30)\n    at async UnifiedDiffPlugin.executeTestCase (/Users/ingo/privat/continue/eval/plugins/unified-diff/UnifiedDiffPlugin.ts:207:26)\n    at async UnifiedDiffPlugin.execute (/Users/ingo/privat/continue/eval/plugins/unified-diff/UnifiedDiffPlugin.ts:83:11)\n    at async BenchmarkEngine.executeWithErrorHandling (/Users/ingo/privat/continue/eval/core/BenchmarkEngine.ts:172:22)\n    at async BenchmarkEngine.executeBenchmark (/Users/ingo/privat/continue/eval/core/BenchmarkEngine.ts:148:22)\n    at async runBenchmark (/Users/ingo/privat/continue/eval/cli/main.ts:270:20)\n    at async Command.<anonymous> (/Users/ingo/privat/continue/eval/cli/main.ts:132:7)",
+        "recoverable": false
+      }
+    },
+    {
+      "testCaseId": "test-008-None",
+      "modelId": "None",
+      "status": "failed",
+      "startTime": "2025-06-25T12:47:36.398Z",
+      "llmRequest": {
+        "model": "None",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Here is the source code:\n\n```\nfunction fetchData() {\n  return fetch('/api/data')\n    .then(response => response.json())\n    .then(data => data.items);\n}\n```\n\nConvert to async/await\n\nPlease generate a unified diff that applies this modification to the source code. Return only the unified diff without any additional explanation."
+          }
+        ],
+        "systemPrompt": "You are a helpful assistant that generates unified diffs. Generate only the unified diff without any additional explanation or markdown formatting.",
+        "temperature": 0.1,
+        "timestamp": "2025-06-25T12:47:36.398Z"
+      },
+      "endTime": "2025-06-25T12:47:43.385Z",
+      "duration": 6987,
+      "error": {
+        "type": "execution",
+        "message": "Connection error.",
+        "details": "Error: Connection error.\n    at OpenAI.makeRequest (/Users/ingo/privat/continue/core/node_modules/openai/src/core.ts:480:13)\n    at async OpenAIApi.chatCompletionStream (/Users/ingo/privat/continue/core/node_modules/@continuedev/openai-adapters/dist/apis/OpenAI.js:46:26)\n    at async OpenAI.streamChat (/Users/ingo/privat/continue/core/llm/index.ts:928:30)\n    at async UnifiedDiffPlugin.executeTestCase (/Users/ingo/privat/continue/eval/plugins/unified-diff/UnifiedDiffPlugin.ts:207:26)\n    at async UnifiedDiffPlugin.execute (/Users/ingo/privat/continue/eval/plugins/unified-diff/UnifiedDiffPlugin.ts:83:11)\n    at async BenchmarkEngine.executeWithErrorHandling (/Users/ingo/privat/continue/eval/core/BenchmarkEngine.ts:172:22)\n    at async BenchmarkEngine.executeBenchmark (/Users/ingo/privat/continue/eval/core/BenchmarkEngine.ts:148:22)\n    at async runBenchmark (/Users/ingo/privat/continue/eval/cli/main.ts:270:20)\n    at async Command.<anonymous> (/Users/ingo/privat/continue/eval/cli/main.ts:132:7)",
+        "recoverable": false
+      }
+    },
+    {
+      "testCaseId": "test-009-None",
+      "modelId": "None",
+      "status": "failed",
+      "startTime": "2025-06-25T12:47:43.386Z",
+      "llmRequest": {
+        "model": "None",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Here is the source code:\n\n```\nclass Circle {\n  constructor(radius) {\n    this.radius = radius;\n  }\n}\n```\n\nAdd getter method\n\nPlease generate a unified diff that applies this modification to the source code. Return only the unified diff without any additional explanation."
+          }
+        ],
+        "systemPrompt": "You are a helpful assistant that generates unified diffs. Generate only the unified diff without any additional explanation or markdown formatting.",
+        "temperature": 0.1,
+        "timestamp": "2025-06-25T12:47:43.386Z"
+      },
+      "endTime": "2025-06-25T12:47:50.263Z",
+      "duration": 6877,
+      "error": {
+        "type": "execution",
+        "message": "Connection error.",
+        "details": "Error: Connection error.\n    at OpenAI.makeRequest (/Users/ingo/privat/continue/core/node_modules/openai/src/core.ts:480:13)\n    at async OpenAIApi.chatCompletionStream (/Users/ingo/privat/continue/core/node_modules/@continuedev/openai-adapters/dist/apis/OpenAI.js:46:26)\n    at async OpenAI.streamChat (/Users/ingo/privat/continue/core/llm/index.ts:928:30)\n    at async UnifiedDiffPlugin.executeTestCase (/Users/ingo/privat/continue/eval/plugins/unified-diff/UnifiedDiffPlugin.ts:207:26)\n    at async UnifiedDiffPlugin.execute (/Users/ingo/privat/continue/eval/plugins/unified-diff/UnifiedDiffPlugin.ts:83:11)\n    at async BenchmarkEngine.executeWithErrorHandling (/Users/ingo/privat/continue/eval/core/BenchmarkEngine.ts:172:22)\n    at async BenchmarkEngine.executeBenchmark (/Users/ingo/privat/continue/eval/core/BenchmarkEngine.ts:148:22)\n    at async runBenchmark (/Users/ingo/privat/continue/eval/cli/main.ts:270:20)\n    at async Command.<anonymous> (/Users/ingo/privat/continue/eval/cli/main.ts:132:7)",
+        "recoverable": false
+      }
+    },
+    {
+      "testCaseId": "test-010-None",
+      "modelId": "None",
+      "status": "failed",
+      "startTime": "2025-06-25T12:47:50.263Z",
+      "llmRequest": {
+        "model": "None",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Here is the source code:\n\n```\nfunction example() {\n    if (true) {\n      console.log('hello');\n  } else {\n        console.log('world');\n    }\n}\n```\n\nFix indentation\n\nPlease generate a unified diff that applies this modification to the source code. Return only the unified diff without any additional explanation."
+          }
+        ],
+        "systemPrompt": "You are a helpful assistant that generates unified diffs. Generate only the unified diff without any additional explanation or markdown formatting.",
+        "temperature": 0.1,
+        "timestamp": "2025-06-25T12:47:50.263Z"
+      },
+      "endTime": "2025-06-25T12:47:57.463Z",
+      "duration": 7200,
+      "error": {
+        "type": "execution",
+        "message": "Connection error.",
+        "details": "Error: Connection error.\n    at OpenAI.makeRequest (/Users/ingo/privat/continue/core/node_modules/openai/src/core.ts:480:13)\n    at async OpenAIApi.chatCompletionStream (/Users/ingo/privat/continue/core/node_modules/@continuedev/openai-adapters/dist/apis/OpenAI.js:46:26)\n    at async OpenAI.streamChat (/Users/ingo/privat/continue/core/llm/index.ts:928:30)\n    at async UnifiedDiffPlugin.executeTestCase (/Users/ingo/privat/continue/eval/plugins/unified-diff/UnifiedDiffPlugin.ts:207:26)\n    at async UnifiedDiffPlugin.execute (/Users/ingo/privat/continue/eval/plugins/unified-diff/UnifiedDiffPlugin.ts:83:11)\n    at async BenchmarkEngine.executeWithErrorHandling (/Users/ingo/privat/continue/eval/core/BenchmarkEngine.ts:172:22)\n    at async BenchmarkEngine.executeBenchmark (/Users/ingo/privat/continue/eval/core/BenchmarkEngine.ts:148:22)\n    at async runBenchmark (/Users/ingo/privat/continue/eval/cli/main.ts:270:20)\n    at async Command.<anonymous> (/Users/ingo/privat/continue/eval/cli/main.ts:132:7)",
+        "recoverable": false
+      }
+    }
+  ]
+}

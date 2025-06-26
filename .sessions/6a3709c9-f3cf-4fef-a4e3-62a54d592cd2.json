@@ -1,0 +1,82 @@
+{
+  "id": "6a3709c9-f3cf-4fef-a4e3-62a54d592cd2",
+  "pluginName": "unified-diff-testing",
+  "startTime": "2025-06-25T20:00:56.360Z",
+  "lastUpdateTime": "2025-06-25T20:00:56.364Z",
+  "status": "completed",
+  "config": {
+    "models": [
+      "None"
+    ],
+    "dataset": "unified-diff-demo-dataset",
+    "properties": {},
+    "executionEnvironment": "local",
+    "maxRetries": 3,
+    "timeout": 300000
+  },
+  "progress": {
+    "totalTestCases": 2,
+    "completedTestCases": 2,
+    "failedTestCases": 2,
+    "skippedTestCases": 0,
+    "currentTestCase": "test-002-None"
+  },
+  "results": [
+    {
+      "testCaseId": "test-001-None",
+      "modelId": "None",
+      "status": "failed",
+      "startTime": "2025-06-25T20:00:56.361Z",
+      "llmRequest": {
+        "model": "None",
+        "messages": [
+          {
+            "role": "system",
+            "content": "You are a helpful assistant that generates unified diffs. Generate only the unified diff without any additional explanation or markdown formatting."
+          },
+          {
+            "role": "user",
+            "content": "Here is the source code:\n\n```\nfunction calculate(a, b) {\n  return a + b;\n}\n```\n\nAdd error handling to the function\n\nPlease generate a unified diff that applies this modification to the source code. Return only the unified diff without any additional explanation."
+          }
+        ],
+        "timestamp": "2025-06-25T20:00:56.361Z"
+      },
+      "endTime": "2025-06-25T20:00:56.364Z",
+      "duration": 3,
+      "error": {
+        "type": "execution",
+        "message": "model.streamChat is not a function",
+        "details": "TypeError: model.streamChat is not a function\n    at UnifiedDiffPlugin.executeLLMRequest (/Users/ingo/privat/continue/eval/plugins/unified-diff/UnifiedDiffPlugin.ts:254:34)\n    at UnifiedDiffPlugin.executeTestCase (/Users/ingo/privat/continue/eval/plugins/unified-diff/UnifiedDiffPlugin.ts:492:45)\n    at UnifiedDiffPlugin.execute (/Users/ingo/privat/continue/eval/plugins/unified-diff/UnifiedDiffPlugin.ts:122:22)\n    at BenchmarkEngine.executeWithErrorHandling (/Users/ingo/privat/continue/eval/core/BenchmarkEngine.ts:172:35)\n    at BenchmarkEngine.executeBenchmark (/Users/ingo/privat/continue/eval/core/BenchmarkEngine.ts:148:33)\n    at async runBenchmark (/Users/ingo/privat/continue/eval/cli/main.ts:201:20)\n    at async Command.<anonymous> (/Users/ingo/privat/continue/eval/cli/main.ts:44:7)",
+        "recoverable": false
+      }
+    },
+    {
+      "testCaseId": "test-002-None",
+      "modelId": "None",
+      "status": "failed",
+      "startTime": "2025-06-25T20:00:56.364Z",
+      "llmRequest": {
+        "model": "None",
+        "messages": [
+          {
+            "role": "system",
+            "content": "You are a helpful assistant that generates unified diffs. Generate only the unified diff without any additional explanation or markdown formatting."
+          },
+          {
+            "role": "user",
+            "content": "Here is the source code:\n\n```\nfunction multiply(x, y) {\n  return x * y;\n}\n```\n\nAdd JSDoc documentation to the function\n\nPlease generate a unified diff that applies this modification to the source code. Return only the unified diff without any additional explanation."
+          }
+        ],
+        "timestamp": "2025-06-25T20:00:56.364Z"
+      },
+      "endTime": "2025-06-25T20:00:56.364Z",
+      "duration": 0,
+      "error": {
+        "type": "execution",
+        "message": "model.streamChat is not a function",
+        "details": "TypeError: model.streamChat is not a function\n    at UnifiedDiffPlugin.executeLLMRequest (/Users/ingo/privat/continue/eval/plugins/unified-diff/UnifiedDiffPlugin.ts:254:34)\n    at UnifiedDiffPlugin.executeTestCase (/Users/ingo/privat/continue/eval/plugins/unified-diff/UnifiedDiffPlugin.ts:492:45)\n    at UnifiedDiffPlugin.execute (/Users/ingo/privat/continue/eval/plugins/unified-diff/UnifiedDiffPlugin.ts:122:22)\n    at async BenchmarkEngine.executeWithErrorHandling (/Users/ingo/privat/continue/eval/core/BenchmarkEngine.ts:172:22)\n    at async BenchmarkEngine.executeBenchmark (/Users/ingo/privat/continue/eval/core/BenchmarkEngine.ts:148:22)\n    at async runBenchmark (/Users/ingo/privat/continue/eval/cli/main.ts:201:20)\n    at async Command.<anonymous> (/Users/ingo/privat/continue/eval/cli/main.ts:44:7)",
+        "recoverable": false
+      }
+    }
+  ]
+}

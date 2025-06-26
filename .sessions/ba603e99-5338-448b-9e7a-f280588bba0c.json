@@ -1,0 +1,112 @@
+{
+  "id": "ba603e99-5338-448b-9e7a-f280588bba0c",
+  "pluginName": "unified-diff-testing",
+  "startTime": "2025-06-25T19:26:56.559Z",
+  "lastUpdateTime": "2025-06-25T19:27:00.251Z",
+  "status": "completed",
+  "config": {
+    "models": [
+      "None"
+    ],
+    "dataset": "unified-diff-demo-dataset",
+    "properties": {},
+    "executionEnvironment": "local",
+    "maxRetries": 3,
+    "timeout": 300000
+  },
+  "progress": {
+    "totalTestCases": 2,
+    "completedTestCases": 2,
+    "failedTestCases": 0,
+    "skippedTestCases": 0,
+    "currentTestCase": "test-002-None"
+  },
+  "results": [
+    {
+      "testCaseId": "test-001-None",
+      "modelId": "None",
+      "status": "completed",
+      "startTime": "2025-06-25T19:26:56.560Z",
+      "llmRequest": {
+        "model": "None",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Here is the source code:\n\n```\nfunction calculate(a, b) {\n  return a + b;\n}\n```\n\nAdd error handling to the function\n\nPlease generate a unified diff that applies this modification to the source code. Return only the unified diff without any additional explanation."
+          }
+        ],
+        "systemPrompt": "You are a helpful assistant that generates unified diffs. Generate only the unified diff without any additional explanation or markdown formatting.",
+        "timestamp": "2025-06-25T19:26:56.560Z"
+      },
+      "llmResponse": {
+        "content": "```diff\n--- old_code.js\n+++ new_code.js\n@@ -1,4 +1,10 @@\n function calculate(a, b) {\n+  if (typeof a !== 'number' || typeof b !== 'number') {\n+    throw new Error('Both arguments must be numbers');\n+  }\n+\n   return a + b;\n }\n```",
+        "latency": 0,
+        "timestamp": "2025-06-25T19:26:58.526Z"
+      },
+      "executionResult": {
+        "stdout": "Diff applied successfully",
+        "stderr": "",
+        "exitCode": 0,
+        "successful": true
+      },
+      "metrics": {
+        "latency": 0,
+        "tokens": {
+          "prompt": 0,
+          "completion": 0,
+          "total": 0
+        },
+        "qualityScores": {
+          "formatValid": 1,
+          "applySuccess": 1,
+          "overallQuality": 0.6666666666666666
+        }
+      },
+      "endTime": "2025-06-25T19:26:58.575Z",
+      "duration": 2015
+    },
+    {
+      "testCaseId": "test-002-None",
+      "modelId": "None",
+      "status": "completed",
+      "startTime": "2025-06-25T19:26:58.575Z",
+      "llmRequest": {
+        "model": "None",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Here is the source code:\n\n```\nfunction multiply(x, y) {\n  return x * y;\n}\n```\n\nAdd JSDoc documentation to the function\n\nPlease generate a unified diff that applies this modification to the source code. Return only the unified diff without any additional explanation."
+          }
+        ],
+        "systemPrompt": "You are a helpful assistant that generates unified diffs. Generate only the unified diff without any additional explanation or markdown formatting.",
+        "timestamp": "2025-06-25T19:26:58.575Z"
+      },
+      "llmResponse": {
+        "content": "```diff\n--- original.js\n+++ modified.js\n@@ -1,4 +1,9 @@\n+/**\n+ * Multiplies two numbers.\n+ *\n+ * @param {number} x - The first number.\n+ * @param {number} y - The second number.\n+ * @returns {number} The product of x and y.\n+ */\n function multiply(x, y) {\n   return x * y;\n }\n```",
+        "latency": 0,
+        "timestamp": "2025-06-25T19:27:00.207Z"
+      },
+      "executionResult": {
+        "stdout": "Diff applied successfully",
+        "stderr": "",
+        "exitCode": 0,
+        "successful": true
+      },
+      "metrics": {
+        "latency": 0,
+        "tokens": {
+          "prompt": 0,
+          "completion": 0,
+          "total": 0
+        },
+        "qualityScores": {
+          "formatValid": 1,
+          "applySuccess": 1,
+          "overallQuality": 1
+        }
+      },
+      "endTime": "2025-06-25T19:27:00.251Z",
+      "duration": 1676
+    }
+  ]
+}
