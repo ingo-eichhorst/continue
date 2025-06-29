@@ -29,7 +29,8 @@ program
   .description("Run a benchmark")
   .option("-p, --plugin <name>", "Benchmark plugin to run")
   .option("-m, --models <models>", "Comma-separated list of model IDs", "gpt-4")
-  .option("-d, --dataset <path>", "Path to dataset file or directory")
+  .option("-d, --dataset <type>", "Dataset provider type (local|swe-bench)")
+  .option("--dataset-source <source>", "Dataset source (file path for local, dataset name for swe-bench)")
   .option("-c, --config <path>", "Path to configuration file")
   .option("--continue <sessionId>", "Continue from existing session")
   .option(
@@ -42,6 +43,13 @@ program
   .option("--dry-run", "Show what would be executed without running")
   .option("--properties <json>", "Plugin properties as JSON string")
   .option("--properties-file <path>", "Path to JSON file with plugin properties")
+  // Repository management options for SWE-bench
+  .option("--clone-repos", "Enable repository cloning (auto-enabled for SWE-bench)")
+  .option("--no-clone-repos", "Disable repository cloning (not recommended for SWE-bench)")
+  .option("--repo-cache-dir <path>", "Directory for repository cache")
+  .option("--max-repo-cache <number>", "Maximum number of repositories to cache", parseInt)
+  .option("--clone-timeout <ms>", "Clone timeout in milliseconds", parseInt)
+  .option("--github-token <token>", "GitHub token for private repositories")
   .action(async (options) => {
     try {
       await runBenchmark(options);
@@ -193,7 +201,7 @@ async function runBenchmark(options: any): Promise<void> {
 
     // Load models and dataset from session config
     const models = await loadModelsFromConfig(session.config.models, logger);
-    const dataset = await loadDataset(session.config.dataset, logger);
+    const dataset = await loadDataset("local", session.config.dataset, logger);
     const executionEnv = createExecutionEnvironment(
       session.config.executionEnvironment,
       logger,
@@ -223,9 +231,21 @@ async function runBenchmark(options: any): Promise<void> {
 
   // New benchmark execution
   const models = await loadModels(options.models, logger);
+  
+  // Extract repository options from CLI
+  const repositoryOptions = {
+    cloneRepos: options.noCloneRepos ? false : options.cloneRepos, // Explicit disable takes precedence
+    repoCacheDir: options.repoCacheDir,
+    maxRepoCache: options.maxRepoCache,
+    cloneTimeout: options.cloneTimeout,
+    githubToken: options.githubToken,
+  };
+  
   const dataset = await loadDataset(
-    options.dataset || plugin.defaultDataset,
+    options.dataset || "local",
+    options.datasetSource || plugin.defaultDataset,
     logger,
+    repositoryOptions,
   );
   const executionEnv = createExecutionEnvironment(options.executionEnv, logger);
 
@@ -297,8 +317,10 @@ async function loadModelsFromConfig(
 }
 
 async function loadDataset(
-  datasetPath: string,
+  datasetType: string,
+  datasetSource: string,
   logger: ConsoleLogger,
+  repositoryOptions?: any,
 ): Promise<Dataset> {
   // Ensure we're using the eval directory as base for dataset loading
   // Get the directory where this script is located (eval/cli) and go up to eval directory
@@ -309,9 +331,41 @@ async function loadDataset(
   const datasetLoader = new DatasetLoader(logger, evalDir);
 
   try {
-    return await datasetLoader.loadDataset(datasetPath);
+    // Create dataset configuration based on type
+    let datasetConfig;
+    
+    if (datasetType === "swe-bench") {
+      // Auto-enable repository cloning for SWE-bench datasets since they require base source code for diff application
+      const autoEnableCloning = repositoryOptions?.cloneRepos !== false; // Allow explicit disabling
+      
+      if (autoEnableCloning && !repositoryOptions?.cloneRepos) {
+        logger.info("Auto-enabling repository cloning for SWE-bench dataset (required for diff patch application)");
+      }
+      
+      datasetConfig = {
+        type: "swe-bench" as const,
+        name: datasetSource,
+        config: {
+          split: "test" as const,
+          limit: 2, // Default to first 2 test cases for testing
+          // Auto-enable repository cloning for SWE-bench, or use explicit user settings
+          ...(autoEnableCloning && {
+            clone_repositories: true,
+            repository_cache_dir: repositoryOptions?.repoCacheDir,
+            max_repository_cache_size: repositoryOptions?.maxRepoCache || 20,
+            clone_timeout: repositoryOptions?.cloneTimeout || 300000,
+            github_token: repositoryOptions?.githubToken,
+          }),
+        }
+      };
+    } else {
+      // Default to local type for backward compatibility
+      datasetConfig = datasetSource; // Use legacy string format for local datasets
+    }
+
+    return await datasetLoader.loadDataset(datasetConfig);
   } catch (error) {
-    logger.error(`Failed to load dataset from ${datasetPath}`, error as Error);
+    logger.error(`Failed to load ${datasetType} dataset from ${datasetSource}`, error as Error);
     logger.warn("Falling back to mock dataset");
     throw error;
   }
@@ -587,7 +641,7 @@ async function listDatasets(options: any): Promise<void> {
 
     for (const datasetName of availableDatasets) {
       try {
-        const dataset = await datasetLoader.loadDataset(datasetName);
+        const dataset = await datasetLoader.loadDataset(datasetName); // Use legacy format for listing
         console.log(
           `${chalk.cyan(datasetName)}: ${dataset.description || "No description"}`,
         );

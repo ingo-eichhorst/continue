@@ -314,6 +314,9 @@ export interface DatasetConfig {
   config?: Record<string, any>;
 }
 
+// Enhanced dataset configuration (import from dataset-providers for new functionality)
+export type DatasetConfigInput = string | import('../dataset-providers/interfaces.js').DatasetConfig;
+
 export interface ExecutionConfig {
   environment: "local" | "docker";
   timeout: number;

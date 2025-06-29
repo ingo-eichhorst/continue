@@ -510,12 +510,19 @@ export class TestCaseExecutor {
 
   /**
    * Extracts code blocks from LLM response, handling markdown and explanatory text.
+   * Enhanced to detect both standalone code and diff patches.
    */
   static extractCodeFromResponse(response: string): string {
     const codeBlocks: string[] = [];
     
+    // First, try to extract diff patches
+    const diffContent = this.extractDiffFromResponse(response);
+    if (diffContent) {
+      return diffContent;
+    }
+    
     // Match code blocks with language specifiers
-    const codeBlockRegex = /```(?:javascript|js|typescript|ts|python|java|cpp|c\+\+|c|go|rust)?\s*\n?([\s\S]*?)\n?```/gi;
+    const codeBlockRegex = /```(?:javascript|js|typescript|ts|python|java|cpp|c\+\+|c|go|rust|diff)?\s*\n?([\s\S]*?)\n?```/gi;
     let match;
     
     while ((match = codeBlockRegex.exec(response)) !== null) {
@@ -542,5 +549,47 @@ export class TestCaseExecutor {
     }
     
     return codeBlocks.join('\n\n').trim();
+  }
+
+  /**
+   * Extracts diff patches from LLM response
+   */
+  static extractDiffFromResponse(response: string): string | null {
+    // Look for diff patterns
+    const diffPatterns = [
+      // Match full diff blocks with proper headers
+      /```(?:diff|patch)?\s*\n?((?:diff --git[\s\S]*?|\-\-\-[\s\S]*?\+\+\+[\s\S]*?)(?:```|$))/gi,
+      // Match diff without code blocks
+      /(diff --git [\s\S]*?)(?:\n\n|\n(?![@\-\+\s]))/gi,
+      // Match simple diff format
+      /(\-\-\- [\s\S]*?\+\+\+ [\s\S]*?)(?:\n\n|\n(?![@\-\+\s]))/gi,
+    ];
+    
+    for (const pattern of diffPatterns) {
+      const match = response.match(pattern);
+      if (match && match[1]) {
+        const diffContent = match[1].replace(/```$/, '').trim();
+        if (this.isDiffPatch(diffContent)) {
+          return diffContent;
+        }
+      }
+    }
+    
+    return null;
+  }
+
+  /**
+   * Checks if the given content is a valid diff patch
+   */
+  static isDiffPatch(content: string): boolean {
+    // Check for diff headers
+    const diffMarkers = [
+      /^diff --git/m,
+      /^--- /m,
+      /^\+\+\+ /m,
+      /^@@ -\d+,\d+ \+\d+,\d+ @@/m
+    ];
+    
+    return diffMarkers.some(marker => marker.test(content));
   }
 }

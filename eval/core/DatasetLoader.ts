@@ -1,159 +1,109 @@
-import { existsSync, readFileSync } from 'fs';
-import { join, resolve } from 'path';
-import { Dataset, Logger } from './types.js';
+import { Dataset, Logger, DatasetConfigInput } from './types.js';
+import { DatasetProviderRegistry, LocalDatasetProvider, SWEBenchDatasetProvider } from '../dataset-providers/index.js';
+import type { DatasetConfig } from '../dataset-providers/interfaces.js';
 
+/**
+ * Enhanced DatasetLoader that supports multiple dataset providers while maintaining backward compatibility
+ */
 export class DatasetLoader {
   private logger: Logger;
   private baseDir: string;
+  private registry: DatasetProviderRegistry;
 
   constructor(logger: Logger, baseDir: string = '') {
     this.logger = logger;
     this.baseDir = baseDir || process.cwd();
+    this.registry = new DatasetProviderRegistry(logger);
+    
+    // Register dataset providers by default
+    this.registry.registerProvider(new LocalDatasetProvider(logger, baseDir));
+    this.registry.registerProvider(new SWEBenchDatasetProvider(logger));
   }
 
-  async loadDataset(datasetPath: string): Promise<Dataset> {
+  /**
+   * Load a dataset using either the legacy string format or new configuration object
+   */
+  async loadDataset(datasetInput: DatasetConfigInput): Promise<Dataset> {
+    const config = this.normalizeDatasetConfig(datasetInput);
+    
     try {
-      // Resolve the dataset path
-      let resolvedPath: string;
-      
-      if (datasetPath.startsWith('/') || datasetPath.includes(':')) {
-        // Absolute path
-        resolvedPath = datasetPath;
-      } else if (datasetPath.startsWith('datasets/')) {
-        // Path starting with datasets/ - resolve from base directory
-        resolvedPath = join(this.baseDir, datasetPath);
-      } else if (datasetPath.startsWith('../')) {
-        // Relative path from eval directory
-        resolvedPath = resolve(this.baseDir, datasetPath);
-      } else {
-        // Assume it's a dataset name - look in datasets directory
-        resolvedPath = join(this.baseDir, 'datasets', datasetPath);
-      }
-
-      this.logger.debug(`Attempting to load dataset from: ${resolvedPath}`);
-
-      // Try different file extensions and locations
-      const possiblePaths = [
-        resolvedPath,
-        join(resolvedPath, 'dataset.json'),
-        `${resolvedPath}.json`,
-        join(resolvedPath, 'index.json')
-      ];
-
-      let datasetContent: string | null = null;
-      let actualPath: string | null = null;
-
-      for (const path of possiblePaths) {
-        if (existsSync(path)) {
-          try {
-            datasetContent = readFileSync(path, 'utf-8');
-            actualPath = path;
-            this.logger.debug(`Found dataset at: ${path}`);
-            break;
-          } catch (error) {
-            this.logger.warn(`Failed to read dataset from ${path}:`, error);
-          }
-        }
-      }
-
-      if (!datasetContent || !actualPath) {
-        throw new Error(`Dataset not found at any of the expected locations: ${possiblePaths.join(', ')}`);
-      }
-
-      // Parse the dataset
-      const dataset: Dataset = JSON.parse(datasetContent);
-      
-      // Validate the dataset structure
-      this.validateDataset(dataset);
-      
-      // Ensure metadata dates are Date objects
-      if (dataset.metadata) {
-        if (dataset.metadata.createdAt && typeof dataset.metadata.createdAt === 'string') {
-          dataset.metadata.createdAt = new Date(dataset.metadata.createdAt);
-        }
-        if (dataset.metadata.modifiedAt && typeof dataset.metadata.modifiedAt === 'string') {
-          dataset.metadata.modifiedAt = new Date(dataset.metadata.modifiedAt);
-        }
-      }
-
-      this.logger.info(`Loaded dataset: ${dataset.name} (${dataset.testCases.length} test cases) from ${actualPath}`);
-      return dataset;
-
+      this.logger.debug(`Loading dataset with config:`, config);
+      return await this.registry.loadDataset(config);
     } catch (error) {
-      this.logger.error(`Failed to load dataset from ${datasetPath}`, error as Error);
+      this.logger.error(`Failed to load dataset`, error as Error);
       throw error;
     }
   }
 
-  private validateDataset(dataset: any): void {
-    if (!dataset.name) {
-      throw new Error('Dataset missing required field: name');
-    }
-    
-    if (!dataset.testCases || !Array.isArray(dataset.testCases)) {
-      throw new Error('Dataset missing required field: testCases (must be an array)');
-    }
-
-    if (dataset.testCases.length === 0) {
-      throw new Error('Dataset must contain at least one test case');
-    }
-
-    // Validate each test case
-    dataset.testCases.forEach((testCase: any, index: number) => {
-      if (!testCase.id) {
-        throw new Error(`Test case at index ${index} missing required field: id`);
-      }
-      
-      if (!testCase.name) {
-        throw new Error(`Test case ${testCase.id} missing required field: name`);
-      }
-      
-      if (!testCase.input) {
-        throw new Error(`Test case ${testCase.id} missing required field: input`);
-      }
-      
-      if (!testCase.input.prompt) {
-        throw new Error(`Test case ${testCase.id} missing required field: input.prompt`);
-      }
-    });
-
-    this.logger.debug(`Dataset validation passed: ${dataset.name}`);
+  /**
+   * Validate a dataset configuration
+   */
+  async validateDataset(datasetInput: DatasetConfigInput): Promise<boolean> {
+    const config = this.normalizeDatasetConfig(datasetInput);
+    return await this.registry.validateConfig(config);
   }
 
-  // Method to list available datasets in the datasets directory
+  /**
+   * Get information about all available dataset providers
+   */
+  getProviderInfo(): Array<{name: string, description: string, types: string[]}> {
+    return this.registry.getProviderInfo();
+  }
+
+  /**
+   * List all supported dataset types
+   */
+  getSupportedTypes(): string[] {
+    return this.registry.listProviderTypes();
+  }
+
+  /**
+   * Register a new dataset provider
+   */
+  registerProvider(provider: any): void {
+    this.registry.registerProvider(provider);
+  }
+
+  /**
+   * Check if subset selection is supported for a given dataset configuration
+   */
+  supportsSubsetSelection(datasetInput: DatasetConfigInput): boolean {
+    const config = this.normalizeDatasetConfig(datasetInput);
+    return this.registry.supportsSubsetSelection(config);
+  }
+
+  /**
+   * List available local datasets in the datasets directory (backward compatibility)
+   */
   async listAvailableDatasets(): Promise<string[]> {
-    try {
-      const datasetsDir = join(this.baseDir, 'datasets');
-      
-      if (!existsSync(datasetsDir)) {
-        this.logger.warn(`Datasets directory not found: ${datasetsDir}`);
-        return [];
-      }
-
-      const { readdirSync, statSync } = await import('fs');
-      const items = readdirSync(datasetsDir);
-      const datasets: string[] = [];
-
-      for (const item of items) {
-        const itemPath = join(datasetsDir, item);
-        const stat = statSync(itemPath);
-        
-        if (stat.isDirectory()) {
-          // Check if directory contains dataset.json
-          const datasetFile = join(itemPath, 'dataset.json');
-          if (existsSync(datasetFile)) {
-            datasets.push(item);
-          }
-        } else if (item.endsWith('.json')) {
-          // JSON file in datasets directory
-          datasets.push(item.replace('.json', ''));
-        }
-      }
-
-      return datasets;
-    } catch (error) {
-      this.logger.error('Failed to list available datasets', error as Error);
-      return [];
+    const localProvider = this.registry.getProvider('local') as LocalDatasetProvider;
+    if (localProvider && localProvider.listAvailableDatasets) {
+      return await localProvider.listAvailableDatasets();
     }
+    return [];
+  }
+
+  /**
+   * Convert legacy string format or new config object to standardized DatasetConfig
+   */
+  private normalizeDatasetConfig(datasetInput: DatasetConfigInput): DatasetConfig {
+    // Handle legacy string format
+    if (typeof datasetInput === 'string') {
+      return {
+        type: 'local',
+        name: datasetInput,
+        path: datasetInput
+      };
+    }
+    
+    // Handle new config object format
+    const config = datasetInput as DatasetConfig;
+    
+    // Set default type if not specified
+    if (!config.type) {
+      config.type = 'local';
+    }
+    
+    return config;
   }
 }

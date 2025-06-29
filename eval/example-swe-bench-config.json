@@ -1,0 +1,58 @@
+{
+  "models": [
+    {
+      "name": "claude-3-5-sonnet",
+      "provider": "anthropic",
+      "config": {
+        "apiKey": "your-api-key-here"
+      }
+    }
+  ],
+  "plugins": [
+    {
+      "name": "prompt-evaluation",
+      "enabled": true,
+      "properties": {
+        "systemPrompt": "You are a helpful coding assistant that fixes bugs in software.",
+        "rulesFile": "",
+        "promptFile": ""
+      }
+    }
+  ],
+  "datasets": [
+    {
+      "name": "SWE-bench Local Test",
+      "config": {
+        "type": "local",
+        "name": "prompt-evaluation-dataset",
+        "subset": {
+          "range": { "start": 0, "end": 2 }
+        }
+      }
+    },
+    {
+      "name": "SWE-bench Lite Sample",
+      "config": {
+        "type": "swe-bench",
+        "name": "SWE-bench_Lite",
+        "config": {
+          "split": "test",
+          "repo_filter": ["django"]
+        },
+        "subset": {
+          "random": { "count": 5, "seed": 42 }
+        }
+      }
+    }
+  ],
+  "execution": {
+    "environment": "local",
+    "timeout": 300000,
+    "maxRetries": 3
+  },
+  "reporting": {
+    "output": "console",
+    "includeDetails": true,
+    "charts": false
+  }
+}
