@@ -1,0 +1,28 @@
+{
+  "id": "aeeff32e-a934-4efd-93af-c3b695b66e61",
+  "pluginName": "prompt-evaluation",
+  "startTime": "2025-06-29T11:58:35.749Z",
+  "lastUpdateTime": "2025-06-29T11:58:35.756Z",
+  "status": "running",
+  "config": {
+    "models": [
+      "None"
+    ],
+    "dataset": "SWE-bench_Lite",
+    "properties": {
+      "systemPrompt": "",
+      "rulesFile": "",
+      "promptFile": ""
+    },
+    "executionEnvironment": "docker",
+    "maxRetries": 3,
+    "timeout": 300000
+  },
+  "progress": {
+    "totalTestCases": 2,
+    "completedTestCases": 0,
+    "failedTestCases": 0,
+    "skippedTestCases": 0
+  },
+  "results": []
+}

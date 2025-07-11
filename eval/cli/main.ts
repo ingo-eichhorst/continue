@@ -358,6 +358,16 @@ async function loadDataset(
           }),
         }
       };
+    } else if (datasetType === "human-eval") {
+      datasetConfig = {
+        type: "human-eval" as const,
+        name: datasetSource,
+        config: {
+          limit: 10, // Default to first 10 test cases for testing
+          execution_timeout: 10000, // 10 seconds for code execution
+          cache: true,
+        }
+      };
     } else {
       // Default to local type for backward compatibility
       datasetConfig = datasetSource; // Use legacy string format for local datasets

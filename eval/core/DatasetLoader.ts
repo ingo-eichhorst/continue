@@ -1,5 +1,5 @@
 import { Dataset, Logger, DatasetConfigInput } from './types.js';
-import { DatasetProviderRegistry, LocalDatasetProvider, SWEBenchDatasetProvider } from '../dataset-providers/index.js';
+import { DatasetProviderRegistry, LocalDatasetProvider, SWEBenchDatasetProvider, HumanEvalDatasetProvider } from '../dataset-providers/index.js';
 import type { DatasetConfig } from '../dataset-providers/interfaces.js';
 
 /**
@@ -18,6 +18,7 @@ export class DatasetLoader {
     // Register dataset providers by default
     this.registry.registerProvider(new LocalDatasetProvider(logger, baseDir));
     this.registry.registerProvider(new SWEBenchDatasetProvider(logger));
+    this.registry.registerProvider(new HumanEvalDatasetProvider(logger));
   }
 
   /**

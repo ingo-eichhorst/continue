@@ -1,0 +1,750 @@
+{
+  "id": "2e4f7595-6944-4991-8db3-c3c829e05df7",
+  "pluginName": "prompt-evaluation",
+  "startTime": "2025-06-29T21:10:58.778Z",
+  "lastUpdateTime": "2025-06-29T21:11:14.658Z",
+  "status": "completed",
+  "config": {
+    "models": [
+      "None"
+    ],
+    "dataset": "openai_humaneval",
+    "properties": {
+      "systemPrompt": "\nYou are an expert software engineer assisting with open-source software maintenance. You will be given:\n- A GitHub issue describing a bug, feature request, or code change.\n- The full context of the codebase (as selected relevant files).\nYour task is to generate one or more code edits that resolve the issue accurately and minimally.\n\nGuidelines:\n- Do not add unrelated changes or comments.\n- Only change files necessary to resolve the issue.\n- Your output should consist **only of valid diffs** (e.g., unified diff format or Git-style patch).\n- Ensure your solution is consistent with the coding style and logic of the existing codebase.\n\nOutput Format:\nReturn the patch or diff directly. Do not include explanations or comments.\n      ",
+      "rulesFile": "",
+      "promptFile": ""
+    },
+    "executionEnvironment": "docker",
+    "maxRetries": 3,
+    "timeout": 300000
+  },
+  "progress": {
+    "totalTestCases": 10,
+    "completedTestCases": 10,
+    "failedTestCases": 10,
+    "skippedTestCases": 0,
+    "currentTestCase": "HumanEval/9-None"
+  },
+  "results": [
+    {
+      "testCaseId": "HumanEval/0-None",
+      "modelId": "None",
+      "status": "failed",
+      "startTime": "2025-06-29T21:10:58.784Z",
+      "endTime": "2025-06-29T21:11:00.419Z",
+      "duration": 1635,
+      "testStepResults": [
+        {
+          "passed": true,
+          "score": 1,
+          "details": "LLM generated response (266 characters)",
+          "llmRequest": {
+            "model": "None",
+            "messages": [
+              {
+                "role": "system",
+                "content": "You are an expert software engineer assisting with open-source software maintenance. You will be given:\n- A GitHub issue describing a bug, feature request, or code change.\n- The full context of the codebase (as selected relevant files).\nYour task is to generate one or more code edits that resolve the issue accurately and minimally.\n\nGuidelines:\n- Do not add unrelated changes or comments.\n- Only change files necessary to resolve the issue.\n- Your output should consist **only of valid diffs** (e.g., unified diff format or Git-style patch).\n- Ensure your solution is consistent with the coding style and logic of the existing codebase.\n\nOutput Format:\nReturn the patch or diff directly. Do not include explanations or comments."
+              },
+              {
+                "role": "user",
+                "content": "Complete the following Python function:\n\nfrom typing import List\n\n\ndef has_close_elements(numbers: List[float], threshold: float) -> bool:\n    \"\"\" Check if in given list of numbers, are any two numbers closer to each other than\n    given threshold.\n    >>> has_close_elements([1.0, 2.0, 3.0], 0.5)\n    False\n    >>> has_close_elements([1.0, 2.8, 3.0, 4.0, 5.0, 2.0], 0.3)\n    True\n    \"\"\"\n\n\nProvide only the complete function implementation. Do not include any explanations or test code."
+              }
+            ],
+            "timestamp": "2025-06-29T21:10:58.785Z"
+          },
+          "llmResponse": {
+            "content": "```python\nfrom typing import List\n\n\ndef has_close_elements(numbers: List[float], threshold: float) -> bool:\n    numbers.sort()\n    for i in range(len(numbers) - 1):\n        if abs(numbers[i] - numbers[i + 1]) < threshold:\n            return True\n    return False\n```",
+            "latency": 1630,
+            "timestamp": "2025-06-29T21:11:00.415Z"
+          }
+        },
+        {
+          "passed": true,
+          "score": 1,
+          "details": "Extracted 252 characters of code",
+          "extractedCode": "from typing import List\n\n\ndef has_close_elements(numbers: List[float], threshold: float) -> bool:\n    numbers.sort()\n    for i in range(len(numbers) - 1):\n        if abs(numbers[i] - numbers[i + 1]) < threshold:\n            return True\n    return False",
+          "isDiff": false
+        },
+        {
+          "passed": false,
+          "score": 0,
+          "details": "Code analysis failed: no function/class found"
+        }
+      ],
+      "executionResult": {
+        "stdout": "```python\nfrom typing import List\n\n\ndef has_close_elements(numbers: List[float], threshold: float) -> bool:\n    numbers.sort()\n    for i in range(len(numbers) - 1):\n        if abs(numbers[i] - numbers[i + 1]) < threshold:\n            return True\n    return False\n```",
+        "stderr": "1 test step(s) failed",
+        "exitCode": 1,
+        "successful": false
+      },
+      "metrics": {
+        "latency": 1630,
+        "tokens": {
+          "prompt": 0,
+          "completion": 0,
+          "total": 0
+        },
+        "qualityScores": {
+          "step_0_score": 1,
+          "step_1_score": 1,
+          "step_2_score": 0,
+          "overallQuality": 0.6666666666666666
+        }
+      },
+      "error": {
+        "type": "validation",
+        "message": "One or more validation steps failed",
+        "details": "Check testStepResults for specific failures",
+        "recoverable": true
+      }
+    },
+    {
+      "testCaseId": "HumanEval/1-None",
+      "modelId": "None",
+      "status": "failed",
+      "startTime": "2025-06-29T21:11:00.419Z",
+      "endTime": "2025-06-29T21:11:02.844Z",
+      "duration": 2425,
+      "testStepResults": [
+        {
+          "passed": true,
+          "score": 1,
+          "details": "LLM generated response (492 characters)",
+          "llmRequest": {
+            "model": "None",
+            "messages": [
+              {
+                "role": "system",
+                "content": "You are an expert software engineer assisting with open-source software maintenance. You will be given:\n- A GitHub issue describing a bug, feature request, or code change.\n- The full context of the codebase (as selected relevant files).\nYour task is to generate one or more code edits that resolve the issue accurately and minimally.\n\nGuidelines:\n- Do not add unrelated changes or comments.\n- Only change files necessary to resolve the issue.\n- Your output should consist **only of valid diffs** (e.g., unified diff format or Git-style patch).\n- Ensure your solution is consistent with the coding style and logic of the existing codebase.\n\nOutput Format:\nReturn the patch or diff directly. Do not include explanations or comments."
+              },
+              {
+                "role": "user",
+                "content": "Complete the following Python function:\n\nfrom typing import List\n\n\ndef separate_paren_groups(paren_string: str) -> List[str]:\n    \"\"\" Input to this function is a string containing multiple groups of nested parentheses. Your goal is to\n    separate those group into separate strings and return the list of those.\n    Separate groups are balanced (each open brace is properly closed) and not nested within each other\n    Ignore any spaces in the input string.\n    >>> separate_paren_groups('( ) (( )) (( )( ))')\n    ['()', '(())', '(()())']\n    \"\"\"\n\n\nProvide only the complete function implementation. Do not include any explanations or test code."
+              }
+            ],
+            "timestamp": "2025-06-29T21:11:00.419Z"
+          },
+          "llmResponse": {
+            "content": "```python\ndef separate_paren_groups(paren_string: str) -> List[str]:\n    result = []\n    current_group = []\n    balance = 0\n    \n    for char in paren_string:\n        if char == '(':\n            balance += 1\n            current_group.append(char)\n        elif char == ')':\n            balance -= 1\n            current_group.append(char)\n        \n        if balance == 0 and current_group:\n            result.append(''.join(current_group))\n            current_group = []\n\n    return result\n```",
+            "latency": 2421,
+            "timestamp": "2025-06-29T21:11:02.840Z"
+          }
+        },
+        {
+          "passed": true,
+          "score": 1,
+          "details": "Extracted 478 characters of code",
+          "extractedCode": "def separate_paren_groups(paren_string: str) -> List[str]:\n    result = []\n    current_group = []\n    balance = 0\n    \n    for char in paren_string:\n        if char == '(':\n            balance += 1\n            current_group.append(char)\n        elif char == ')':\n            balance -= 1\n            current_group.append(char)\n        \n        if balance == 0 and current_group:\n            result.append(''.join(current_group))\n            current_group = []\n\n    return result",
+          "isDiff": false
+        },
+        {
+          "passed": false,
+          "score": 0,
+          "details": "Code analysis failed: no function/class found"
+        }
+      ],
+      "executionResult": {
+        "stdout": "```python\ndef separate_paren_groups(paren_string: str) -> List[str]:\n    result = []\n    current_group = []\n    balance = 0\n    \n    for char in paren_string:\n        if char == '(':\n            balance += 1\n            current_group.append(char)\n        elif char == ')':\n            balance -= 1\n            current_group.append(char)\n        \n        if balance == 0 and current_group:\n            result.append(''.join(current_group))\n            current_group = []\n\n    return result\n```",
+        "stderr": "1 test step(s) failed",
+        "exitCode": 1,
+        "successful": false
+      },
+      "metrics": {
+        "latency": 2421,
+        "tokens": {
+          "prompt": 0,
+          "completion": 0,
+          "total": 0
+        },
+        "qualityScores": {
+          "step_0_score": 1,
+          "step_1_score": 1,
+          "step_2_score": 0,
+          "overallQuality": 0.6666666666666666
+        }
+      },
+      "error": {
+        "type": "validation",
+        "message": "One or more validation steps failed",
+        "details": "Check testStepResults for specific failures",
+        "recoverable": true
+      }
+    },
+    {
+      "testCaseId": "HumanEval/2-None",
+      "modelId": "None",
+      "status": "failed",
+      "startTime": "2025-06-29T21:11:02.844Z",
+      "endTime": "2025-06-29T21:11:03.840Z",
+      "duration": 996,
+      "testStepResults": [
+        {
+          "passed": true,
+          "score": 1,
+          "details": "LLM generated response (374 characters)",
+          "llmRequest": {
+            "model": "None",
+            "messages": [
+              {
+                "role": "system",
+                "content": "You are an expert software engineer assisting with open-source software maintenance. You will be given:\n- A GitHub issue describing a bug, feature request, or code change.\n- The full context of the codebase (as selected relevant files).\nYour task is to generate one or more code edits that resolve the issue accurately and minimally.\n\nGuidelines:\n- Do not add unrelated changes or comments.\n- Only change files necessary to resolve the issue.\n- Your output should consist **only of valid diffs** (e.g., unified diff format or Git-style patch).\n- Ensure your solution is consistent with the coding style and logic of the existing codebase.\n\nOutput Format:\nReturn the patch or diff directly. Do not include explanations or comments."
+              },
+              {
+                "role": "user",
+                "content": "Complete the following Python function:\n\n\n\ndef truncate_number(number: float) -> float:\n    \"\"\" Given a positive floating point number, it can be decomposed into\n    and integer part (largest integer smaller than given number) and decimals\n    (leftover part always smaller than 1).\n\n    Return the decimal part of the number.\n    >>> truncate_number(3.5)\n    0.5\n    \"\"\"\n\n\nProvide only the complete function implementation. Do not include any explanations or test code."
+              }
+            ],
+            "timestamp": "2025-06-29T21:11:02.845Z"
+          },
+          "llmResponse": {
+            "content": "```python\ndef truncate_number(number: float) -> float:\n    \"\"\" Given a positive floating point number, it can be decomposed into\n    and integer part (largest integer smaller than given number) and decimals\n    (leftover part always smaller than 1).\n\n    Return the decimal part of the number.\n    >>> truncate_number(3.5)\n    0.5\n    \"\"\"\n    return number - int(number)\n```",
+            "latency": 993,
+            "timestamp": "2025-06-29T21:11:03.838Z"
+          }
+        },
+        {
+          "passed": true,
+          "score": 1,
+          "details": "Extracted 360 characters of code",
+          "extractedCode": "def truncate_number(number: float) -> float:\n    \"\"\" Given a positive floating point number, it can be decomposed into\n    and integer part (largest integer smaller than given number) and decimals\n    (leftover part always smaller than 1).\n\n    Return the decimal part of the number.\n    >>> truncate_number(3.5)\n    0.5\n    \"\"\"\n    return number - int(number)",
+          "isDiff": false
+        },
+        {
+          "passed": false,
+          "score": 0,
+          "details": "Code analysis failed: no function/class found"
+        }
+      ],
+      "executionResult": {
+        "stdout": "```python\ndef truncate_number(number: float) -> float:\n    \"\"\" Given a positive floating point number, it can be decomposed into\n    and integer part (largest integer smaller than given number) and decimals\n    (leftover part always smaller than 1).\n\n    Return the decimal part of the number.\n    >>> truncate_number(3.5)\n    0.5\n    \"\"\"\n    return number - int(number)\n```",
+        "stderr": "1 test step(s) failed",
+        "exitCode": 1,
+        "successful": false
+      },
+      "metrics": {
+        "latency": 993,
+        "tokens": {
+          "prompt": 0,
+          "completion": 0,
+          "total": 0
+        },
+        "qualityScores": {
+          "step_0_score": 1,
+          "step_1_score": 1,
+          "step_2_score": 0,
+          "overallQuality": 0.6666666666666666
+        }
+      },
+      "error": {
+        "type": "validation",
+        "message": "One or more validation steps failed",
+        "details": "Check testStepResults for specific failures",
+        "recoverable": true
+      }
+    },
+    {
+      "testCaseId": "HumanEval/3-None",
+      "modelId": "None",
+      "status": "failed",
+      "startTime": "2025-06-29T21:11:03.840Z",
+      "endTime": "2025-06-29T21:11:05.160Z",
+      "duration": 1320,
+      "testStepResults": [
+        {
+          "passed": true,
+          "score": 1,
+          "details": "LLM generated response (228 characters)",
+          "llmRequest": {
+            "model": "None",
+            "messages": [
+              {
+                "role": "system",
+                "content": "You are an expert software engineer assisting with open-source software maintenance. You will be given:\n- A GitHub issue describing a bug, feature request, or code change.\n- The full context of the codebase (as selected relevant files).\nYour task is to generate one or more code edits that resolve the issue accurately and minimally.\n\nGuidelines:\n- Do not add unrelated changes or comments.\n- Only change files necessary to resolve the issue.\n- Your output should consist **only of valid diffs** (e.g., unified diff format or Git-style patch).\n- Ensure your solution is consistent with the coding style and logic of the existing codebase.\n\nOutput Format:\nReturn the patch or diff directly. Do not include explanations or comments."
+              },
+              {
+                "role": "user",
+                "content": "Complete the following Python function:\n\nfrom typing import List\n\n\ndef below_zero(operations: List[int]) -> bool:\n    \"\"\" You're given a list of deposit and withdrawal operations on a bank account that starts with\n    zero balance. Your task is to detect if at any point the balance of account fallls below zero, and\n    at that point function should return True. Otherwise it should return False.\n    >>> below_zero([1, 2, 3])\n    False\n    >>> below_zero([1, 2, -4, 5])\n    True\n    \"\"\"\n\n\nProvide only the complete function implementation. Do not include any explanations or test code."
+              }
+            ],
+            "timestamp": "2025-06-29T21:11:03.840Z"
+          },
+          "llmResponse": {
+            "content": "```python\nfrom typing import List\n\ndef below_zero(operations: List[int]) -> bool:\n    balance = 0\n    for operation in operations:\n        balance += operation\n        if balance < 0:\n            return True\n    return False\n```",
+            "latency": 1318,
+            "timestamp": "2025-06-29T21:11:05.158Z"
+          }
+        },
+        {
+          "passed": true,
+          "score": 1,
+          "details": "Extracted 214 characters of code",
+          "extractedCode": "from typing import List\n\ndef below_zero(operations: List[int]) -> bool:\n    balance = 0\n    for operation in operations:\n        balance += operation\n        if balance < 0:\n            return True\n    return False",
+          "isDiff": false
+        },
+        {
+          "passed": false,
+          "score": 0,
+          "details": "Code analysis failed: no function/class found"
+        }
+      ],
+      "executionResult": {
+        "stdout": "```python\nfrom typing import List\n\ndef below_zero(operations: List[int]) -> bool:\n    balance = 0\n    for operation in operations:\n        balance += operation\n        if balance < 0:\n            return True\n    return False\n```",
+        "stderr": "1 test step(s) failed",
+        "exitCode": 1,
+        "successful": false
+      },
+      "metrics": {
+        "latency": 1318,
+        "tokens": {
+          "prompt": 0,
+          "completion": 0,
+          "total": 0
+        },
+        "qualityScores": {
+          "step_0_score": 1,
+          "step_1_score": 1,
+          "step_2_score": 0,
+          "overallQuality": 0.6666666666666666
+        }
+      },
+      "error": {
+        "type": "validation",
+        "message": "One or more validation steps failed",
+        "details": "Check testStepResults for specific failures",
+        "recoverable": true
+      }
+    },
+    {
+      "testCaseId": "HumanEval/4-None",
+      "modelId": "None",
+      "status": "failed",
+      "startTime": "2025-06-29T21:11:05.161Z",
+      "endTime": "2025-06-29T21:11:06.846Z",
+      "duration": 1685,
+      "testStepResults": [
+        {
+          "passed": true,
+          "score": 1,
+          "details": "LLM generated response (229 characters)",
+          "llmRequest": {
+            "model": "None",
+            "messages": [
+              {
+                "role": "system",
+                "content": "You are an expert software engineer assisting with open-source software maintenance. You will be given:\n- A GitHub issue describing a bug, feature request, or code change.\n- The full context of the codebase (as selected relevant files).\nYour task is to generate one or more code edits that resolve the issue accurately and minimally.\n\nGuidelines:\n- Do not add unrelated changes or comments.\n- Only change files necessary to resolve the issue.\n- Your output should consist **only of valid diffs** (e.g., unified diff format or Git-style patch).\n- Ensure your solution is consistent with the coding style and logic of the existing codebase.\n\nOutput Format:\nReturn the patch or diff directly. Do not include explanations or comments."
+              },
+              {
+                "role": "user",
+                "content": "Complete the following Python function:\n\nfrom typing import List\n\n\ndef mean_absolute_deviation(numbers: List[float]) -> float:\n    \"\"\" For a given list of input numbers, calculate Mean Absolute Deviation\n    around the mean of this dataset.\n    Mean Absolute Deviation is the average absolute difference between each\n    element and a centerpoint (mean in this case):\n    MAD = average | x - x_mean |\n    >>> mean_absolute_deviation([1.0, 2.0, 3.0, 4.0])\n    1.0\n    \"\"\"\n\n\nProvide only the complete function implementation. Do not include any explanations or test code."
+              }
+            ],
+            "timestamp": "2025-06-29T21:11:05.161Z"
+          },
+          "llmResponse": {
+            "content": "```python\nfrom typing import List\n\ndef mean_absolute_deviation(numbers: List[float]) -> float:\n    mean = sum(numbers) / len(numbers)\n    deviations = [abs(x - mean) for x in numbers]\n    return sum(deviations) / len(numbers)\n```",
+            "latency": 1682,
+            "timestamp": "2025-06-29T21:11:06.843Z"
+          }
+        },
+        {
+          "passed": true,
+          "score": 1,
+          "details": "Extracted 215 characters of code",
+          "extractedCode": "from typing import List\n\ndef mean_absolute_deviation(numbers: List[float]) -> float:\n    mean = sum(numbers) / len(numbers)\n    deviations = [abs(x - mean) for x in numbers]\n    return sum(deviations) / len(numbers)",
+          "isDiff": false
+        },
+        {
+          "passed": false,
+          "score": 0,
+          "details": "Code analysis failed: no function/class found"
+        }
+      ],
+      "executionResult": {
+        "stdout": "```python\nfrom typing import List\n\ndef mean_absolute_deviation(numbers: List[float]) -> float:\n    mean = sum(numbers) / len(numbers)\n    deviations = [abs(x - mean) for x in numbers]\n    return sum(deviations) / len(numbers)\n```",
+        "stderr": "1 test step(s) failed",
+        "exitCode": 1,
+        "successful": false
+      },
+      "metrics": {
+        "latency": 1682,
+        "tokens": {
+          "prompt": 0,
+          "completion": 0,
+          "total": 0
+        },
+        "qualityScores": {
+          "step_0_score": 1,
+          "step_1_score": 1,
+          "step_2_score": 0,
+          "overallQuality": 0.6666666666666666
+        }
+      },
+      "error": {
+        "type": "validation",
+        "message": "One or more validation steps failed",
+        "details": "Check testStepResults for specific failures",
+        "recoverable": true
+      }
+    },
+    {
+      "testCaseId": "HumanEval/5-None",
+      "modelId": "None",
+      "status": "failed",
+      "startTime": "2025-06-29T21:11:06.846Z",
+      "endTime": "2025-06-29T21:11:08.802Z",
+      "duration": 1956,
+      "testStepResults": [
+        {
+          "passed": true,
+          "score": 1,
+          "details": "LLM generated response (312 characters)",
+          "llmRequest": {
+            "model": "None",
+            "messages": [
+              {
+                "role": "system",
+                "content": "You are an expert software engineer assisting with open-source software maintenance. You will be given:\n- A GitHub issue describing a bug, feature request, or code change.\n- The full context of the codebase (as selected relevant files).\nYour task is to generate one or more code edits that resolve the issue accurately and minimally.\n\nGuidelines:\n- Do not add unrelated changes or comments.\n- Only change files necessary to resolve the issue.\n- Your output should consist **only of valid diffs** (e.g., unified diff format or Git-style patch).\n- Ensure your solution is consistent with the coding style and logic of the existing codebase.\n\nOutput Format:\nReturn the patch or diff directly. Do not include explanations or comments."
+              },
+              {
+                "role": "user",
+                "content": "Complete the following Python function:\n\nfrom typing import List\n\n\ndef intersperse(numbers: List[int], delimeter: int) -> List[int]:\n    \"\"\" Insert a number 'delimeter' between every two consecutive elements of input list `numbers'\n    >>> intersperse([], 4)\n    []\n    >>> intersperse([1, 2, 3], 4)\n    [1, 4, 2, 4, 3]\n    \"\"\"\n\n\nProvide only the complete function implementation. Do not include any explanations or test code."
+              }
+            ],
+            "timestamp": "2025-06-29T21:11:06.846Z"
+          },
+          "llmResponse": {
+            "content": "```python\nfrom typing import List\n\ndef intersperse(numbers: List[int], delimeter: int) -> List[int]:\n    if not numbers:\n        return []\n    result = []\n    for i in range(len(numbers) - 1):\n        result.append(numbers[i])\n        result.append(delimeter)\n    result.append(numbers[-1])\n    return result\n```",
+            "latency": 1954,
+            "timestamp": "2025-06-29T21:11:08.800Z"
+          }
+        },
+        {
+          "passed": true,
+          "score": 1,
+          "details": "Extracted 298 characters of code",
+          "extractedCode": "from typing import List\n\ndef intersperse(numbers: List[int], delimeter: int) -> List[int]:\n    if not numbers:\n        return []\n    result = []\n    for i in range(len(numbers) - 1):\n        result.append(numbers[i])\n        result.append(delimeter)\n    result.append(numbers[-1])\n    return result",
+          "isDiff": false
+        },
+        {
+          "passed": false,
+          "score": 0,
+          "details": "Code analysis failed: no function/class found"
+        }
+      ],
+      "executionResult": {
+        "stdout": "```python\nfrom typing import List\n\ndef intersperse(numbers: List[int], delimeter: int) -> List[int]:\n    if not numbers:\n        return []\n    result = []\n    for i in range(len(numbers) - 1):\n        result.append(numbers[i])\n        result.append(delimeter)\n    result.append(numbers[-1])\n    return result\n```",
+        "stderr": "1 test step(s) failed",
+        "exitCode": 1,
+        "successful": false
+      },
+      "metrics": {
+        "latency": 1954,
+        "tokens": {
+          "prompt": 0,
+          "completion": 0,
+          "total": 0
+        },
+        "qualityScores": {
+          "step_0_score": 1,
+          "step_1_score": 1,
+          "step_2_score": 0,
+          "overallQuality": 0.6666666666666666
+        }
+      },
+      "error": {
+        "type": "validation",
+        "message": "One or more validation steps failed",
+        "details": "Check testStepResults for specific failures",
+        "recoverable": true
+      }
+    },
+    {
+      "testCaseId": "HumanEval/6-None",
+      "modelId": "None",
+      "status": "failed",
+      "startTime": "2025-06-29T21:11:08.802Z",
+      "endTime": "2025-06-29T21:11:11.058Z",
+      "duration": 2256,
+      "testStepResults": [
+        {
+          "passed": true,
+          "score": 1,
+          "details": "LLM generated response (470 characters)",
+          "llmRequest": {
+            "model": "None",
+            "messages": [
+              {
+                "role": "system",
+                "content": "You are an expert software engineer assisting with open-source software maintenance. You will be given:\n- A GitHub issue describing a bug, feature request, or code change.\n- The full context of the codebase (as selected relevant files).\nYour task is to generate one or more code edits that resolve the issue accurately and minimally.\n\nGuidelines:\n- Do not add unrelated changes or comments.\n- Only change files necessary to resolve the issue.\n- Your output should consist **only of valid diffs** (e.g., unified diff format or Git-style patch).\n- Ensure your solution is consistent with the coding style and logic of the existing codebase.\n\nOutput Format:\nReturn the patch or diff directly. Do not include explanations or comments."
+              },
+              {
+                "role": "user",
+                "content": "Complete the following Python function:\n\nfrom typing import List\n\n\ndef parse_nested_parens(paren_string: str) -> List[int]:\n    \"\"\" Input to this function is a string represented multiple groups for nested parentheses separated by spaces.\n    For each of the group, output the deepest level of nesting of parentheses.\n    E.g. (()()) has maximum two levels of nesting while ((())) has three.\n\n    >>> parse_nested_parens('(()()) ((())) () ((())()())')\n    [2, 3, 1, 3]\n    \"\"\"\n\n\nProvide only the complete function implementation. Do not include any explanations or test code."
+              }
+            ],
+            "timestamp": "2025-06-29T21:11:08.802Z"
+          },
+          "llmResponse": {
+            "content": "```python\nfrom typing import List\n\ndef parse_nested_parens(paren_string: str) -> List[int]:\n    def max_depth(s: str) -> int:\n        depth = 0\n        max_depth = 0\n        for char in s:\n            if char == '(':\n                depth += 1\n                if depth > max_depth:\n                    max_depth = depth\n            elif char == ')':\n                depth -= 1\n        return max_depth\n\n    return [max_depth(group) for group in paren_string.split()]\n```",
+            "latency": 2255,
+            "timestamp": "2025-06-29T21:11:11.057Z"
+          }
+        },
+        {
+          "passed": true,
+          "score": 1,
+          "details": "Extracted 456 characters of code",
+          "extractedCode": "from typing import List\n\ndef parse_nested_parens(paren_string: str) -> List[int]:\n    def max_depth(s: str) -> int:\n        depth = 0\n        max_depth = 0\n        for char in s:\n            if char == '(':\n                depth += 1\n                if depth > max_depth:\n                    max_depth = depth\n            elif char == ')':\n                depth -= 1\n        return max_depth\n\n    return [max_depth(group) for group in paren_string.split()]",
+          "isDiff": false
+        },
+        {
+          "passed": false,
+          "score": 0,
+          "details": "Code analysis failed: no function/class found"
+        }
+      ],
+      "executionResult": {
+        "stdout": "```python\nfrom typing import List\n\ndef parse_nested_parens(paren_string: str) -> List[int]:\n    def max_depth(s: str) -> int:\n        depth = 0\n        max_depth = 0\n        for char in s:\n            if char == '(':\n                depth += 1\n                if depth > max_depth:\n                    max_depth = depth\n            elif char == ')':\n                depth -= 1\n        return max_depth\n\n    return [max_depth(group) for group in paren_string.split()]\n```",
+        "stderr": "1 test step(s) failed",
+        "exitCode": 1,
+        "successful": false
+      },
+      "metrics": {
+        "latency": 2255,
+        "tokens": {
+          "prompt": 0,
+          "completion": 0,
+          "total": 0
+        },
+        "qualityScores": {
+          "step_0_score": 1,
+          "step_1_score": 1,
+          "step_2_score": 0,
+          "overallQuality": 0.6666666666666666
+        }
+      },
+      "error": {
+        "type": "validation",
+        "message": "One or more validation steps failed",
+        "details": "Check testStepResults for specific failures",
+        "recoverable": true
+      }
+    },
+    {
+      "testCaseId": "HumanEval/7-None",
+      "modelId": "None",
+      "status": "failed",
+      "startTime": "2025-06-29T21:11:11.058Z",
+      "endTime": "2025-06-29T21:11:12.413Z",
+      "duration": 1355,
+      "testStepResults": [
+        {
+          "passed": true,
+          "score": 1,
+          "details": "LLM generated response (407 characters)",
+          "llmRequest": {
+            "model": "None",
+            "messages": [
+              {
+                "role": "system",
+                "content": "You are an expert software engineer assisting with open-source software maintenance. You will be given:\n- A GitHub issue describing a bug, feature request, or code change.\n- The full context of the codebase (as selected relevant files).\nYour task is to generate one or more code edits that resolve the issue accurately and minimally.\n\nGuidelines:\n- Do not add unrelated changes or comments.\n- Only change files necessary to resolve the issue.\n- Your output should consist **only of valid diffs** (e.g., unified diff format or Git-style patch).\n- Ensure your solution is consistent with the coding style and logic of the existing codebase.\n\nOutput Format:\nReturn the patch or diff directly. Do not include explanations or comments."
+              },
+              {
+                "role": "user",
+                "content": "Complete the following Python function:\n\nfrom typing import List\n\n\ndef filter_by_substring(strings: List[str], substring: str) -> List[str]:\n    \"\"\" Filter an input list of strings only for ones that contain given substring\n    >>> filter_by_substring([], 'a')\n    []\n    >>> filter_by_substring(['abc', 'bacd', 'cde', 'array'], 'a')\n    ['abc', 'bacd', 'array']\n    \"\"\"\n\n\nProvide only the complete function implementation. Do not include any explanations or test code."
+              }
+            ],
+            "timestamp": "2025-06-29T21:11:11.058Z"
+          },
+          "llmResponse": {
+            "content": "```python\nfrom typing import List\n\ndef filter_by_substring(strings: List[str], substring: str) -> List[str]:\n    \"\"\" Filter an input list of strings only for ones that contain given substring\n    >>> filter_by_substring([], 'a')\n    []\n    >>> filter_by_substring(['abc', 'bacd', 'cde', 'array'], 'a')\n    ['abc', 'bacd', 'array']\n    \"\"\"\n    return [string for string in strings if substring in string]\n```",
+            "latency": 1354,
+            "timestamp": "2025-06-29T21:11:12.412Z"
+          }
+        },
+        {
+          "passed": true,
+          "score": 1,
+          "details": "Extracted 393 characters of code",
+          "extractedCode": "from typing import List\n\ndef filter_by_substring(strings: List[str], substring: str) -> List[str]:\n    \"\"\" Filter an input list of strings only for ones that contain given substring\n    >>> filter_by_substring([], 'a')\n    []\n    >>> filter_by_substring(['abc', 'bacd', 'cde', 'array'], 'a')\n    ['abc', 'bacd', 'array']\n    \"\"\"\n    return [string for string in strings if substring in string]",
+          "isDiff": false
+        },
+        {
+          "passed": false,
+          "score": 0,
+          "details": "Code analysis failed: no function/class found"
+        }
+      ],
+      "executionResult": {
+        "stdout": "```python\nfrom typing import List\n\ndef filter_by_substring(strings: List[str], substring: str) -> List[str]:\n    \"\"\" Filter an input list of strings only for ones that contain given substring\n    >>> filter_by_substring([], 'a')\n    []\n    >>> filter_by_substring(['abc', 'bacd', 'cde', 'array'], 'a')\n    ['abc', 'bacd', 'array']\n    \"\"\"\n    return [string for string in strings if substring in string]\n```",
+        "stderr": "1 test step(s) failed",
+        "exitCode": 1,
+        "successful": false
+      },
+      "metrics": {
+        "latency": 1354,
+        "tokens": {
+          "prompt": 0,
+          "completion": 0,
+          "total": 0
+        },
+        "qualityScores": {
+          "step_0_score": 1,
+          "step_1_score": 1,
+          "step_2_score": 0,
+          "overallQuality": 0.6666666666666666
+        }
+      },
+      "error": {
+        "type": "validation",
+        "message": "One or more validation steps failed",
+        "details": "Check testStepResults for specific failures",
+        "recoverable": true
+      }
+    },
+    {
+      "testCaseId": "HumanEval/8-None",
+      "modelId": "None",
+      "status": "failed",
+      "startTime": "2025-06-29T21:11:12.413Z",
+      "endTime": "2025-06-29T21:11:13.494Z",
+      "duration": 1081,
+      "testStepResults": [
+        {
+          "passed": true,
+          "score": 1,
+          "details": "LLM generated response (247 characters)",
+          "llmRequest": {
+            "model": "None",
+            "messages": [
+              {
+                "role": "system",
+                "content": "You are an expert software engineer assisting with open-source software maintenance. You will be given:\n- A GitHub issue describing a bug, feature request, or code change.\n- The full context of the codebase (as selected relevant files).\nYour task is to generate one or more code edits that resolve the issue accurately and minimally.\n\nGuidelines:\n- Do not add unrelated changes or comments.\n- Only change files necessary to resolve the issue.\n- Your output should consist **only of valid diffs** (e.g., unified diff format or Git-style patch).\n- Ensure your solution is consistent with the coding style and logic of the existing codebase.\n\nOutput Format:\nReturn the patch or diff directly. Do not include explanations or comments."
+              },
+              {
+                "role": "user",
+                "content": "Complete the following Python function:\n\nfrom typing import List, Tuple\n\n\ndef sum_product(numbers: List[int]) -> Tuple[int, int]:\n    \"\"\" For a given list of integers, return a tuple consisting of a sum and a product of all the integers in a list.\n    Empty sum should be equal to 0 and empty product should be equal to 1.\n    >>> sum_product([])\n    (0, 1)\n    >>> sum_product([1, 2, 3, 4])\n    (10, 24)\n    \"\"\"\n\n\nProvide only the complete function implementation. Do not include any explanations or test code."
+              }
+            ],
+            "timestamp": "2025-06-29T21:11:12.413Z"
+          },
+          "llmResponse": {
+            "content": "```python\nfrom typing import List, Tuple\n\ndef sum_product(numbers: List[int]) -> Tuple[int, int]:\n    total_sum = sum(numbers)\n    total_product = 1\n    for number in numbers:\n        total_product *= number\n    return total_sum, total_product\n```",
+            "latency": 1079,
+            "timestamp": "2025-06-29T21:11:13.492Z"
+          }
+        },
+        {
+          "passed": true,
+          "score": 1,
+          "details": "Extracted 233 characters of code",
+          "extractedCode": "from typing import List, Tuple\n\ndef sum_product(numbers: List[int]) -> Tuple[int, int]:\n    total_sum = sum(numbers)\n    total_product = 1\n    for number in numbers:\n        total_product *= number\n    return total_sum, total_product",
+          "isDiff": false
+        },
+        {
+          "passed": false,
+          "score": 0,
+          "details": "Code analysis failed: no function/class found"
+        }
+      ],
+      "executionResult": {
+        "stdout": "```python\nfrom typing import List, Tuple\n\ndef sum_product(numbers: List[int]) -> Tuple[int, int]:\n    total_sum = sum(numbers)\n    total_product = 1\n    for number in numbers:\n        total_product *= number\n    return total_sum, total_product\n```",
+        "stderr": "1 test step(s) failed",
+        "exitCode": 1,
+        "successful": false
+      },
+      "metrics": {
+        "latency": 1079,
+        "tokens": {
+          "prompt": 0,
+          "completion": 0,
+          "total": 0
+        },
+        "qualityScores": {
+          "step_0_score": 1,
+          "step_1_score": 1,
+          "step_2_score": 0,
+          "overallQuality": 0.6666666666666666
+        }
+      },
+      "error": {
+        "type": "validation",
+        "message": "One or more validation steps failed",
+        "details": "Check testStepResults for specific failures",
+        "recoverable": true
+      }
+    },
+    {
+      "testCaseId": "HumanEval/9-None",
+      "modelId": "None",
+      "status": "failed",
+      "startTime": "2025-06-29T21:11:13.494Z",
+      "endTime": "2025-06-29T21:11:14.657Z",
+      "duration": 1163,
+      "testStepResults": [
+        {
+          "passed": true,
+          "score": 1,
+          "details": "LLM generated response (269 characters)",
+          "llmRequest": {
+            "model": "None",
+            "messages": [
+              {
+                "role": "system",
+                "content": "You are an expert software engineer assisting with open-source software maintenance. You will be given:\n- A GitHub issue describing a bug, feature request, or code change.\n- The full context of the codebase (as selected relevant files).\nYour task is to generate one or more code edits that resolve the issue accurately and minimally.\n\nGuidelines:\n- Do not add unrelated changes or comments.\n- Only change files necessary to resolve the issue.\n- Your output should consist **only of valid diffs** (e.g., unified diff format or Git-style patch).\n- Ensure your solution is consistent with the coding style and logic of the existing codebase.\n\nOutput Format:\nReturn the patch or diff directly. Do not include explanations or comments."
+              },
+              {
+                "role": "user",
+                "content": "Complete the following Python function:\n\nfrom typing import List, Tuple\n\n\ndef rolling_max(numbers: List[int]) -> List[int]:\n    \"\"\" From a given list of integers, generate a list of rolling maximum element found until given moment\n    in the sequence.\n    >>> rolling_max([1, 2, 3, 2, 3, 4, 2])\n    [1, 2, 3, 3, 3, 4, 4]\n    \"\"\"\n\n\nProvide only the complete function implementation. Do not include any explanations or test code."
+              }
+            ],
+            "timestamp": "2025-06-29T21:11:13.495Z"
+          },
+          "llmResponse": {
+            "content": "```python\nfrom typing import List\n\ndef rolling_max(numbers: List[int]) -> List[int]:\n    max_so_far = float('-inf')\n    result = []\n    for num in numbers:\n        if num > max_so_far:\n            max_so_far = num\n        result.append(max_so_far)\n    return result\n```",
+            "latency": 1160,
+            "timestamp": "2025-06-29T21:11:14.655Z"
+          }
+        },
+        {
+          "passed": true,
+          "score": 1,
+          "details": "Extracted 255 characters of code",
+          "extractedCode": "from typing import List\n\ndef rolling_max(numbers: List[int]) -> List[int]:\n    max_so_far = float('-inf')\n    result = []\n    for num in numbers:\n        if num > max_so_far:\n            max_so_far = num\n        result.append(max_so_far)\n    return result",
+          "isDiff": false
+        },
+        {
+          "passed": false,
+          "score": 0,
+          "details": "Code analysis failed: no function/class found"
+        }
+      ],
+      "executionResult": {
+        "stdout": "```python\nfrom typing import List\n\ndef rolling_max(numbers: List[int]) -> List[int]:\n    max_so_far = float('-inf')\n    result = []\n    for num in numbers:\n        if num > max_so_far:\n            max_so_far = num\n        result.append(max_so_far)\n    return result\n```",
+        "stderr": "1 test step(s) failed",
+        "exitCode": 1,
+        "successful": false
+      },
+      "metrics": {
+        "latency": 1160,
+        "tokens": {
+          "prompt": 0,
+          "completion": 0,
+          "total": 0
+        },
+        "qualityScores": {
+          "step_0_score": 1,
+          "step_1_score": 1,
+          "step_2_score": 0,
+          "overallQuality": 0.6666666666666666
+        }
+      },
+      "error": {
+        "type": "validation",
+        "message": "One or more validation steps failed",
+        "details": "Check testStepResults for specific failures",
+        "recoverable": true
+      }
+    }
+  ]
+}

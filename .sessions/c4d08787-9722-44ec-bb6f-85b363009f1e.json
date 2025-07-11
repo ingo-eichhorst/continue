@@ -1,0 +1,101 @@
+{
+  "id": "c4d08787-9722-44ec-bb6f-85b363009f1e",
+  "pluginName": "prompt-evaluation",
+  "startTime": "2025-06-28T13:05:16.578Z",
+  "lastUpdateTime": "2025-06-28T13:05:23.058Z",
+  "status": "completed",
+  "config": {
+    "models": [
+      "None"
+    ],
+    "dataset": "SWE-bench_Lite",
+    "properties": {
+      "systemPrompt": "",
+      "rulesFile": "",
+      "promptFile": ""
+    },
+    "executionEnvironment": "docker",
+    "maxRetries": 3,
+    "timeout": 300000
+  },
+  "progress": {
+    "totalTestCases": 1,
+    "completedTestCases": 1,
+    "failedTestCases": 1,
+    "skippedTestCases": 0,
+    "currentTestCase": "django__django-11133-None"
+  },
+  "results": [
+    {
+      "testCaseId": "django__django-11133-None",
+      "modelId": "None",
+      "status": "failed",
+      "startTime": "2025-06-28T13:05:16.587Z",
+      "endTime": "2025-06-28T13:05:23.058Z",
+      "duration": 6471,
+      "testStepResults": [
+        {
+          "passed": true,
+          "score": 1,
+          "details": "LLM generated response (1506 characters)",
+          "llmRequest": {
+            "model": "None",
+            "messages": [
+              {
+                "role": "system",
+                "content": ""
+              },
+              {
+                "role": "user",
+                "content": "Repository: django/django\nBase Commit: c5cd8783825b5f6384417dac5f87db783daca86e\n\nProblem Statement:\ndjango.forms.utils.flatten() is broken for dict subclasses that don't implement .items()\n\nHints:\nThe issue is in the flatten function where it checks isinstance(error, dict) but then assumes the dict has an .items() method.\n\nPlease provide a patch to fix this issue. The patch should be in unified diff format and address the problem described above."
+              }
+            ],
+            "timestamp": "2025-06-28T13:05:16.587Z"
+          },
+          "llmResponse": {
+            "content": "To address the issue in `django.forms.utils.flatten()`, we need to ensure that we only call `.items()` on objects that actually support this method. The patch involves checking for the `items` method, rather than assuming it will always be present for dictionary-like objects.\n\nHere is the patch in unified diff format:\n\n```diff\ndiff --git a/django/forms/utils.py b/django/forms/utils.py\nindex 725bf3b..48c3f2a 100644\n--- a/django/forms/utils.py\n+++ b/django/forms/utils.py\n@@ -XXX,XX +XXX,XX @@  # replace XXX,XX with the line numbers where changes occur\n def flatten(errors):\n     \"\"\"\n     Turn a list of errors into a single list of strings.\n     \"\"\"\n     result = []\n     for error in errors:\n-        if isinstance(error, dict):\n-            for key, value in error.items():\n+        if hasattr(error, 'items'):\n+            for key, value in error.items():\n                 result.extend(flatten(value))\n         elif isinstance(error, list):\n             result.extend(flatten(error))\n         else:\n             result.append(error)\n     return result\n```\n\n### Explanation:\n\n- **Check for `items`:** Instead of checking if `error` is an instance of `dict`, we now check if `error` has an `items` method using `hasattr`. This change makes the function more flexible to handle custom dictionary-like objects that might not directly inherit from `dict` but implement the `items` interface.\n\nApply this patch to ensure `flatten` works correctly for subclasses of `dict` that don't implement `.items()`.",
+            "latency": 6467,
+            "timestamp": "2025-06-28T13:05:23.054Z"
+          }
+        },
+        {
+          "passed": true,
+          "score": 1,
+          "details": "Extracted 735 characters of code",
+          "extractedCode": "diff\ndiff --git a/django/forms/utils.py b/django/forms/utils.py\nindex 725bf3b..48c3f2a 100644\n--- a/django/forms/utils.py\n+++ b/django/forms/utils.py\n@@ -XXX,XX +XXX,XX @@  # replace XXX,XX with the line numbers where changes occur\n def flatten(errors):\n     \"\"\"\n     Turn a list of errors into a single list of strings.\n     \"\"\"\n     result = []\n     for error in errors:\n-        if isinstance(error, dict):\n-            for key, value in error.items():\n+        if hasattr(error, 'items'):\n+            for key, value in error.items():\n                 result.extend(flatten(value))\n         elif isinstance(error, list):\n             result.extend(flatten(error))\n         else:\n             result.append(error)\n     return result"
+        },
+        {
+          "passed": false,
+          "score": 0,
+          "details": "Code analysis failed: no function/class found"
+        }
+      ],
+      "executionResult": {
+        "stdout": "To address the issue in `django.forms.utils.flatten()`, we need to ensure that we only call `.items()` on objects that actually support this method. The patch involves checking for the `items` method, rather than assuming it will always be present for dictionary-like objects.\n\nHere is the patch in unified diff format:\n\n```diff\ndiff --git a/django/forms/utils.py b/django/forms/utils.py\nindex 725bf3b..48c3f2a 100644\n--- a/django/forms/utils.py\n+++ b/django/forms/utils.py\n@@ -XXX,XX +XXX,XX @@  # replace XXX,XX with the line numbers where changes occur\n def flatten(errors):\n     \"\"\"\n     Turn a list of errors into a single list of strings.\n     \"\"\"\n     result = []\n     for error in errors:\n-        if isinstance(error, dict):\n-            for key, value in error.items():\n+        if hasattr(error, 'items'):\n+            for key, value in error.items():\n                 result.extend(flatten(value))\n         elif isinstance(error, list):\n             result.extend(flatten(error))\n         else:\n             result.append(error)\n     return result\n```\n\n### Explanation:\n\n- **Check for `items`:** Instead of checking if `error` is an instance of `dict`, we now check if `error` has an `items` method using `hasattr`. This change makes the function more flexible to handle custom dictionary-like objects that might not directly inherit from `dict` but implement the `items` interface.\n\nApply this patch to ensure `flatten` works correctly for subclasses of `dict` that don't implement `.items()`.",
+        "stderr": "1 test step(s) failed",
+        "exitCode": 1,
+        "successful": false
+      },
+      "metrics": {
+        "latency": 6467,
+        "tokens": {
+          "prompt": 0,
+          "completion": 0,
+          "total": 0
+        },
+        "qualityScores": {
+          "step_0_score": 1,
+          "step_1_score": 1,
+          "step_2_score": 0,
+          "overallQuality": 0.6666666666666666
+        }
+      },
+      "error": {
+        "type": "validation",
+        "message": "One or more validation steps failed",
+        "details": "Check testStepResults for specific failures",
+        "recoverable": true
+      }
+    }
+  ]
+}

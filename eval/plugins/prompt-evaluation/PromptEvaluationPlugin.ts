@@ -1,3 +1,4 @@
+import { applyPatch } from "diff";
 import { TestCaseExecutor } from "../../core/TestCaseExecutor.js";
 import {
   BenchmarkPlugin,
@@ -7,7 +8,6 @@ import {
   TestExecutionContext,
   TestStepResult,
 } from "../../core/types.js";
-import { applyPatch } from "diff";
 
 /**
  * Evaluates how well rules files or prompt files improve code generation quality and unit test pass rates.
@@ -15,13 +15,28 @@ import { applyPatch } from "diff";
  */
 export class PromptEvaluationPlugin implements BenchmarkPlugin {
   name = "prompt-evaluation";
-  description = "Evaluates effectiveness of rules files and prompt files for code generation and diff patch tasks";
+  description =
+    "Evaluates effectiveness of rules files and prompt files for code generation and diff patch tasks";
 
   propertiesSchema = {
     systemPrompt: {
       type: "string" as const,
       required: false,
-      default: "",
+      default: `
+You are an expert software engineer assisting with open-source software maintenance. You will be given:
+- A GitHub issue describing a bug, feature request, or code change.
+- The full context of the codebase (as selected relevant files).
+Your task is to generate one or more code edits that resolve the issue accurately and minimally.
+
+Guidelines:
+- Do not add unrelated changes or comments.
+- Only change files necessary to resolve the issue.
+- Your output should consist **only of valid diffs** (e.g., unified diff format or Git-style patch).
+- Ensure your solution is consistent with the coding style and logic of the existing codebase.
+
+Output Format:
+Return the patch or diff directly. Do not include explanations or comments.
+      `,
       description: "Base system prompt for the LLM",
     },
     rulesFile: {
@@ -39,7 +54,6 @@ export class PromptEvaluationPlugin implements BenchmarkPlugin {
   };
 
   defaultDataset = "datasets/prompt-evaluation-dataset";
-
 
   /**
    * Builds the enhanced system prompt by combining base prompt with rules and prompt files.
@@ -62,7 +76,6 @@ export class PromptEvaluationPlugin implements BenchmarkPlugin {
     return enhancedPrompt.trim();
   }
 
-
   /**
    * Executes code generation step using the enhanced prompt.
    */
@@ -83,16 +96,18 @@ export class PromptEvaluationPlugin implements BenchmarkPlugin {
    * Executes code extraction step to isolate code or diff from LLM response.
    * Enhanced to detect both standalone code and diff patches.
    */
-  private executeCodeExtractionStep(llmResponse: string): TestStepResult & { extractedCode?: string; isDiff?: boolean } {
+  private executeCodeExtractionStep(
+    llmResponse: string,
+  ): TestStepResult & { extractedCode?: string; isDiff?: boolean } {
     const extractedCode = TestCaseExecutor.extractCodeFromResponse(llmResponse);
     const hasCode = extractedCode.trim().length > 0;
     const isDiff = hasCode && TestCaseExecutor.isDiffPatch(extractedCode);
-    
+
     return {
       passed: hasCode,
       score: hasCode ? 1 : 0,
-      details: hasCode 
-        ? `Extracted ${extractedCode.trim().length} characters of ${isDiff ? 'diff patch' : 'code'}`
+      details: hasCode
+        ? `Extracted ${extractedCode.trim().length} characters of ${isDiff ? "diff patch" : "code"}`
         : "No code blocks or diff patches found in response",
       extractedCode: hasCode ? extractedCode : undefined,
       isDiff,
@@ -104,14 +119,14 @@ export class PromptEvaluationPlugin implements BenchmarkPlugin {
    * Enhanced to handle multiple files from SWE-bench datasets.
    */
   private executeDiffApplicationStep(
-    diffPatch: string, 
+    diffPatch: string,
     testCase: TestCase,
-    context: TestExecutionContext
+    context: TestExecutionContext,
   ): TestStepResult & { patchedCode?: string } {
     try {
       // Get base source code from test case or repository context
       const baseSourceCode = this.getBaseSourceCode(testCase, context);
-      
+
       if (!baseSourceCode) {
         return {
           passed: false,
@@ -131,7 +146,7 @@ export class PromptEvaluationPlugin implements BenchmarkPlugin {
       if (diffFilePaths.length === 0) {
         // If no specific files found in diff, try to apply to the entire base code
         const patchedCode = applyPatch(baseSourceCode, diffPatch);
-        
+
         if (!patchedCode) {
           return {
             passed: false,
@@ -150,26 +165,31 @@ export class PromptEvaluationPlugin implements BenchmarkPlugin {
 
       // Apply patches to specific files
       for (const filePath of diffFilePaths) {
-        const baseFileContent = baseFiles[filePath] || '';
-        
+        const baseFileContent = baseFiles[filePath] || "";
+
         try {
           // Extract the portion of diff that applies to this file
           const fileDiff = this.extractFileDiffFromPatch(diffPatch, filePath);
-          
+
           if (fileDiff) {
             const patchedFileContent = applyPatch(baseFileContent, fileDiff);
-            
+
             if (patchedFileContent !== false) {
               modifiedFiles[filePath] = patchedFileContent;
-              totalChanges += Math.abs(patchedFileContent.length - baseFileContent.length);
+              totalChanges += Math.abs(
+                patchedFileContent.length - baseFileContent.length,
+              );
             } else {
               context.logger.warn(`Failed to apply patch to file: ${filePath}`);
               modifiedFiles[filePath] = baseFileContent; // Keep original on failure
             }
           }
         } catch (fileError) {
-          context.logger.warn(`Error applying patch to ${filePath}:`, fileError as Error);
-          modifiedFiles[filePath] = baseFiles[filePath] || ''; // Keep original on error
+          context.logger.warn(
+            `Error applying patch to ${filePath}:`,
+            fileError as Error,
+          );
+          modifiedFiles[filePath] = baseFiles[filePath] || ""; // Keep original on error
         }
       }
 
@@ -182,11 +202,10 @@ export class PromptEvaluationPlugin implements BenchmarkPlugin {
         details: `Successfully applied diff patch to ${Object.keys(modifiedFiles).length} files (${totalChanges} character changes)`,
         patchedCode,
       };
-
     } catch (error) {
       const errorMessage = (error as Error).message;
       context.logger.error(`Diff application failed: ${errorMessage}`);
-      
+
       return {
         passed: false,
         score: 0,
@@ -200,21 +219,30 @@ export class PromptEvaluationPlugin implements BenchmarkPlugin {
    * Gets base source code for applying diffs.
    * Enhanced to use repository source code when available from SWE-bench datasets.
    */
-  private getBaseSourceCode(testCase: TestCase, context: TestExecutionContext): string {
+  private getBaseSourceCode(
+    testCase: TestCase,
+    context: TestExecutionContext,
+  ): string {
     // First, try to get base code from test case input (populated by SWEBenchDatasetProvider)
     if (testCase.input.sourceCode && testCase.input.sourceCode.trim()) {
-      context.logger.debug(`Using repository source code (${testCase.input.sourceCode.length} characters) for ${testCase.id}`);
+      context.logger.debug(
+        `Using repository source code (${testCase.input.sourceCode.length} characters) for ${testCase.id}`,
+      );
       return testCase.input.sourceCode;
     }
 
     // Fallback for cases where repository cloning is disabled or failed
     if (testCase.metadata?.repository && testCase.metadata?.base_commit) {
-      context.logger.warn(`Base source code not available for ${testCase.metadata.repository}@${testCase.metadata.base_commit}. Repository cloning may be disabled.`);
+      context.logger.warn(
+        `Base source code not available for ${testCase.metadata.repository}@${testCase.metadata.base_commit}. Repository cloning may be disabled.`,
+      );
       // Return empty string as fallback - this will work for new files
       return "";
     }
 
-    context.logger.debug(`No base source code available for test case ${testCase.id}`);
+    context.logger.debug(
+      `No base source code available for test case ${testCase.id}`,
+    );
     return "";
   }
 
@@ -224,41 +252,41 @@ export class PromptEvaluationPlugin implements BenchmarkPlugin {
    */
   private parseMultiFileSourceCode(sourceCode: string): Record<string, string> {
     const files: Record<string, string> = {};
-    
-    if (!sourceCode.includes('# File:')) {
+
+    if (!sourceCode.includes("# File:")) {
       // Single file or unstructured source code
-      return { 'main': sourceCode };
+      return { main: sourceCode };
     }
 
     const sections = sourceCode.split(/\n# File: /);
-    
+
     for (let i = 0; i < sections.length; i++) {
       const section = sections[i];
-      
-      if (i === 0 && !section.startsWith('# File:')) {
+
+      if (i === 0 && !section.startsWith("# File:")) {
         // Skip any content before the first file marker
         continue;
       }
-      
-      const lines = section.split('\n');
+
+      const lines = section.split("\n");
       let filePath: string;
       let fileContent: string;
-      
+
       if (i === 0) {
         // First section starts with "# File:"
-        filePath = lines[0].replace('# File: ', '');
-        fileContent = lines.slice(1).join('\n').trim();
+        filePath = lines[0].replace("# File: ", "");
+        fileContent = lines.slice(1).join("\n").trim();
       } else {
         // Subsequent sections already have "# File:" removed by split
         filePath = lines[0];
-        fileContent = lines.slice(1).join('\n').trim();
+        fileContent = lines.slice(1).join("\n").trim();
       }
-      
-      if (filePath && !filePath.includes('(not found')) {
+
+      if (filePath && !filePath.includes("(not found")) {
         files[filePath] = fileContent;
       }
     }
-    
+
     return files;
   }
 
@@ -267,7 +295,7 @@ export class PromptEvaluationPlugin implements BenchmarkPlugin {
    */
   private extractFilePathsFromDiff(diffPatch: string): string[] {
     const filePaths: string[] = [];
-    const lines = diffPatch.split('\n');
+    const lines = diffPatch.split("\n");
 
     for (const line of lines) {
       // Match diff headers like "diff --git a/file.py b/file.py"
@@ -291,15 +319,18 @@ export class PromptEvaluationPlugin implements BenchmarkPlugin {
   /**
    * Extract the portion of a diff that applies to a specific file
    */
-  private extractFileDiffFromPatch(diffPatch: string, filePath: string): string | null {
-    const lines = diffPatch.split('\n');
+  private extractFileDiffFromPatch(
+    diffPatch: string,
+    filePath: string,
+  ): string | null {
+    const lines = diffPatch.split("\n");
     const fileDiffLines: string[] = [];
     let inTargetFile = false;
     let foundFile = false;
 
     for (const line of lines) {
       // Check if this is the start of our target file
-      if (line.startsWith('diff --git') && line.includes(`a/${filePath}`)) {
+      if (line.startsWith("diff --git") && line.includes(`a/${filePath}`)) {
         inTargetFile = true;
         foundFile = true;
         fileDiffLines.push(line);
@@ -307,7 +338,7 @@ export class PromptEvaluationPlugin implements BenchmarkPlugin {
       }
 
       // Check if this is the start of a different file
-      if (line.startsWith('diff --git') && !line.includes(`a/${filePath}`)) {
+      if (line.startsWith("diff --git") && !line.includes(`a/${filePath}`)) {
         if (inTargetFile) break; // We've finished with our target file
         continue;
       }
@@ -318,29 +349,29 @@ export class PromptEvaluationPlugin implements BenchmarkPlugin {
       }
     }
 
-    return foundFile ? fileDiffLines.join('\n') : null;
+    return foundFile ? fileDiffLines.join("\n") : null;
   }
 
   /**
    * Combine modified files back into multi-file source code format
    */
   private combineMultiFileSourceCode(files: Record<string, string>): string {
-    if (Object.keys(files).length === 1 && files['main']) {
+    if (Object.keys(files).length === 1 && files["main"]) {
       // Single unnamed file
-      return files['main'];
+      return files["main"];
     }
 
     const parts: string[] = [];
-    
+
     for (const [filePath, content] of Object.entries(files)) {
-      if (filePath !== 'main') {
+      if (filePath !== "main") {
         parts.push(`# File: ${filePath}\n${content}`);
       } else {
         parts.push(content);
       }
     }
-    
-    return parts.join('\n\n');
+
+    return parts.join("\n\n");
   }
 
   /**
@@ -348,11 +379,13 @@ export class PromptEvaluationPlugin implements BenchmarkPlugin {
    */
   private executeCodeAnalysisStep(generatedCode: string): TestStepResult {
     const codeLength = generatedCode.trim().length;
-    const hasFunction = /function\s+\w+|const\s+\w+\s*=|class\s+\w+/.test(generatedCode);
+    const hasFunction = /function\s+\w+|const\s+\w+\s*=|class\s+\w+/.test(
+      generatedCode,
+    );
     const hasSyntaxErrors = this.checkBasicSyntax(generatedCode);
 
     const passed = codeLength > 0 && hasFunction && !hasSyntaxErrors;
-    
+
     return {
       passed,
       score: passed ? 1 : 0,
@@ -419,7 +452,7 @@ export class PromptEvaluationPlugin implements BenchmarkPlugin {
   }
 
   /**
-   * Orchestrates the complete prompt evaluation workflow: enhanced prompt generation, code generation, 
+   * Orchestrates the complete prompt evaluation workflow: enhanced prompt generation, code generation,
    * diff application (if needed), code analysis, and unit testing.
    * Supports both standalone code generation and SWE-bench diff patch workflows.
    */
@@ -430,8 +463,13 @@ export class PromptEvaluationPlugin implements BenchmarkPlugin {
     const testStepResults: TestStepResult[] = [];
 
     // Step 1: Load and combine prompt files
-    const rulesContent = TestCaseExecutor.loadFileContent(context.properties.rulesFile);
-    const promptContent = TestCaseExecutor.loadFileContent(context.properties.promptFile);
+    const rulesContent = TestCaseExecutor.loadFileContent(
+      context.properties.rulesFile,
+    );
+    const promptContent = TestCaseExecutor.loadFileContent(
+      context.properties.promptFile,
+    );
+    // TODO: this should be taken from the continue.dev core logic
     const enhancedSystemPrompt = this.buildEnhancedSystemPrompt(
       context.properties.systemPrompt,
       rulesContent,
@@ -451,19 +489,25 @@ export class PromptEvaluationPlugin implements BenchmarkPlugin {
     testStepResults.push(codeGenStep);
 
     const rawResponse = codeGenStep.llmResponse?.content || "";
-    context.logger.debug(`Raw LLM response: ${rawResponse.substring(0, 200)}...`);
+    context.logger.debug(
+      `Raw LLM response: ${rawResponse.substring(0, 200)}...`,
+    );
 
     // Step 3: Extract code from LLM response
     const extractionStep = this.executeCodeExtractionStep(rawResponse);
     testStepResults.push(extractionStep);
 
     if (!extractionStep.passed || !extractionStep.extractedCode) {
-      context.logger.debug(`Code extraction failed, skipping analysis and unit tests`);
+      context.logger.debug(
+        `Code extraction failed, skipping analysis and unit tests`,
+      );
       return TestCaseExecutor.completeTestCase(testStepResults);
     }
 
     let finalCode = extractionStep.extractedCode;
-    context.logger.debug(`Extracted ${extractionStep.isDiff ? 'diff patch' : 'code'}: ${finalCode.substring(0, 200)}...`);
+    context.logger.debug(
+      `Extracted ${extractionStep.isDiff ? "diff patch" : "code"}: ${finalCode.substring(0, 200)}...`,
+    );
 
     // Step 4: Apply diff patch if detected
     if (extractionStep.isDiff) {
@@ -475,12 +519,16 @@ export class PromptEvaluationPlugin implements BenchmarkPlugin {
       testStepResults.push(diffStep);
 
       if (!diffStep.passed || !diffStep.patchedCode) {
-        context.logger.debug(`Diff application failed, skipping analysis and unit tests`);
+        context.logger.debug(
+          `Diff application failed, skipping analysis and unit tests`,
+        );
         return TestCaseExecutor.completeTestCase(testStepResults);
       }
 
       finalCode = diffStep.patchedCode;
-      context.logger.debug(`Applied diff patch, result: ${finalCode.substring(0, 200)}...`);
+      context.logger.debug(
+        `Applied diff patch, result: ${finalCode.substring(0, 200)}...`,
+      );
     }
 
     // Step 5: Analyze final code

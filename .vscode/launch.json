@@ -157,6 +157,56 @@
       "env": {
         "NODE_OPTIONS": "--experimental-vm-modules"
       }
+    },
+    {
+      "name": "Debug Eval Benchmark",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/node_modules/tsx/dist/cli.mjs",
+      "args": [
+        "${workspaceFolder}/eval/cli/main.ts",
+        "benchmark",
+        "--plugin", "prompt-evaluation",
+        "--dataset", "swe-bench",
+        "--dataset-source", "SWE-bench_Lite",
+        "--models", "GPT-4o",
+        "--verbose"
+      ],
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "openOnSessionStart",
+      "skipFiles": [
+        "<node_internals>/**",
+        "${workspaceFolder}/node_modules/**"
+      ],
+      "smartStep": true,
+      "sourceMaps": true,
+      "resolveSourceMapLocations": [
+        "${workspaceFolder}/eval/**",
+        "!**/node_modules/**"
+      ]
+    },
+    {
+      "name": "Debug Eval Benchmark (Custom Args)",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/node_modules/tsx/dist/cli.mjs",
+      "args": [
+        "${workspaceFolder}/eval/cli/main.ts"
+      ],
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "openOnSessionStart",
+      "skipFiles": [
+        "<node_internals>/**",
+        "${workspaceFolder}/node_modules/**"
+      ],
+      "smartStep": true,
+      "sourceMaps": true,
+      "resolveSourceMapLocations": [
+        "${workspaceFolder}/eval/**",
+        "!**/node_modules/**"
+      ]
     }
   ]
 }

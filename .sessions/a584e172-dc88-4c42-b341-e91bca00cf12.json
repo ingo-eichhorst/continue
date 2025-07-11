@@ -1,0 +1,108 @@
+{
+  "id": "a584e172-dc88-4c42-b341-e91bca00cf12",
+  "pluginName": "prompt-evaluation",
+  "startTime": "2025-06-28T13:03:35.508Z",
+  "lastUpdateTime": "2025-06-28T13:03:51.514Z",
+  "status": "completed",
+  "config": {
+    "models": [
+      "None"
+    ],
+    "dataset": "SWE-bench_Lite",
+    "properties": {
+      "systemPrompt": "",
+      "rulesFile": "",
+      "promptFile": ""
+    },
+    "executionEnvironment": "docker",
+    "maxRetries": 3,
+    "timeout": 300000
+  },
+  "progress": {
+    "totalTestCases": 1,
+    "completedTestCases": 1,
+    "failedTestCases": 1,
+    "skippedTestCases": 0,
+    "currentTestCase": "django__django-11133-None"
+  },
+  "results": [
+    {
+      "testCaseId": "django__django-11133-None",
+      "modelId": "None",
+      "status": "failed",
+      "startTime": "2025-06-28T13:03:35.513Z",
+      "endTime": "2025-06-28T13:03:51.508Z",
+      "duration": 15995,
+      "testStepResults": [
+        {
+          "passed": true,
+          "score": 1,
+          "details": "LLM generated response (2374 characters)",
+          "llmRequest": {
+            "model": "None",
+            "messages": [
+              {
+                "role": "system",
+                "content": ""
+              },
+              {
+                "role": "user",
+                "content": "Repository: django/django\nBase Commit: c5cd8783825b5f6384417dac5f87db783daca86e\n\nProblem Statement:\ndjango.forms.utils.flatten() is broken for dict subclasses that don't implement .items()\n\nHints:\nThe issue is in the flatten function where it checks isinstance(error, dict) but then assumes the dict has an .items() method.\n\nPlease provide a patch to fix this issue. The patch should be in unified diff format and address the problem described above."
+              }
+            ],
+            "timestamp": "2025-06-28T13:03:35.513Z"
+          },
+          "llmResponse": {
+            "content": "To address the issue where `django.forms.utils.flatten()` is broken for dict subclasses that don't implement `.items()`, we need to modify the `flatten` function. In the current implementation, it likely checks if the object is a dictionary instance using `isinstance(error, dict)` but assumes that it will have an `.items()` method, which is not always true for dict subclasses.\n\nHere's a patch to address this issue. We'll use the `collections.abc.Mapping` class to check for mappings and handle them accordingly:\n\n```diff\ndiff --git a/django/forms/utils.py b/django/forms/utils.py\nindex e69de29..f6b2d07 100644\n--- a/django/forms/utils.py\n+++ b/django/forms/utils.py\n@@ -1,3 +1,4 @@\n+from collections.abc import Mapping\n+\n def flatten(error):\n     \"\"\"\n     Turn a list of lists of errors into a single list of errors.\n@@ -7,7 +8,7 @@ def flatten(error):\n     if error is None:\n         return []\n     elif isinstance(error, list):\n-        return sum(map(flatten, error), [])\n+        return [e for sub in error for e in flatten(sub)]\n     elif isinstance(error, dict):\n         # Support both dicts and dict-like items (e.g., Subclass of dict)\n-        return sum(map(flatten, error.values()), [])\n+        return [e for val in error.values() for e in flatten(val)]\n+    elif isinstance(error, Mapping):\n+        return [e for val in error.values() for e in flatten(val)]\n     else:\n         return [error]\n```\n\n### Explanation of Changes:\n\n1. **Import Mapping**: We import `Mapping` from `collections.abc`. This allows us to check if an object is a mapping, which is more flexible and robust than directly checking if it's a dictionary. This change ensures that any object adhering to the mapping protocol (i.e., has `.keys()`, `.values()`, and `.items()` methods) will work correctly.\n\n2. **Use of List Comprehension**: I've rewritten the list flattening logic using list comprehensions instead of `sum(map(flatten, ...), [])` to improve readability and performance.\n\n3. **Handling Mapping**: Added a condition to handle mapping objects using isinstance(error, Mapping). This condition correctly flattens the error values if the object is a mapping.\n\nThis patch assumes that there is a test suite that verifies the correctness of the changes. If not, it's important to create tests to ensure the function behaves correctly with dict subclasses and other mapping types.",
+            "latency": 8586,
+            "timestamp": "2025-06-28T13:03:44.099Z"
+          }
+        },
+        {
+          "passed": true,
+          "score": 1,
+          "details": "Extracted 890 characters of code",
+          "extractedCode": "diff\ndiff --git a/django/forms/utils.py b/django/forms/utils.py\nindex e69de29..f6b2d07 100644\n--- a/django/forms/utils.py\n+++ b/django/forms/utils.py\n@@ -1,3 +1,4 @@\n+from collections.abc import Mapping\n+\n def flatten(error):\n     \"\"\"\n     Turn a list of lists of errors into a single list of errors.\n@@ -7,7 +8,7 @@ def flatten(error):\n     if error is None:\n         return []\n     elif isinstance(error, list):\n-        return sum(map(flatten, error), [])\n+        return [e for sub in error for e in flatten(sub)]\n     elif isinstance(error, dict):\n         # Support both dicts and dict-like items (e.g., Subclass of dict)\n-        return sum(map(flatten, error.values()), [])\n+        return [e for val in error.values() for e in flatten(val)]\n+    elif isinstance(error, Mapping):\n+        return [e for val in error.values() for e in flatten(val)]\n     else:\n         return [error]"
+        },
+        {
+          "passed": true,
+          "score": 1,
+          "details": "Generated valid code (890 characters)"
+        },
+        {
+          "passed": false,
+          "score": 0,
+          "details": "Unit tests failed: File \"/app/main.py\", line 38\n    +        Test that flatten works with objects that are dicts but don't have .items()\n                                                                        ^\nSyntaxError: unterminated string literal (detected at line 38)",
+          "error": "File \"/app/main.py\", line 38\n    +        Test that flatten works with objects that are dicts but don't have .items()\n                                                                        ^\nSyntaxError: unterminated string literal (detected at line 38)"
+        }
+      ],
+      "executionResult": {
+        "stdout": "To address the issue where `django.forms.utils.flatten()` is broken for dict subclasses that don't implement `.items()`, we need to modify the `flatten` function. In the current implementation, it likely checks if the object is a dictionary instance using `isinstance(error, dict)` but assumes that it will have an `.items()` method, which is not always true for dict subclasses.\n\nHere's a patch to address this issue. We'll use the `collections.abc.Mapping` class to check for mappings and handle them accordingly:\n\n```diff\ndiff --git a/django/forms/utils.py b/django/forms/utils.py\nindex e69de29..f6b2d07 100644\n--- a/django/forms/utils.py\n+++ b/django/forms/utils.py\n@@ -1,3 +1,4 @@\n+from collections.abc import Mapping\n+\n def flatten(error):\n     \"\"\"\n     Turn a list of lists of errors into a single list of errors.\n@@ -7,7 +8,7 @@ def flatten(error):\n     if error is None:\n         return []\n     elif isinstance(error, list):\n-        return sum(map(flatten, error), [])\n+        return [e for sub in error for e in flatten(sub)]\n     elif isinstance(error, dict):\n         # Support both dicts and dict-like items (e.g., Subclass of dict)\n-        return sum(map(flatten, error.values()), [])\n+        return [e for val in error.values() for e in flatten(val)]\n+    elif isinstance(error, Mapping):\n+        return [e for val in error.values() for e in flatten(val)]\n     else:\n         return [error]\n```\n\n### Explanation of Changes:\n\n1. **Import Mapping**: We import `Mapping` from `collections.abc`. This allows us to check if an object is a mapping, which is more flexible and robust than directly checking if it's a dictionary. This change ensures that any object adhering to the mapping protocol (i.e., has `.keys()`, `.values()`, and `.items()` methods) will work correctly.\n\n2. **Use of List Comprehension**: I've rewritten the list flattening logic using list comprehensions instead of `sum(map(flatten, ...), [])` to improve readability and performance.\n\n3. **Handling Mapping**: Added a condition to handle mapping objects using isinstance(error, Mapping). This condition correctly flattens the error values if the object is a mapping.\n\nThis patch assumes that there is a test suite that verifies the correctness of the changes. If not, it's important to create tests to ensure the function behaves correctly with dict subclasses and other mapping types.",
+        "stderr": "1 test step(s) failed",
+        "exitCode": 1,
+        "successful": false
+      },
+      "metrics": {
+        "latency": 8586,
+        "tokens": {
+          "prompt": 0,
+          "completion": 0,
+          "total": 0
+        },
+        "qualityScores": {
+          "step_0_score": 1,
+          "step_1_score": 1,
+          "step_2_score": 1,
+          "step_3_score": 0,
+          "overallQuality": 0.75
+        }
+      },
+      "error": {
+        "type": "validation",
+        "message": "One or more validation steps failed",
+        "details": "Check testStepResults for specific failures",
+        "recoverable": true
+      }
+    }
+  ]
+}

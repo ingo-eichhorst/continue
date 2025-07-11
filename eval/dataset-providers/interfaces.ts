@@ -14,6 +14,7 @@ export interface DatasetConfig {
     filter?: Record<string, any>;
     repo_filter?: string[]; // SWE-bench specific
     cache?: boolean;
+    execution_timeout?: number; // HumanEval specific
   };
   subset?: SubsetConfig;
 }
@@ -110,6 +111,28 @@ export interface SWEBenchConfig {
   max_repository_cache_size?: number;
   clone_timeout?: number;
   github_token?: string;
+}
+
+/**
+ * Raw data structure from HumanEval dataset
+ */
+export interface HumanEvalInstance {
+  task_id: string;          // "HumanEval/0"
+  prompt: string;           // Function signature + docstring
+  canonical_solution: string; // Reference implementation
+  test: string;            // Unit tests for verification
+  entry_point: string;     // Function name for execution
+}
+
+/**
+ * Configuration specific to HumanEval provider
+ */
+export interface HumanEvalConfig {
+  limit?: number;           // Limit number of problems
+  offset?: number;          // Start from specific problem
+  cache?: boolean;          // Enable/disable caching
+  execution_timeout?: number; // Timeout for code execution (ms)
+  huggingface_token?: string; // Token for accessing dataset
 }
 
 /**

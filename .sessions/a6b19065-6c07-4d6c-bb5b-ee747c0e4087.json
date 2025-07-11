@@ -1,0 +1,179 @@
+{
+  "id": "a6b19065-6c07-4d6c-bb5b-ee747c0e4087",
+  "pluginName": "prompt-evaluation",
+  "startTime": "2025-06-28T13:16:42.653Z",
+  "lastUpdateTime": "2025-06-28T13:17:17.644Z",
+  "status": "completed",
+  "config": {
+    "models": [
+      "None"
+    ],
+    "dataset": "SWE-bench_Lite",
+    "properties": {
+      "systemPrompt": "",
+      "rulesFile": "",
+      "promptFile": ""
+    },
+    "executionEnvironment": "docker",
+    "maxRetries": 3,
+    "timeout": 300000
+  },
+  "progress": {
+    "totalTestCases": 2,
+    "completedTestCases": 2,
+    "failedTestCases": 2,
+    "skippedTestCases": 0,
+    "currentTestCase": "astropy__astropy-14182-None"
+  },
+  "results": [
+    {
+      "testCaseId": "astropy__astropy-12907-None",
+      "modelId": "None",
+      "status": "failed",
+      "startTime": "2025-06-28T13:16:42.655Z",
+      "endTime": "2025-06-28T13:16:54.865Z",
+      "duration": 12210,
+      "testStepResults": [
+        {
+          "passed": true,
+          "score": 1,
+          "details": "LLM generated response (2455 characters)",
+          "llmRequest": {
+            "model": "None",
+            "messages": [
+              {
+                "role": "system",
+                "content": ""
+              },
+              {
+                "role": "user",
+                "content": "Repository: astropy/astropy\nBase Commit: d16bfe05a744909de4b27f5875fe0d4ed41ce607\n\nProblem Statement:\nModeling's `separability_matrix` does not compute separability correctly for nested CompoundModels\nConsider the following model:\r\n\r\n```python\r\nfrom astropy.modeling import models as m\r\nfrom astropy.modeling.separable import separability_matrix\r\n\r\ncm = m.Linear1D(10) & m.Linear1D(5)\r\n```\r\n\r\nIt's separability matrix as you might expect is a diagonal:\r\n\r\n```python\r\n>>> separability_matrix(cm)\r\narray([[ True, False],\r\n       [False,  True]])\r\n```\r\n\r\nIf I make the model more complex:\r\n```python\r\n>>> separability_matrix(m.Pix2Sky_TAN() & m.Linear1D(10) & m.Linear1D(5))\r\narray([[ True,  True, False, False],\r\n       [ True,  True, False, False],\r\n       [False, False,  True, False],\r\n       [False, False, False,  True]])\r\n```\r\n\r\nThe output matrix is again, as expected, the outputs and inputs to the linear models are separable and independent of each other.\r\n\r\nIf however, I nest these compound models:\r\n```python\r\n>>> separability_matrix(m.Pix2Sky_TAN() & cm)\r\narray([[ True,  True, False, False],\r\n       [ True,  True, False, False],\r\n       [False, False,  True,  True],\r\n       [False, False,  True,  True]])\r\n```\r\nSuddenly the inputs and outputs are no longer separable?\r\n\r\nThis feels like a bug to me, but I might be missing something?\n\n\nPlease provide a patch to fix this issue. The patch should be in unified diff format and address the problem described above."
+              }
+            ],
+            "timestamp": "2025-06-28T13:16:42.656Z"
+          },
+          "llmResponse": {
+            "content": "To address the issue with the `separability_matrix` not correctly computing separability for nested `CompoundModels`, we need to specifically handle the nesting of compound models and ensure that the separability matrices are computed correctly for each nested segment.\n\nHere's a patch in unified diff format that aims to fix this issue:\n\n```diff\ndiff --git a/astropy/modeling/separable.py b/astropy/modeling/separable.py\nindex 1234567..89abcde 100644\n--- a/astropy/modeling/separable.py\n+++ b/astropy/modeling/separable.py\n@@ -1,5 +1,6 @@\n import numpy as np\n \n+from astropy.modeling.core import CompoundModel\n from astropy.utils.exceptions import AstropyUserWarning\n \n def separability_matrix(model):\n@@ -16,6 +17,20 @@ def separability_matrix(model):\n            than True or False.\n     \"\"\"\n \n+    if isinstance(model, CompoundModel):\n+        left, right = model.left, model.right\n+        \n+        left_matrix = separability_matrix(left)\n+        right_matrix = separability_matrix(right)\n+        \n+        left_size = left.n_outputs\n+        right_size = right.n_outputs\n+\n+        combined_matrix = np.block([\n+            [left_matrix, np.zeros((left_size, right_size), dtype=bool)],\n+            [np.zeros((right_size, left_size), dtype=bool), right_matrix]\n+        ])\n+        return combined_matrix\n+\n     param_names = model.param_names\n     # Assume a model is initially separable unless proven otherwise\n     matrix = np.eye(len(param_names), dtype=bool)\n```\n\n### Explanation of the Patch\n\n1. **Import Handling**: We import the `CompoundModel` class that helps us identify compound models.\n\n2. **Compound Model Handling**: \n   - We first check if the model given to `separability_matrix` is an instance of `CompoundModel`.\n   - If it is a compound model, we recursively compute the separability matrix for its left and right components.\n   - Combine these matrices appropriately with zeros to represent non-separable connections between outputs of the left and right sub-models.\n\n3. **Block Combination**:\n   - We use `np.block` to construct the full separability matrix for the compound model, ensuring it reflects the separability of each sub-model, combining them with appropriate zero padding to respect the independence between the sub-models.\n\nThis patch addresses the nesting issue in compound models by correctly constructing the separability matrix that respects the independence of inputs and outputs for the nested components.",
+            "latency": 12207,
+            "timestamp": "2025-06-28T13:16:54.863Z"
+          }
+        },
+        {
+          "passed": true,
+          "score": 1,
+          "details": "Extracted 1130 characters of code",
+          "extractedCode": "diff\ndiff --git a/astropy/modeling/separable.py b/astropy/modeling/separable.py\nindex 1234567..89abcde 100644\n--- a/astropy/modeling/separable.py\n+++ b/astropy/modeling/separable.py\n@@ -1,5 +1,6 @@\n import numpy as np\n \n+from astropy.modeling.core import CompoundModel\n from astropy.utils.exceptions import AstropyUserWarning\n \n def separability_matrix(model):\n@@ -16,6 +17,20 @@ def separability_matrix(model):\n            than True or False.\n     \"\"\"\n \n+    if isinstance(model, CompoundModel):\n+        left, right = model.left, model.right\n+        \n+        left_matrix = separability_matrix(left)\n+        right_matrix = separability_matrix(right)\n+        \n+        left_size = left.n_outputs\n+        right_size = right.n_outputs\n+\n+        combined_matrix = np.block([\n+            [left_matrix, np.zeros((left_size, right_size), dtype=bool)],\n+            [np.zeros((right_size, left_size), dtype=bool), right_matrix]\n+        ])\n+        return combined_matrix\n+\n     param_names = model.param_names\n     # Assume a model is initially separable unless proven otherwise\n     matrix = np.eye(len(param_names), dtype=bool)"
+        },
+        {
+          "passed": false,
+          "score": 0,
+          "details": "Code analysis failed: no function/class found"
+        }
+      ],
+      "executionResult": {
+        "stdout": "To address the issue with the `separability_matrix` not correctly computing separability for nested `CompoundModels`, we need to specifically handle the nesting of compound models and ensure that the separability matrices are computed correctly for each nested segment.\n\nHere's a patch in unified diff format that aims to fix this issue:\n\n```diff\ndiff --git a/astropy/modeling/separable.py b/astropy/modeling/separable.py\nindex 1234567..89abcde 100644\n--- a/astropy/modeling/separable.py\n+++ b/astropy/modeling/separable.py\n@@ -1,5 +1,6 @@\n import numpy as np\n \n+from astropy.modeling.core import CompoundModel\n from astropy.utils.exceptions import AstropyUserWarning\n \n def separability_matrix(model):\n@@ -16,6 +17,20 @@ def separability_matrix(model):\n            than True or False.\n     \"\"\"\n \n+    if isinstance(model, CompoundModel):\n+        left, right = model.left, model.right\n+        \n+        left_matrix = separability_matrix(left)\n+        right_matrix = separability_matrix(right)\n+        \n+        left_size = left.n_outputs\n+        right_size = right.n_outputs\n+\n+        combined_matrix = np.block([\n+            [left_matrix, np.zeros((left_size, right_size), dtype=bool)],\n+            [np.zeros((right_size, left_size), dtype=bool), right_matrix]\n+        ])\n+        return combined_matrix\n+\n     param_names = model.param_names\n     # Assume a model is initially separable unless proven otherwise\n     matrix = np.eye(len(param_names), dtype=bool)\n```\n\n### Explanation of the Patch\n\n1. **Import Handling**: We import the `CompoundModel` class that helps us identify compound models.\n\n2. **Compound Model Handling**: \n   - We first check if the model given to `separability_matrix` is an instance of `CompoundModel`.\n   - If it is a compound model, we recursively compute the separability matrix for its left and right components.\n   - Combine these matrices appropriately with zeros to represent non-separable connections between outputs of the left and right sub-models.\n\n3. **Block Combination**:\n   - We use `np.block` to construct the full separability matrix for the compound model, ensuring it reflects the separability of each sub-model, combining them with appropriate zero padding to respect the independence between the sub-models.\n\nThis patch addresses the nesting issue in compound models by correctly constructing the separability matrix that respects the independence of inputs and outputs for the nested components.",
+        "stderr": "1 test step(s) failed",
+        "exitCode": 1,
+        "successful": false
+      },
+      "metrics": {
+        "latency": 12207,
+        "tokens": {
+          "prompt": 0,
+          "completion": 0,
+          "total": 0
+        },
+        "qualityScores": {
+          "step_0_score": 1,
+          "step_1_score": 1,
+          "step_2_score": 0,
+          "overallQuality": 0.6666666666666666
+        }
+      },
+      "error": {
+        "type": "validation",
+        "message": "One or more validation steps failed",
+        "details": "Check testStepResults for specific failures",
+        "recoverable": true
+      }
+    },
+    {
+      "testCaseId": "astropy__astropy-14182-None",
+      "modelId": "None",
+      "status": "failed",
+      "startTime": "2025-06-28T13:16:54.866Z",
+      "endTime": "2025-06-28T13:17:17.643Z",
+      "duration": 22777,
+      "testStepResults": [
+        {
+          "passed": true,
+          "score": 1,
+          "details": "LLM generated response (3354 characters)",
+          "llmRequest": {
+            "model": "None",
+            "messages": [
+              {
+                "role": "system",
+                "content": ""
+              },
+              {
+                "role": "user",
+                "content": "Repository: astropy/astropy\nBase Commit: a5917978be39d13cd90b517e1de4e7a539ffaa48\n\nProblem Statement:\nPlease support header rows in RestructuredText output\n### Description\r\n\r\nIt would be great if the following would work:\r\n\r\n```Python\r\n>>> from astropy.table import QTable\r\n>>> import astropy.units as u\r\n>>> import sys\r\n>>> tbl = QTable({'wave': [350,950]*u.nm, 'response': [0.7, 1.2]*u.count})\r\n>>> tbl.write(sys.stdout,  format=\"ascii.rst\")\r\n===== ========\r\n wave response\r\n===== ========\r\n350.0      0.7\r\n950.0      1.2\r\n===== ========\r\n>>> tbl.write(sys.stdout,  format=\"ascii.fixed_width\", header_rows=[\"name\", \"unit\"])\r\n|  wave | response |\r\n|    nm |       ct |\r\n| 350.0 |      0.7 |\r\n| 950.0 |      1.2 |\r\n>>> tbl.write(sys.stdout,  format=\"ascii.rst\", header_rows=[\"name\", \"unit\"])\r\nTraceback (most recent call last):\r\n  File \"<stdin>\", line 1, in <module>\r\n  File \"/usr/lib/python3/dist-packages/astropy/table/connect.py\", line 129, in __call__\r\n    self.registry.write(instance, *args, **kwargs)\r\n  File \"/usr/lib/python3/dist-packages/astropy/io/registry/core.py\", line 369, in write\r\n    return writer(data, *args, **kwargs)\r\n  File \"/usr/lib/python3/dist-packages/astropy/io/ascii/connect.py\", line 26, in io_write\r\n    return write(table, filename, **kwargs)\r\n  File \"/usr/lib/python3/dist-packages/astropy/io/ascii/ui.py\", line 856, in write\r\n    writer = get_writer(Writer=Writer, fast_writer=fast_writer, **kwargs)\r\n  File \"/usr/lib/python3/dist-packages/astropy/io/ascii/ui.py\", line 800, in get_writer\r\n    writer = core._get_writer(Writer, fast_writer, **kwargs)\r\n  File \"/usr/lib/python3/dist-packages/astropy/io/ascii/core.py\", line 1719, in _get_writer\r\n    writer = Writer(**writer_kwargs)\r\nTypeError: RST.__init__() got an unexpected keyword argument 'header_rows'\r\n```\r\n\r\n\r\n### Additional context\r\n\r\nRestructuredText output is a great way to fill autogenerated documentation with content, so having this flexible makes the life easier `:-)`\r\n\r\n\n\n\nPlease provide a patch to fix this issue. The patch should be in unified diff format and address the problem described above."
+              }
+            ],
+            "timestamp": "2025-06-28T13:16:54.866Z"
+          },
+          "llmResponse": {
+            "content": "To address the issue of supporting header rows in RestructuredText output for the `astropy` library, you'll need to modify the code that handles the `ascii.rst` output format. This involves enhancing the `RST` class within the `astropy.io.ascii` module to accept and process the `header_rows` argument. Below is a possible patch for this issue:\n\n```diff\ndiff --git a/astropy/io/ascii/rst.py b/astropy/io/ascii/rst.py\nindex f5f1c9e..c2d5a8e 100644\n--- a/astropy/io/ascii/rst.py\n+++ b/astropy/io/ascii/rst.py\n@@ -1,5 +1,6 @@\n from . import core\n from .core import FixedWidth, core\n+from .ui import _get_dialect_from_list\n \n class RST(core.BaseReader):\n     \"\"\"\n@@ -12,6 +13,8 @@ class RST(core.BaseReader):\n     def __init__(self):\n         super().__init__()\n         self.header = FixedWidth.Header()\n+        self.header_rows = []\n+\n         # In RST format the column separator is '|'\n         self.data.split = '|'\n \n@@ -28,6 +31,19 @@ class RST(core.BaseReader):\n         col.width = max(len(col.name), max(len(x) for x in col)) + 2\n         col.start = col.start or sum(c.width for c in self.cols[:self.n])\n \n+    def write(self, table, output=None):\n+        if self.header_rows:\n+            header_content = [\" \".join([getattr(col, attr, \"\") for col in table.columns.values()])\n+                              for attr in self.header_rows]\n+            max_length = max(len(line) for line in header_content)\n+            header_divider = \"=\" * max_length\n+\n+            output.write(f\"{header_divider}\\n\")\n+            output.write(\"\\n\".join(header_content +\n+                                   [header_divider]))\n+            table.pprint(max_width=-1, max_lines=-1, out=output, show_name=False)\n+        else:\n+            super().write(table, output)\n \n def read_rSt(table, **kwargs):\n     return core.read(table, Reader=RST, **kwargs)\n@@ -40,3 +56,7 @@ def write_rSt(table, output, **kwargs):\n \n core.register_writer('rst', write_rSt)\n core.register_reader('rst', read_rSt)\n+\n+# Extend the interface to accept `header_rows` for `ascii.rst` format\n+core.FORMAT_TABLES['ascii.rst']['write']['header_rows'] = ['name', 'unit']\n+rst_dialect = _get_dialect_from_list('rst')\n```\n\n### Explanation\n\n- **Add `header_rows` support:** I've modified the `RST` class to accept `header_rows` as an argument. When writing the table, if `header_rows` are specified, it will construct the additional header lines using the requested column metadata (e.g., `'name'`, `'unit'`) and include them in the output.\n\n- **Building Headers:** The construction of the headers is done by iterating over the specified `header_rows` attributes. The headers and data are aligned and formatted appropriately for the ReStructuredText format.\n\n- **Writing Output:** If `header_rows` are provided, it first writes the header lines and then uses the `table.pprint()` method to output the table content without repeated column names. If no `header_rows` are given, it defaults to the behavior of the parent `write` method.\n\nThis patch adds the functionality while maintaining backward compatibility for cases where `header_rows` isn't used. Apply this patch to your local repository and verify that the changes fulfill the requirements and pass any existing tests. Adjust the implementation details as necessary to fit within the broader context of the `astropy.io.ascii` framework.",
+            "latency": 22462,
+            "timestamp": "2025-06-28T13:17:17.328Z"
+          }
+        },
+        {
+          "passed": true,
+          "score": 1,
+          "details": "Extracted 1829 characters of code",
+          "extractedCode": "diff\ndiff --git a/astropy/io/ascii/rst.py b/astropy/io/ascii/rst.py\nindex f5f1c9e..c2d5a8e 100644\n--- a/astropy/io/ascii/rst.py\n+++ b/astropy/io/ascii/rst.py\n@@ -1,5 +1,6 @@\n from . import core\n from .core import FixedWidth, core\n+from .ui import _get_dialect_from_list\n \n class RST(core.BaseReader):\n     \"\"\"\n@@ -12,6 +13,8 @@ class RST(core.BaseReader):\n     def __init__(self):\n         super().__init__()\n         self.header = FixedWidth.Header()\n+        self.header_rows = []\n+\n         # In RST format the column separator is '|'\n         self.data.split = '|'\n \n@@ -28,6 +31,19 @@ class RST(core.BaseReader):\n         col.width = max(len(col.name), max(len(x) for x in col)) + 2\n         col.start = col.start or sum(c.width for c in self.cols[:self.n])\n \n+    def write(self, table, output=None):\n+        if self.header_rows:\n+            header_content = [\" \".join([getattr(col, attr, \"\") for col in table.columns.values()])\n+                              for attr in self.header_rows]\n+            max_length = max(len(line) for line in header_content)\n+            header_divider = \"=\" * max_length\n+\n+            output.write(f\"{header_divider}\\n\")\n+            output.write(\"\\n\".join(header_content +\n+                                   [header_divider]))\n+            table.pprint(max_width=-1, max_lines=-1, out=output, show_name=False)\n+        else:\n+            super().write(table, output)\n \n def read_rSt(table, **kwargs):\n     return core.read(table, Reader=RST, **kwargs)\n@@ -40,3 +56,7 @@ def write_rSt(table, output, **kwargs):\n \n core.register_writer('rst', write_rSt)\n core.register_reader('rst', read_rSt)\n+\n+# Extend the interface to accept `header_rows` for `ascii.rst` format\n+core.FORMAT_TABLES['ascii.rst']['write']['header_rows'] = ['name', 'unit']\n+rst_dialect = _get_dialect_from_list('rst')"
+        },
+        {
+          "passed": true,
+          "score": 1,
+          "details": "Generated valid code (1829 characters)"
+        },
+        {
+          "passed": false,
+          "score": 0,
+          "details": "Unit tests failed: File \"/app/main.py\", line 72\n    )\n    ^\nSyntaxError: unmatched ')'",
+          "error": "File \"/app/main.py\", line 72\n    )\n    ^\nSyntaxError: unmatched ')'"
+        }
+      ],
+      "executionResult": {
+        "stdout": "To address the issue of supporting header rows in RestructuredText output for the `astropy` library, you'll need to modify the code that handles the `ascii.rst` output format. This involves enhancing the `RST` class within the `astropy.io.ascii` module to accept and process the `header_rows` argument. Below is a possible patch for this issue:\n\n```diff\ndiff --git a/astropy/io/ascii/rst.py b/astropy/io/ascii/rst.py\nindex f5f1c9e..c2d5a8e 100644\n--- a/astropy/io/ascii/rst.py\n+++ b/astropy/io/ascii/rst.py\n@@ -1,5 +1,6 @@\n from . import core\n from .core import FixedWidth, core\n+from .ui import _get_dialect_from_list\n \n class RST(core.BaseReader):\n     \"\"\"\n@@ -12,6 +13,8 @@ class RST(core.BaseReader):\n     def __init__(self):\n         super().__init__()\n         self.header = FixedWidth.Header()\n+        self.header_rows = []\n+\n         # In RST format the column separator is '|'\n         self.data.split = '|'\n \n@@ -28,6 +31,19 @@ class RST(core.BaseReader):\n         col.width = max(len(col.name), max(len(x) for x in col)) + 2\n         col.start = col.start or sum(c.width for c in self.cols[:self.n])\n \n+    def write(self, table, output=None):\n+        if self.header_rows:\n+            header_content = [\" \".join([getattr(col, attr, \"\") for col in table.columns.values()])\n+                              for attr in self.header_rows]\n+            max_length = max(len(line) for line in header_content)\n+            header_divider = \"=\" * max_length\n+\n+            output.write(f\"{header_divider}\\n\")\n+            output.write(\"\\n\".join(header_content +\n+                                   [header_divider]))\n+            table.pprint(max_width=-1, max_lines=-1, out=output, show_name=False)\n+        else:\n+            super().write(table, output)\n \n def read_rSt(table, **kwargs):\n     return core.read(table, Reader=RST, **kwargs)\n@@ -40,3 +56,7 @@ def write_rSt(table, output, **kwargs):\n \n core.register_writer('rst', write_rSt)\n core.register_reader('rst', read_rSt)\n+\n+# Extend the interface to accept `header_rows` for `ascii.rst` format\n+core.FORMAT_TABLES['ascii.rst']['write']['header_rows'] = ['name', 'unit']\n+rst_dialect = _get_dialect_from_list('rst')\n```\n\n### Explanation\n\n- **Add `header_rows` support:** I've modified the `RST` class to accept `header_rows` as an argument. When writing the table, if `header_rows` are specified, it will construct the additional header lines using the requested column metadata (e.g., `'name'`, `'unit'`) and include them in the output.\n\n- **Building Headers:** The construction of the headers is done by iterating over the specified `header_rows` attributes. The headers and data are aligned and formatted appropriately for the ReStructuredText format.\n\n- **Writing Output:** If `header_rows` are provided, it first writes the header lines and then uses the `table.pprint()` method to output the table content without repeated column names. If no `header_rows` are given, it defaults to the behavior of the parent `write` method.\n\nThis patch adds the functionality while maintaining backward compatibility for cases where `header_rows` isn't used. Apply this patch to your local repository and verify that the changes fulfill the requirements and pass any existing tests. Adjust the implementation details as necessary to fit within the broader context of the `astropy.io.ascii` framework.",
+        "stderr": "1 test step(s) failed",
+        "exitCode": 1,
+        "successful": false
+      },
+      "metrics": {
+        "latency": 22462,
+        "tokens": {
+          "prompt": 0,
+          "completion": 0,
+          "total": 0
+        },
+        "qualityScores": {
+          "step_0_score": 1,
+          "step_1_score": 1,
+          "step_2_score": 1,
+          "step_3_score": 0,
+          "overallQuality": 0.75
+        }
+      },
+      "error": {
+        "type": "validation",
+        "message": "One or more validation steps failed",
+        "details": "Check testStepResults for specific failures",
+        "recoverable": true
+      }
+    }
+  ]
+}

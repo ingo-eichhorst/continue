@@ -438,13 +438,56 @@ export class DockerExecutionEnvironment implements ExecutionEnvironment {
 
       case "python":
       case "py":
-        return `${code}\n\n# Test code\nimport sys\n\n${test}\n\n# Run the test\ntry:\n    ${this.extractTestFunctionName(test)}()\n    print('✓ Test passed')\nexcept Exception as e:\n    print(f'✗ Test failed: {e}')\n    sys.exit(1)`;
+        return this.combinePythonCodeWithTest(code, test);
 
       default:
         throw new Error(
           `Test execution not yet supported for language: ${language}`,
         );
     }
+  }
+
+  /**
+   * Enhanced Python code combination for HumanEval-style tests
+   */
+  private combinePythonCodeWithTest(code: string, test: string): string {
+    // Check if this is a HumanEval-style test (contains 'def check(candidate):')
+    if (test.includes('def check(candidate):')) {
+      return this.combineHumanEvalPythonTest(code, test);
+    }
+    
+    // Default Python test combination
+    return `${code}\n\n# Test code\nimport sys\n\n${test}\n\n# Run the test\ntry:\n    ${this.extractTestFunctionName(test)}()\n    print('✓ Test passed')\nexcept Exception as e:\n    print(f'✗ Test failed: {e}')\n    sys.exit(1)`;
+  }
+
+  /**
+   * Combine code with HumanEval-style test that expects a 'candidate' function
+   */
+  private combineHumanEvalPythonTest(code: string, test: string): string {
+    // Extract the main function name from the code
+    const functionMatch = code.match(/def\s+(\w+)\s*\(/);
+    const functionName = functionMatch ? functionMatch[1] : 'solution';
+    
+    return `${code}
+
+# HumanEval Test Runner
+import sys
+import traceback
+
+${test}
+
+# Run the test
+try:
+    check(${functionName})
+    print('✓ Test passed')
+    sys.exit(0)
+except AssertionError as e:
+    print(f'✗ Test failed: Assertion error - {e}')
+    sys.exit(1)
+except Exception as e:
+    print(f'✗ Test failed: {type(e).__name__}: {e}')
+    traceback.print_exc()
+    sys.exit(1)`;
   }
 
   private extractTestFunctionName(test: string): string {

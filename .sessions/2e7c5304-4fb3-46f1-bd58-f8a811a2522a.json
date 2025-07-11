@@ -1,0 +1,188 @@
+{
+  "id": "2e7c5304-4fb3-46f1-bd58-f8a811a2522a",
+  "pluginName": "prompt-evaluation",
+  "startTime": "2025-06-28T21:35:41.533Z",
+  "lastUpdateTime": "2025-06-28T21:35:55.618Z",
+  "status": "completed",
+  "config": {
+    "models": [
+      "None"
+    ],
+    "dataset": "prompt-evaluation-dataset",
+    "properties": {
+      "systemPrompt": "You are a skilled JavaScript developer. Generate clean, well-tested code following best practices. Focus on proper error handling, input validation, and writing maintainable code.",
+      "rulesFile": "datasets/prompt-evaluation-dataset/rules-example.txt",
+      "promptFile": "datasets/prompt-evaluation-dataset/prompt-example.md"
+    },
+    "executionEnvironment": "local",
+    "maxRetries": 3,
+    "timeout": 300000
+  },
+  "progress": {
+    "totalTestCases": 2,
+    "completedTestCases": 2,
+    "failedTestCases": 2,
+    "skippedTestCases": 0,
+    "currentTestCase": "user-management-class-None"
+  },
+  "results": [
+    {
+      "testCaseId": "array-utils-function-None",
+      "modelId": "None",
+      "status": "failed",
+      "startTime": "2025-06-28T21:35:41.534Z",
+      "endTime": "2025-06-28T21:35:48.411Z",
+      "duration": 6877,
+      "testStepResults": [
+        {
+          "passed": true,
+          "score": 1,
+          "details": "LLM generated response (1562 characters)",
+          "llmRequest": {
+            "model": "None",
+            "messages": [
+              {
+                "role": "system",
+                "content": "You are a skilled JavaScript developer. Generate clean, well-tested code following best practices. Focus on proper error handling, input validation, and writing maintainable code."
+              },
+              {
+                "role": "user",
+                "content": "Create a JavaScript function called 'processNumbers' that takes an array of numbers and returns a new array containing only the even numbers, each multiplied by 2. The function should handle edge cases like empty arrays, null/undefined inputs, and non-numeric values."
+              }
+            ],
+            "timestamp": "2025-06-28T21:35:41.534Z"
+          },
+          "llmResponse": {
+            "content": "To create the `processNumbers` function that handles various edge cases and follows best practices, we'll use the following steps:\n\n1. Validate input to ensure it is an array.\n2. Filter out non-numeric values.\n3. Filter for even numbers.\n4. Multiply each even number by 2.\n5. Return the new array.\n\nHere's a clean implementation with proper error handling and input validation:\n\n```javascript\nfunction processNumbers(input) {\n  if (!Array.isArray(input)) {\n    throw new TypeError('Input must be an array');\n  }\n\n  return input\n    .filter(number => {\n      if (typeof number !== 'number' || isNaN(number)) {\n        console.warn(`Skipping non-numeric value: ${number}`);\n        return false;\n      }\n      return number % 2 === 0;\n    })\n    .map(number => number * 2);\n}\n\n// Example usage:\ntry {\n  const result = processNumbers([1, 2, 'three', 4, null, 5, NaN, 6]);\n  console.log(result); // Output: [4, 8, 12]\n} catch (error) {\n  console.error(error.message);\n}\n```\n\n### Explanation:\n\n- **Validation**: The function first checks if the input is an array using `Array.isArray()`. If it is not, a `TypeError` is thrown.\n- **Filtering**: \n  - Non-numeric values are filtered out using `typeof` and `isNaN()`. A warning is logged for non-numeric values to help with debugging.\n  - Only even numbers are kept in the array.\n- **Mapping**: The remaining even numbers are multiplied by 2 using `.map()`.\n- **Testing**: This implementation includes an example usage with a mix of numeric and non-numeric values, demonstrating how it handles various cases effectively.",
+            "latency": 6827,
+            "timestamp": "2025-06-28T21:35:48.361Z"
+          }
+        },
+        {
+          "passed": true,
+          "score": 1,
+          "details": "Extracted 572 characters of code",
+          "extractedCode": "function processNumbers(input) {\n  if (!Array.isArray(input)) {\n    throw new TypeError('Input must be an array');\n  }\n\n  return input\n    .filter(number => {\n      if (typeof number !== 'number' || isNaN(number)) {\n        console.warn(`Skipping non-numeric value: ${number}`);\n        return false;\n      }\n      return number % 2 === 0;\n    })\n    .map(number => number * 2);\n}\n\n// Example usage:\ntry {\n  const result = processNumbers([1, 2, 'three', 4, null, 5, NaN, 6]);\n  console.log(result); // Output: [4, 8, 12]\n} catch (error) {\n  console.error(error.message);\n}",
+          "isDiff": false
+        },
+        {
+          "passed": true,
+          "score": 1,
+          "details": "Generated valid code (572 characters)"
+        },
+        {
+          "passed": false,
+          "score": 0,
+          "details": "Unit tests failed: Skipping non-numeric value: three\nSkipping non-numeric value: null\nSkipping non-numeric value: NaN\n✗ Test failed: Input must be an array",
+          "error": "Skipping non-numeric value: three\nSkipping non-numeric value: null\nSkipping non-numeric value: NaN\n✗ Test failed: Input must be an array"
+        }
+      ],
+      "executionResult": {
+        "stdout": "To create the `processNumbers` function that handles various edge cases and follows best practices, we'll use the following steps:\n\n1. Validate input to ensure it is an array.\n2. Filter out non-numeric values.\n3. Filter for even numbers.\n4. Multiply each even number by 2.\n5. Return the new array.\n\nHere's a clean implementation with proper error handling and input validation:\n\n```javascript\nfunction processNumbers(input) {\n  if (!Array.isArray(input)) {\n    throw new TypeError('Input must be an array');\n  }\n\n  return input\n    .filter(number => {\n      if (typeof number !== 'number' || isNaN(number)) {\n        console.warn(`Skipping non-numeric value: ${number}`);\n        return false;\n      }\n      return number % 2 === 0;\n    })\n    .map(number => number * 2);\n}\n\n// Example usage:\ntry {\n  const result = processNumbers([1, 2, 'three', 4, null, 5, NaN, 6]);\n  console.log(result); // Output: [4, 8, 12]\n} catch (error) {\n  console.error(error.message);\n}\n```\n\n### Explanation:\n\n- **Validation**: The function first checks if the input is an array using `Array.isArray()`. If it is not, a `TypeError` is thrown.\n- **Filtering**: \n  - Non-numeric values are filtered out using `typeof` and `isNaN()`. A warning is logged for non-numeric values to help with debugging.\n  - Only even numbers are kept in the array.\n- **Mapping**: The remaining even numbers are multiplied by 2 using `.map()`.\n- **Testing**: This implementation includes an example usage with a mix of numeric and non-numeric values, demonstrating how it handles various cases effectively.",
+        "stderr": "1 test step(s) failed",
+        "exitCode": 1,
+        "successful": false
+      },
+      "metrics": {
+        "latency": 6827,
+        "tokens": {
+          "prompt": 0,
+          "completion": 0,
+          "total": 0
+        },
+        "qualityScores": {
+          "step_0_score": 1,
+          "step_1_score": 1,
+          "step_2_score": 1,
+          "step_3_score": 0,
+          "overallQuality": 0.75
+        }
+      },
+      "error": {
+        "type": "validation",
+        "message": "One or more validation steps failed",
+        "details": "Check testStepResults for specific failures",
+        "recoverable": true
+      }
+    },
+    {
+      "testCaseId": "user-management-class-None",
+      "modelId": "None",
+      "status": "failed",
+      "startTime": "2025-06-28T21:35:48.412Z",
+      "endTime": "2025-06-28T21:35:55.617Z",
+      "duration": 7205,
+      "testStepResults": [
+        {
+          "passed": true,
+          "score": 1,
+          "details": "LLM generated response (3039 characters)",
+          "llmRequest": {
+            "model": "None",
+            "messages": [
+              {
+                "role": "system",
+                "content": "You are a skilled JavaScript developer. Generate clean, well-tested code following best practices. Focus on proper error handling, input validation, and writing maintainable code."
+              },
+              {
+                "role": "user",
+                "content": "Create a JavaScript class called 'UserManager' that manages a collection of user objects. Each user should have properties: id, name, email, and age. The class should have methods: addUser(user), getUserById(id), updateUser(id, updates), deleteUser(id), and getAllUsers(). Include proper validation for email format and age (must be positive number). The class should throw appropriate errors for invalid operations."
+              }
+            ],
+            "timestamp": "2025-06-28T21:35:48.412Z"
+          },
+          "llmResponse": {
+            "content": "Here's a JavaScript class `UserManager` that implements the required functionality with proper input validation, error handling, and following clean coding practices:\n\n```javascript\nclass UserManager {\n  constructor() {\n    this.users = new Map();\n    this.nextId = 1;\n  }\n\n  // Helper method to validate email format\n  static validateEmail(email) {\n    const emailRegex = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/;\n    return emailRegex.test(email);\n  }\n\n  // Helper method to validate age\n  static validateAge(age) {\n    return typeof age === 'number' && age > 0;\n  }\n\n  // Add a user to the collection\n  addUser(user) {\n    if (!user.name || !UserManager.validateEmail(user.email) || !UserManager.validateAge(user.age)) {\n      throw new Error('Invalid user data. Ensure a valid name, email, and a positive age.');\n    }\n\n    const id = this.nextId++;\n    const newUser = { id, ...user };\n    this.users.set(id, newUser);\n    return id;\n  }\n\n  // Retrieve a user by their ID\n  getUserById(id) {\n    if (typeof id !== 'number' || id <= 0) {\n      throw new Error('Invalid ID. ID must be a positive number.');\n    }\n\n    const user = this.users.get(id);\n    if (!user) {\n      throw new Error(`User with ID ${id} not found.`);\n    }\n\n    return user;\n  }\n\n  // Update user details by ID\n  updateUser(id, updates) {\n    if (!this.users.has(id)) {\n      throw new Error(`Cannot update user. User with ID ${id} not found.`);\n    }\n\n    const currentUser = this.users.get(id);\n\n    if (updates.email && !UserManager.validateEmail(updates.email)) {\n      throw new Error('Invalid email format.');\n    }\n\n    if (updates.age !== undefined && !UserManager.validateAge(updates.age)) {\n      throw new Error('Invalid age. Age must be a positive number.');\n    }\n\n    const updatedUser = { ...currentUser, ...updates };\n    this.users.set(id, updatedUser);\n    return updatedUser;\n  }\n\n  // Delete a user by ID\n  deleteUser(id) {\n    if (!this.users.has(id)) {\n      throw new Error(`Cannot delete user. User with ID ${id} not found.`);\n    }\n    this.users.delete(id);\n    return true;\n  }\n\n  // Retrieve all users\n  getAllUsers() {\n    return Array.from(this.users.values());\n  }\n}\n\n// Example usage:\n// const manager = new UserManager();\n// const userId = manager.addUser({ name: 'John Doe', email: 'john.doe@example.com', age: 30 });\n// console.log(manager.getUserById(userId));\n// manager.updateUser(userId, { email: 'john.doe@newdomain.com' });\n// console.log(manager.getAllUsers());\n// manager.deleteUser(userId);\n// console.log(manager.getAllUsers());\n```\n\n### Key Points:\n- Each function in `UserManager` ensures that proper validations and error handling are performed before proceeding with the operations.\n- Using a `Map` for user storage allows efficient lookup, insertion, and deletion by ID.\n- Error messages are descriptive to aid in debugging and provide feedback.\n- Input validation is done for email and age to ensure data integrity.\n- The use of helper static methods for validation ensures separation of concerns and keeps the code modular.",
+            "latency": 7094,
+            "timestamp": "2025-06-28T21:35:55.506Z"
+          }
+        },
+        {
+          "passed": true,
+          "score": 1,
+          "details": "Extracted 2355 characters of code",
+          "extractedCode": "class UserManager {\n  constructor() {\n    this.users = new Map();\n    this.nextId = 1;\n  }\n\n  // Helper method to validate email format\n  static validateEmail(email) {\n    const emailRegex = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/;\n    return emailRegex.test(email);\n  }\n\n  // Helper method to validate age\n  static validateAge(age) {\n    return typeof age === 'number' && age > 0;\n  }\n\n  // Add a user to the collection\n  addUser(user) {\n    if (!user.name || !UserManager.validateEmail(user.email) || !UserManager.validateAge(user.age)) {\n      throw new Error('Invalid user data. Ensure a valid name, email, and a positive age.');\n    }\n\n    const id = this.nextId++;\n    const newUser = { id, ...user };\n    this.users.set(id, newUser);\n    return id;\n  }\n\n  // Retrieve a user by their ID\n  getUserById(id) {\n    if (typeof id !== 'number' || id <= 0) {\n      throw new Error('Invalid ID. ID must be a positive number.');\n    }\n\n    const user = this.users.get(id);\n    if (!user) {\n      throw new Error(`User with ID ${id} not found.`);\n    }\n\n    return user;\n  }\n\n  // Update user details by ID\n  updateUser(id, updates) {\n    if (!this.users.has(id)) {\n      throw new Error(`Cannot update user. User with ID ${id} not found.`);\n    }\n\n    const currentUser = this.users.get(id);\n\n    if (updates.email && !UserManager.validateEmail(updates.email)) {\n      throw new Error('Invalid email format.');\n    }\n\n    if (updates.age !== undefined && !UserManager.validateAge(updates.age)) {\n      throw new Error('Invalid age. Age must be a positive number.');\n    }\n\n    const updatedUser = { ...currentUser, ...updates };\n    this.users.set(id, updatedUser);\n    return updatedUser;\n  }\n\n  // Delete a user by ID\n  deleteUser(id) {\n    if (!this.users.has(id)) {\n      throw new Error(`Cannot delete user. User with ID ${id} not found.`);\n    }\n    this.users.delete(id);\n    return true;\n  }\n\n  // Retrieve all users\n  getAllUsers() {\n    return Array.from(this.users.values());\n  }\n}\n\n// Example usage:\n// const manager = new UserManager();\n// const userId = manager.addUser({ name: 'John Doe', email: 'john.doe@example.com', age: 30 });\n// console.log(manager.getUserById(userId));\n// manager.updateUser(userId, { email: 'john.doe@newdomain.com' });\n// console.log(manager.getAllUsers());\n// manager.deleteUser(userId);\n// console.log(manager.getAllUsers());",
+          "isDiff": false
+        },
+        {
+          "passed": true,
+          "score": 1,
+          "details": "Generated valid code (2355 characters)"
+        },
+        {
+          "passed": false,
+          "score": 0,
+          "details": "Unit tests failed: ✗ Test failed: User with ID 1 not found.",
+          "error": "✗ Test failed: User with ID 1 not found."
+        }
+      ],
+      "executionResult": {
+        "stdout": "Here's a JavaScript class `UserManager` that implements the required functionality with proper input validation, error handling, and following clean coding practices:\n\n```javascript\nclass UserManager {\n  constructor() {\n    this.users = new Map();\n    this.nextId = 1;\n  }\n\n  // Helper method to validate email format\n  static validateEmail(email) {\n    const emailRegex = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/;\n    return emailRegex.test(email);\n  }\n\n  // Helper method to validate age\n  static validateAge(age) {\n    return typeof age === 'number' && age > 0;\n  }\n\n  // Add a user to the collection\n  addUser(user) {\n    if (!user.name || !UserManager.validateEmail(user.email) || !UserManager.validateAge(user.age)) {\n      throw new Error('Invalid user data. Ensure a valid name, email, and a positive age.');\n    }\n\n    const id = this.nextId++;\n    const newUser = { id, ...user };\n    this.users.set(id, newUser);\n    return id;\n  }\n\n  // Retrieve a user by their ID\n  getUserById(id) {\n    if (typeof id !== 'number' || id <= 0) {\n      throw new Error('Invalid ID. ID must be a positive number.');\n    }\n\n    const user = this.users.get(id);\n    if (!user) {\n      throw new Error(`User with ID ${id} not found.`);\n    }\n\n    return user;\n  }\n\n  // Update user details by ID\n  updateUser(id, updates) {\n    if (!this.users.has(id)) {\n      throw new Error(`Cannot update user. User with ID ${id} not found.`);\n    }\n\n    const currentUser = this.users.get(id);\n\n    if (updates.email && !UserManager.validateEmail(updates.email)) {\n      throw new Error('Invalid email format.');\n    }\n\n    if (updates.age !== undefined && !UserManager.validateAge(updates.age)) {\n      throw new Error('Invalid age. Age must be a positive number.');\n    }\n\n    const updatedUser = { ...currentUser, ...updates };\n    this.users.set(id, updatedUser);\n    return updatedUser;\n  }\n\n  // Delete a user by ID\n  deleteUser(id) {\n    if (!this.users.has(id)) {\n      throw new Error(`Cannot delete user. User with ID ${id} not found.`);\n    }\n    this.users.delete(id);\n    return true;\n  }\n\n  // Retrieve all users\n  getAllUsers() {\n    return Array.from(this.users.values());\n  }\n}\n\n// Example usage:\n// const manager = new UserManager();\n// const userId = manager.addUser({ name: 'John Doe', email: 'john.doe@example.com', age: 30 });\n// console.log(manager.getUserById(userId));\n// manager.updateUser(userId, { email: 'john.doe@newdomain.com' });\n// console.log(manager.getAllUsers());\n// manager.deleteUser(userId);\n// console.log(manager.getAllUsers());\n```\n\n### Key Points:\n- Each function in `UserManager` ensures that proper validations and error handling are performed before proceeding with the operations.\n- Using a `Map` for user storage allows efficient lookup, insertion, and deletion by ID.\n- Error messages are descriptive to aid in debugging and provide feedback.\n- Input validation is done for email and age to ensure data integrity.\n- The use of helper static methods for validation ensures separation of concerns and keeps the code modular.",
+        "stderr": "1 test step(s) failed",
+        "exitCode": 1,
+        "successful": false
+      },
+      "metrics": {
+        "latency": 7094,
+        "tokens": {
+          "prompt": 0,
+          "completion": 0,
+          "total": 0
+        },
+        "qualityScores": {
+          "step_0_score": 1,
+          "step_1_score": 1,
+          "step_2_score": 1,
+          "step_3_score": 0,
+          "overallQuality": 0.75
+        }
+      },
+      "error": {
+        "type": "validation",
+        "message": "One or more validation steps failed",
+        "details": "Check testStepResults for specific failures",
+        "recoverable": true
+      }
+    }
+  ]
+}
